@@ -29,6 +29,17 @@ function pickRandomHirelings(ownedExpansions, ownedAccessories, count = 3) {
   return shuffled.slice(0, count).map(h => h.id);
 }
 
+// Returns array of 'promoted'|'demoted' parallel to selectedHirelings
+// Rule: demotedCount = playerCount - 2, clamped to [0, count]
+// Which slots are demoted is randomly assigned each session
+function computeHirelingStatuses(count, playerCount) {
+  const demotedCount = Math.max(0, Math.min(playerCount - 2, count));
+  const indices = Array.from({ length: count }, (_, i) => i);
+  const shuffled = [...indices].sort(() => Math.random() - 0.5);
+  const demotedSet = new Set(shuffled.slice(0, demotedCount));
+  return indices.map(i => demotedSet.has(i) ? 'demoted' : 'promoted');
+}
+
 function pickRandomLandmarks(ownedExpansions, ownedAccessories, count = 2) {
   const eligible = LANDMARKS.filter(l => {
     if (l.source === 'underworld') return ownedExpansions.has('underworld');
@@ -80,9 +91,11 @@ function loadSettings() {
       customMinReach:    parsed.customMinReach            ?? null,
       customMaxReach:    parsed.customMaxReach            ?? null,
       allowedExclusions: new Set(parsed.allowedExclusions ?? []),
-      ownedAccessories:  new Set(parsed.ownedAccessories  ?? []),
-      useHirelings:      parsed.useHirelings              ?? false,
-      useLandmarks:      parsed.useLandmarks              ?? false,
+      ownedAccessories:      new Set(parsed.ownedAccessories  ?? []),
+      useHirelings:          parsed.useHirelings              ?? false,
+      useLandmarks:          parsed.useLandmarks              ?? false,
+      landmarkCount:         parsed.landmarkCount             ?? 2,
+      customHirelingCount:   parsed.customHirelingCount       ?? null,
     };
   } catch {
     return null;
@@ -101,9 +114,11 @@ function saveSettings(state) {
       customMinReach:    state.customMinReach,
       customMaxReach:    state.customMaxReach,
       allowedExclusions: [...state.allowedExclusions],
-      ownedAccessories:  [...state.ownedAccessories],
-      useHirelings:      state.useHirelings,
-      useLandmarks:      state.useLandmarks,
+      ownedAccessories:    [...state.ownedAccessories],
+      useHirelings:        state.useHirelings,
+      useLandmarks:        state.useLandmarks,
+      landmarkCount:       state.landmarkCount,
+      customHirelingCount: state.customHirelingCount,
     }));
   } catch {}
 }
@@ -122,15 +137,18 @@ function getInitialState() {
     customMinReach:    null,
     customMaxReach:    null,
     allowedExclusions: new Set(),
-    ownedAccessories:  new Set(),
-    useHirelings:      false,
-    useLandmarks:      false,
-    selectedFactions:  [],
+    ownedAccessories:    new Set(),
+    useHirelings:        false,
+    useLandmarks:        false,
+    landmarkCount:       2,
+    customHirelingCount: null,
+    selectedFactions:    [],
     lockedFactions:    new Set(),
     bannedFactions:    new Set(),
     selectedMap:       null,
     selectedDeck:      null,
     selectedHirelings: [],
+    hirelingStatuses:  [],
     selectedLandmarks: [],
     vagabondCharacters: {},
     history:           [],
@@ -154,6 +172,7 @@ export function useAppState() {
     state.requireBalance, state.difficulties, state.advancedMode,
     state.customMinReach, state.customMaxReach, state.allowedExclusions,
     state.ownedAccessories, state.useHirelings, state.useLandmarks,
+    state.landmarkCount, state.customHirelingCount,
   ]);
 
   // ── Settings ──────────────────────────────────────────────────────────────
@@ -205,6 +224,14 @@ export function useAppState() {
 
   const setUseLandmarks = useCallback(val => {
     setState(s => ({ ...s, useLandmarks: val }));
+  }, []);
+
+  const setLandmarkCount = useCallback(val => {
+    setState(s => ({ ...s, landmarkCount: val }));
+  }, []);
+
+  const setCustomHirelingCount = useCallback(val => {
+    setState(s => ({ ...s, customHirelingCount: val }));
   }, []);
 
   // ── Advanced ──────────────────────────────────────────────────────────────
@@ -263,6 +290,8 @@ export function useAppState() {
         : s.history;
 
       const newFactions = result.factions;
+      const hirelingCount = s.customHirelingCount ?? 3;
+      const newHirelings  = s.useHirelings ? pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, hirelingCount) : [];
 
       return {
         ...s,
@@ -270,8 +299,9 @@ export function useAppState() {
         lockedFactions:     keepLocked ? s.lockedFactions : new Set(),
         selectedMap:        pickRandomMap(s.ownedExpansions),
         selectedDeck:       pickRandomDeck(s.ownedAccessories),
-        selectedHirelings:  s.useHirelings ? pickRandomHirelings(s.ownedExpansions, s.ownedAccessories) : [],
-        selectedLandmarks:  s.useLandmarks ? pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories) : [],
+        selectedHirelings:  newHirelings,
+        hirelingStatuses:   computeHirelingStatuses(newHirelings.length, s.playerCount),
+        selectedLandmarks:  s.useLandmarks ? pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories, s.landmarkCount) : [],
         vagabondCharacters: pickVagabondCharacters(newFactions, s.ownedExpansions, s.ownedAccessories),
         history:            newHistory,
         error:              null,
@@ -342,10 +372,15 @@ export function useAppState() {
   }, []);
 
   const rerollHirelings = useCallback(() => {
-    setState(s => ({
-      ...s,
-      selectedHirelings: pickRandomHirelings(s.ownedExpansions, s.ownedAccessories),
-    }));
+    setState(s => {
+      const hirelingCount = s.customHirelingCount ?? 3;
+      const newHirelings = pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, hirelingCount);
+      return {
+        ...s,
+        selectedHirelings: newHirelings,
+        hirelingStatuses:  computeHirelingStatuses(newHirelings.length, s.playerCount),
+      };
+    });
   }, []);
 
   const rerollSingleHireling = useCallback(hirelingId => {
@@ -361,6 +396,7 @@ export function useAppState() {
       return {
         ...s,
         selectedHirelings: s.selectedHirelings.map(id => id === hirelingId ? pick.id : id),
+        // hirelingStatuses stays the same — slot keeps its promoted/demoted assignment
       };
     });
   }, []);
@@ -368,7 +404,7 @@ export function useAppState() {
   const rerollLandmarks = useCallback(() => {
     setState(s => ({
       ...s,
-      selectedLandmarks: pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories),
+      selectedLandmarks: pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories, s.landmarkCount),
     }));
   }, []);
 
@@ -463,6 +499,7 @@ export function useAppState() {
     actions: {
       toggleExpansion, setPlayerCount, setBalanceMode, setRequireBalance,
       toggleDifficulty, toggleAccessory, setUseHirelings, setUseLandmarks,
+      setLandmarkCount, setCustomHirelingCount,
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
       rerollSingleHireling, rerollLandmarks, rerollVagabondCharacter,

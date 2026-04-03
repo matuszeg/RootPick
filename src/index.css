@@ -959,9 +959,24 @@ a { color: inherit; }
   color: rgba(255,255,255,0.5);
 }
 
+.hireling-header-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.hireling-status-badge {
+  font-size: 0.6rem;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.hireling-status-badge.promoted { color: #FFD580; }
+.hireling-status-badge.demoted  { color: rgba(255,255,255,0.55); }
+
 .hireling-source-badge {
   font-size: 0.6rem;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255,255,255,0.55);
   font-style: italic;
   font-family: var(--font-ui);
 }
@@ -997,17 +1012,33 @@ a { color: inherit; }
 .hireling-sides {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.25rem;
   margin-bottom: 0.4rem;
 }
 
 .hireling-side {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
   font-size: 0.68rem;
   font-family: var(--font-ui);
   line-height: 1.3;
+  padding: 0.2rem 0.35rem;
+  border-radius: 4px;
+  opacity: 0.45;
+  transition: opacity 0.15s;
 }
-.hireling-side.promoted { color: #7A4A1A; font-weight: 600; }
-.hireling-side.demoted  { color: #4A6A8A; }
+.hireling-side.active {
+  opacity: 1;
+}
+.hireling-side.promoted        { color: #7A4A1A; }
+.hireling-side.promoted.active { background: #FFF3D6; font-weight: 600; }
+.hireling-side.demoted         { color: #4A6A8A; }
+.hireling-side.demoted.active  { background: #E8F0FA; font-weight: 600; }
+
+.hireling-side-icon  { font-size: 0.6rem; flex-shrink: 0; }
+.hireling-side-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0; }
+.hireling-side-name  { flex: 1; }
 
 .hireling-description {
   font-size: 0.72rem;
@@ -1094,6 +1125,45 @@ a { color: inherit; }
   letter-spacing: 0.1em;
   color: var(--gold);
   margin-bottom: 0.1rem;
+}
+
+.landmark-count-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.15rem 0;
+}
+.landmark-count-control-label {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a6d57;
+}
+.landmark-count-btns {
+  display: flex;
+  gap: 0.3rem;
+}
+.landmark-count-btn {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 40px;
+  height: 30px;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  color: #c8b89a;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.landmark-count-btn:hover { border-color: var(--gold); color: var(--gold); }
+.landmark-count-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
 }
 
 /* ─── Map card ────────────────────────────────────────────────────────── */

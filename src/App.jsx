@@ -116,6 +116,7 @@ export default function App() {
     selectedMap,
     selectedDeck,
     selectedHirelings,
+    hirelingStatuses,
     selectedLandmarks,
     vagabondCharacters,
     playerCount,
@@ -263,6 +264,7 @@ export default function App() {
                           key={hid}
                           hirelingId={hid}
                           index={i}
+                          status={hirelingStatuses[i] ?? null}
                           onReroll={() => actions.rerollSingleHireling(hid)}
                         />
                       ))}

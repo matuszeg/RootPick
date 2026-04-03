@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { EXPANSIONS } from '../data/factions.js';
-import { ACCESSORIES } from '../data/accessories.js';
+import { ACCESSORIES, HIRELING_SETS } from '../data/accessories.js';
 import { getReachThreshold } from '../utils/randomizer.js';
 
 // All mutually-excluding pairs in the game
@@ -19,7 +19,7 @@ export default function SetupPanel({ state, actions }) {
   const {
     ownedExpansions, playerCount, balanceMode, requireBalance,
     difficulties, advancedMode, customMinReach, customMaxReach, allowedExclusions,
-    ownedAccessories, useHirelings, useLandmarks,
+    ownedAccessories, useHirelings, useLandmarks, landmarkCount, customHirelingCount,
   } = state;
 
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -35,7 +35,12 @@ export default function SetupPanel({ state, actions }) {
   // Can use landmarks if Underworld owned (Tower) or Landmarks Pack owned
   const canUseLandmarks = ownedExpansions.has('underworld') || ownedAccessories.has('landmarks_pack');
   const threshold = getReachThreshold(balanceMode, playerCount);
-  const hasAdvancedOverrides = customMinReach !== null || customMaxReach !== null || allowedExclusions.size > 0;
+  const hasAdvancedOverrides = customMinReach !== null || customMaxReach !== null || allowedExclusions.size > 0 || customHirelingCount !== null;
+
+  const eligibleHirelingCount = HIRELING_SETS.filter(h => {
+    if (h.source === 'marauder') return ownedExpansions.has('marauder');
+    return ownedAccessories.has(h.source);
+  }).length;
 
   return (
     <aside className="setup-panel">
@@ -207,11 +212,28 @@ export default function SetupPanel({ state, actions }) {
                 </label>
               ))}
               {canUseLandmarks && (
-                <label className={`expansion-check ${useLandmarks ? 'checked' : ''}`}>
-                  <input type="checkbox" checked={useLandmarks} onChange={e => actions.setUseLandmarks(e.target.checked)} />
-                  <span className="checkbox-box" />
-                  <span className="expansion-name">Randomize landmarks for this session</span>
-                </label>
+                <div className="landmark-count-control">
+                  <span className="landmark-count-control-label">Landmarks in play</span>
+                  <div className="landmark-count-btns">
+                    <button
+                      className={`landmark-count-btn ${!useLandmarks ? 'active' : ''}`}
+                      onClick={() => actions.setUseLandmarks(false)}
+                      aria-pressed={!useLandmarks}
+                    >
+                      Off
+                    </button>
+                    {[1, 2].map(n => (
+                      <button
+                        key={n}
+                        className={`landmark-count-btn ${useLandmarks && landmarkCount === n ? 'active' : ''}`}
+                        onClick={() => { actions.setUseLandmarks(true); actions.setLandmarkCount(n); }}
+                        aria-pressed={useLandmarks && landmarkCount === n}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
               {!canUseLandmarks && (
                 <p className="mode-description">Requires Underworld Expansion or Landmarks Pack.</p>
@@ -326,6 +348,41 @@ export default function SetupPanel({ state, actions }) {
                 ))}
               </div>
             </div>
+
+            {useHirelings && (
+              <div className="advanced-row">
+                <label className="advanced-label">
+                  Hireling Count
+                  <InfoIcon tip="Override the default of 3 hirelings. Useful for tighter or more chaotic games." />
+                </label>
+                <div className="reach-inputs">
+                  <input
+                    type="number"
+                    className="reach-input"
+                    placeholder="3"
+                    min="0"
+                    max={eligibleHirelingCount}
+                    value={customHirelingCount ?? ''}
+                    onChange={e => {
+                      const val = e.target.value === '' ? null : Math.min(Number(e.target.value), eligibleHirelingCount);
+                      actions.setCustomHirelingCount(val);
+                    }}
+                  />
+                  {customHirelingCount !== null && (
+                    <button
+                      className="reach-reset"
+                      onClick={() => actions.setCustomHirelingCount(null)}
+                      title="Reset to default"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                <p className="mode-description" style={{ marginTop: 4 }}>
+                  Default: 3 · {eligibleHirelingCount} set{eligibleHirelingCount !== 1 ? 's' : ''} available · Promoted/demoted scales with player count.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
