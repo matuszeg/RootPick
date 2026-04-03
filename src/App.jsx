@@ -1,33 +1,33 @@
 import { useAppState } from './hooks/useAppState.js';
 import SetupPanel from './components/SetupPanel.jsx';
 import FactionCard from './components/FactionCard.jsx';
+import MapCard from './components/MapCard.jsx';
+import DeckCard from './components/DeckCard.jsx';
+import HirelingCard from './components/HirelingCard.jsx';
+import LandmarkCard from './components/LandmarkCard.jsx';
 import ReachSummary from './components/ReachSummary.jsx';
 import ActionBar from './components/ActionBar.jsx';
 import BannedPanel from './components/BannedPanel.jsx';
 import { useState } from 'react';
-import { FACTIONS, REACH_MINIMUMS } from './data/factions.js';
+import { FACTIONS } from './data/factions.js';
+import { MAP_MAP } from './data/maps.js';
+import { DECKS } from './data/accessories.js';
+import { getReachThreshold } from './utils/randomizer.js';
 
-function EmptyState({ onRandomize }) {
+function EmptyState() {
   return (
     <div className="empty-state">
       <div className="empty-icon">🌲</div>
       <p className="empty-text">No factions picked yet.</p>
-      <p className="empty-sub">Hit Randomize to assemble your war council.</p>
-      <button className="action-btn primary randomize-btn" onClick={onRandomize}>
-        <span className="btn-icon">🎲</span>
-        <span>Randomize</span>
-      </button>
+      <p className="empty-sub">Hit the Randomize button above to assemble your war council.</p>
     </div>
   );
 }
 
 function BrowseView({ state, actions }) {
-  const { ownedExpansions, bannedFactions, difficulties, playerCount, strictMode } = state;
+  const { ownedExpansions, bannedFactions, difficulties, playerCount, balanceMode } = state;
 
-  const threshold = strictMode ? (REACH_MINIMUMS[playerCount] ?? 17) : 17;
-  const poolReach = FACTIONS
-    .filter(f => ownedExpansions.has(f.expansion) && !bannedFactions.has(f.id) && difficulties.has(f.difficulty))
-    .reduce((sum, f) => sum + f.reach, 0);
+  const threshold = getReachThreshold(balanceMode, playerCount);
 
   const pool = FACTIONS.filter(
     f =>
@@ -56,8 +56,8 @@ function BrowseView({ state, actions }) {
           {pool.length} faction{pool.length !== 1 ? 's' : ''} in pool
         </span>
         <span className="browse-reach-goal">
-          Reach goal for {playerCount}p: <strong>{threshold}</strong>
-          <span className="browse-mode-tag">{strictMode ? 'Strict' : 'Adventurous'}</span>
+          Reach goal for {playerCount}p: <strong>{threshold === 0 ? 'None' : threshold}</strong>
+          <span className="browse-mode-tag">{{ balanced: 'Balanced', standard: 'Standard', chaos: 'Chaos' }[balanceMode]}</span>
         </span>
       </div>
 
@@ -113,12 +113,23 @@ export default function App() {
     selectedFactions,
     lockedFactions,
     bannedFactions,
+    selectedMap,
+    selectedDeck,
+    selectedHirelings,
+    selectedLandmarks,
+    vagabondCharacters,
     playerCount,
-    strictMode,
+    balanceMode,
+    ownedExpansions,
+    ownedAccessories,
     error,
     copied,
     history,
   } = state;
+
+  const mapData = selectedMap ? MAP_MAP[selectedMap] : null;
+  const canRerollMap = Object.values(MAP_MAP).filter(m => ownedExpansions.has(m.expansion)).length > 1;
+  const canRerollDeck = DECKS.filter(d => d.accessory === null || ownedAccessories.has(d.accessory)).length > 1;
 
   return (
     <div className="app">
@@ -155,7 +166,7 @@ export default function App() {
             aria-selected={viewMode === 'pick'}
             onClick={() => setViewMode('pick')}
           >
-            <span className="tab-icon">🎲</span> Randomize
+            <span className="tab-icon">🎲</span> Pick Factions
           </button>
           <button
             className={`view-tab ${viewMode === 'browse' ? 'active' : ''}`}
@@ -171,6 +182,7 @@ export default function App() {
           <>
             <ActionBar
               hasSelection={selectedFactions.length > 0}
+              hasLockedFactions={lockedFactions.size > 0}
               hasHistory={history.length > 0}
               copied={copied}
               actions={actions}
@@ -192,25 +204,77 @@ export default function App() {
             <ReachSummary
               selectedFactions={selectedFactions}
               playerCount={playerCount}
-              strictMode={strictMode}
+              balanceMode={balanceMode}
             />
 
             {selectedFactions.length > 0 ? (
-              <div className="cards-grid">
-                {selectedFactions.map((id, i) => (
-                  <FactionCard
-                    key={`${id}-${i}`}
-                    factionId={id}
-                    locked={lockedFactions.has(id)}
-                    animIndex={i}
-                    onLock={() => actions.toggleLock(id)}
-                    onReroll={() => actions.rerollSingle(id)}
-                    onBan={() => actions.banFaction(id)}
+              <>
+                {/* Session setup row: Map + Deck */}
+                <div className="session-row">
+                  {selectedMap && (
+                    <MapCard
+                      mapId={selectedMap}
+                      onReroll={actions.rerollMap}
+                      canReroll={canRerollMap}
+                    />
+                  )}
+                  {selectedDeck && (
+                    <DeckCard
+                      deckId={selectedDeck}
+                      onReroll={actions.rerollDeck}
+                      canReroll={canRerollDeck}
+                    />
+                  )}
+                </div>
+
+                {/* Landmarks */}
+                {selectedLandmarks.length > 0 && (
+                  <LandmarkCard
+                    landmarkIds={selectedLandmarks}
+                    onReroll={actions.rerollLandmarks}
                   />
-                ))}
-              </div>
+                )}
+
+                {/* Faction Cards */}
+                <div className="cards-grid">
+                  {selectedFactions.map((id, i) => (
+                    <FactionCard
+                      key={`${id}-${i}`}
+                      factionId={id}
+                      locked={lockedFactions.has(id)}
+                      animIndex={i}
+                      onLock={() => actions.toggleLock(id)}
+                      onReroll={() => actions.rerollSingle(id)}
+                      onBan={() => actions.banFaction(id)}
+                      mapNote={mapData?.factionNotes?.[id] ?? null}
+                      vagabondCharacter={vagabondCharacters[id] ?? null}
+                      onRerollCharacter={() => actions.rerollVagabondCharacter(id)}
+                    />
+                  ))}
+                </div>
+
+                {/* Hirelings */}
+                {selectedHirelings.length > 0 && (
+                  <div className="hirelings-section">
+                    <h3 className="hirelings-heading">Hirelings</h3>
+                    <div className="hirelings-grid">
+                      {selectedHirelings.map((hid, i) => (
+                        <HirelingCard
+                          key={hid}
+                          hirelingId={hid}
+                          index={i}
+                          onReroll={() => actions.rerollSingleHireling(hid)}
+                        />
+                      ))}
+                    </div>
+                    <button className="reroll-all-hirelings" onClick={actions.rerollHirelings}>
+                      🔄 Re-roll all hirelings
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
-              !error && <EmptyState onRandomize={() => actions.randomize(false)} />
+              !error && <EmptyState />
             )}
           </>
         ) : (

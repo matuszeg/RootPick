@@ -9,13 +9,23 @@ function shuffle(arr) {
   return a;
 }
 
-function conflictsWith(faction, others) {
+function conflictsWith(faction, others, allowedExclusions = new Set()) {
   for (const other of others) {
+    const pairKey = [faction.id, other.id].sort().join('+');
+    if (allowedExclusions.has(pairKey)) continue;
     if (faction.excludes.includes(other.id)) return true;
     if (other.excludes.includes(faction.id)) return true;
-    if (faction.vagabondVariant && other.vagabondVariant) return true;
+    // Two vagabonds are allowed — vagabond2 only enters the pool when Riverfolk
+    // is owned, which is the exact condition that permits double-vagabond play.
   }
   return false;
+}
+
+export function getReachThreshold(balanceMode, playerCount) {
+  if (balanceMode === 'chaos') return 0;
+  if (balanceMode === 'standard') return 17;
+  // balanced — official minimums
+  return REACH_MINIMUMS[playerCount] ?? 17;
 }
 
 export function generateCombination({
@@ -23,11 +33,13 @@ export function generateCombination({
   ownedExpansions,
   bannedFactions,
   lockedFactionIds,
-  strictMode,
+  balanceMode = 'balanced',
   requireBalance,
   difficulties,
+  customMinReach = null,
+  customMaxReach = null,
+  allowedExclusions = new Set(),
 }) {
-  // Build pool
   const pool = FACTIONS.filter(
     f =>
       ownedExpansions.has(f.expansion) &&
@@ -48,12 +60,15 @@ export function generateCombination({
     };
   }
 
-  // Filter pool: remove locked and anything excluded by locked
   const eligiblePool = pool.filter(f => {
     if (lockedFactionIds.includes(f.id)) return false;
-    if (conflictsWith(f, lockedFactions)) return false;
+    if (conflictsWith(f, lockedFactions, allowedExclusions)) return false;
     return true;
   });
+
+  const baseThreshold = getReachThreshold(balanceMode, playerCount);
+  const minReach = customMinReach !== null ? customMinReach : baseThreshold;
+  const maxReach = customMaxReach !== null ? customMaxReach : Infinity;
 
   for (let attempt = 0; attempt < 100; attempt++) {
     const shuffled = shuffle(eligiblePool);
@@ -61,7 +76,7 @@ export function generateCombination({
 
     for (const faction of shuffled) {
       if (picked.length >= slotsToFill) break;
-      if (!conflictsWith(faction, picked)) {
+      if (!conflictsWith(faction, picked, allowedExclusions)) {
         picked.push(faction);
       }
     }
@@ -70,9 +85,9 @@ export function generateCombination({
 
     const allSelected = [...lockedFactions, ...picked];
     const totalReach = allSelected.reduce((sum, f) => sum + f.reach, 0);
-    const threshold = strictMode ? (REACH_MINIMUMS[playerCount] ?? 17) : 17;
 
-    if (totalReach < threshold) continue;
+    if (totalReach < minReach) continue;
+    if (totalReach > maxReach) continue;
 
     if (requireBalance) {
       const hasMilitant = allSelected.some(f => f.type === 'militant');
@@ -85,7 +100,7 @@ export function generateCombination({
 
   return {
     error:
-      'No valid combination found with your current settings. Try owning more expansions, relaxing the strictness, or turning off the type balance requirement.',
+      'No valid combination found with your current settings. Try owning more expansions, relaxing the balance mode, or turning off the type balance requirement.',
   };
 }
 

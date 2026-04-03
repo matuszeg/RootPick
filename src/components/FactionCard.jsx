@@ -1,4 +1,5 @@
 import { FACTION_MAP } from '../data/factions.js';
+import { CHARACTER_MAP } from '../data/accessories.js';
 import FactionIcon from './FactionIcon.jsx';
 
 const EXPANSION_LABELS = {
@@ -30,7 +31,7 @@ function isDark(hex) {
   return (r * 299 + g * 587 + b * 114) / 1000 < 155;
 }
 
-export default function FactionCard({ factionId, locked, onLock, onReroll, onBan, animIndex, browseMode }) {
+export default function FactionCard({ factionId, locked, onLock, onReroll, onBan, animIndex, browseMode, mapNote, vagabondCharacter, onRerollCharacter }) {
   const faction = FACTION_MAP[factionId];
   if (!faction) return null;
 
@@ -73,6 +74,25 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
       <div className="card-body">
         <h3 className="faction-name">{faction.name}</h3>
         <p className="faction-flavor">{faction.flavor}</p>
+        {vagabondCharacter && CHARACTER_MAP[vagabondCharacter] && (
+          <div className="vagabond-character">
+            <span className="vagabond-character-label">Character</span>
+            <span className="vagabond-character-name">{CHARACTER_MAP[vagabondCharacter].name}</span>
+            {onRerollCharacter && (
+              <button
+                className="vagabond-reroll-char"
+                onClick={onRerollCharacter}
+                title="Re-roll character"
+                aria-label="Re-roll vagabond character"
+              >
+                🔄
+              </button>
+            )}
+          </div>
+        )}
+        {mapNote && (
+          <p className="map-note">{mapNote}</p>
+        )}
         {browseMode && faction.excludes.length > 0 && (
           <p className="faction-conflict">
             ⚠ Excludes:{' '}
@@ -89,11 +109,12 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
               <button
                 className={`card-btn lock-btn ${locked ? 'active' : ''}`}
                 onClick={onLock}
-                title={locked ? 'Unlock this faction' : 'Lock this faction (keep on re-roll)'}
-                aria-label={locked ? 'Unlock' : 'Lock'}
+                title={locked ? 'Unlock — this faction will be replaced on re-roll' : 'Lock — keep this faction when re-rolling'}
+                aria-label={locked ? 'Unlock faction' : 'Lock faction'}
                 style={locked ? { '--btn-active-color': faction.color } : {}}
               >
                 {locked ? '🔒' : '🔓'}
+                <span>{locked ? 'Locked' : 'Lock'}</span>
               </button>
               <button
                 className="card-btn reroll-btn"

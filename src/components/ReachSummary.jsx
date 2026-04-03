@@ -1,12 +1,13 @@
-import { FACTION_MAP, REACH_MINIMUMS } from '../data/factions.js';
+import { FACTION_MAP } from '../data/factions.js';
+import { getReachThreshold } from '../utils/randomizer.js';
 
-export default function ReachSummary({ selectedFactions, playerCount, strictMode }) {
+export default function ReachSummary({ selectedFactions, playerCount, balanceMode }) {
   if (!selectedFactions.length) return null;
 
   const factions = selectedFactions.map(id => FACTION_MAP[id]).filter(Boolean);
   const totalReach = factions.reduce((sum, f) => sum + f.reach, 0);
-  const threshold = strictMode ? (REACH_MINIMUMS[playerCount] ?? 17) : 17;
-  const valid = totalReach >= threshold;
+  const threshold = getReachThreshold(balanceMode, playerCount);
+  const valid = threshold === 0 || totalReach >= threshold;
 
   const militants = factions.filter(f => f.type === 'militant').length;
   const insurgents = factions.filter(f => f.type === 'insurgent').length;
@@ -16,8 +17,12 @@ export default function ReachSummary({ selectedFactions, playerCount, strictMode
       <div className="reach-main">
         <span className="reach-total">
           Total Reach: <strong>{totalReach}</strong>
-          <span className="reach-divider"> / </span>
-          <span className="reach-needed">{threshold} needed</span>
+          {threshold > 0 && (
+            <>
+              <span className="reach-divider"> / </span>
+              <span className="reach-needed">{threshold} needed</span>
+            </>
+          )}
         </span>
         <span className="reach-status">{valid ? '✅' : '❌'}</span>
       </div>
