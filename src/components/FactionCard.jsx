@@ -1,5 +1,6 @@
 import { FACTION_MAP } from '../data/factions.js';
 import { CHARACTER_MAP } from '../data/accessories.js';
+import { getWinRate } from '../data/winRates.js';
 import FactionIcon from './FactionIcon.jsx';
 
 const EXPANSION_LABELS = {
@@ -8,6 +9,8 @@ const EXPANSION_LABELS = {
   underworld: 'Underworld',
   marauder: 'Marauder',
   homeland: 'Homeland',
+  clockwork: 'Clockwork',
+  clockwork2: 'Clockwork 2',
 };
 
 function Stars({ count }) {
@@ -31,13 +34,16 @@ function isDark(hex) {
   return (r * 299 + g * 587 + b * 114) / 1000 < 155;
 }
 
-export default function FactionCard({ factionId, locked, onLock, onReroll, onBan, animIndex, browseMode, mapNote, vagabondCharacter, onRerollCharacter }) {
+export default function FactionCard({ factionId, locked, onLock, onReroll, onBan, animIndex, browseMode, mapNote, vagabondCharacter, onRerollCharacter, playerCount }) {
   const faction = FACTION_MAP[factionId];
   if (!faction) return null;
 
   const headerBg = faction.color;
   const headerText = isDark(headerBg) ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.80)';
   const headerMuted = isDark(headerBg) ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)';
+
+  const winRate = faction.isBot ? null : getWinRate(factionId, playerCount);
+  const isP2Specific = playerCount === 2 && winRate !== null;
 
   return (
     <div
@@ -56,6 +62,11 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
           <FactionIcon factionId={factionId} className="card-faction-icon" />
           <div className="card-header-meta">
             <div className="card-badges">
+              {faction.isBot && (
+                <span className="bot-badge" style={{ color: headerMuted, borderColor: headerMuted }}>
+                  ⚙ Bot
+                </span>
+              )}
               <span className="type-badge" style={{ color: headerMuted, borderColor: headerMuted }}>
                 {faction.type === 'militant' ? 'Militant' : 'Insurgent'}
               </span>
@@ -68,6 +79,11 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
         <div className="reach-block">
           <span className="reach-value">{faction.reach}</span>
           <span className="reach-label-sm" style={{ color: headerMuted }}>reach</span>
+          {winRate !== null && (
+            <span className="wr-badge" style={{ color: headerMuted }} title={isP2Specific ? '2-player win rate (community data)' : 'Overall win rate (community data)'}>
+              {Math.round(winRate * 100)}%{isP2Specific ? ' 2p' : ''}
+            </span>
+          )}
         </div>
       </div>
 
@@ -123,18 +139,18 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
                 aria-label="Re-roll"
                 disabled={locked}
               >
-                🔄
+                🔄 <span>Re-roll</span>
               </button>
             </>
           )}
           <button
             className="card-btn ban-btn"
             onClick={onBan}
-            title="Ban this faction for the session"
+            title="Remove this faction from the pool for this session"
             aria-label="Ban"
             disabled={!browseMode && locked}
           >
-            🚫
+            🚫 <span>Ban</span>
           </button>
         </div>
       </div>

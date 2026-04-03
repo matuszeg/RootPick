@@ -1,0 +1,300 @@
+import { useState } from 'react';
+import { FACTIONS } from '../data/factions.js';
+import { MAPS } from '../data/maps.js';
+import { HIRELING_SETS, VAGABOND_CHARACTERS, LANDMARKS } from '../data/accessories.js';
+import FactionIcon from './FactionIcon.jsx';
+
+function EmptyPoolMessage({ message }) {
+  return (
+    <div className="pool-empty">
+      <p>{message}</p>
+    </div>
+  );
+}
+
+// ── Reusable toggle row ────────────────────────────────────────────────────
+
+function PoolItem({ name, icon, meta, description, excluded, onToggle }) {
+  return (
+    <button
+      className={`pool-item ${excluded ? 'excluded' : ''}`}
+      onClick={onToggle}
+      title={excluded ? `Click to include "${name}" in pool` : `Click to exclude "${name}" from pool`}
+    >
+      <span className="pool-item-icon">{icon}</span>
+      <span className="pool-item-body">
+        <span className="pool-item-name">{name}</span>
+        {meta && <span className="pool-item-meta">{meta}</span>}
+        {description && <span className="pool-item-desc">{description}</span>}
+      </span>
+      <span className={`pool-item-toggle ${excluded ? 'off' : 'on'}`}>
+        {excluded ? '✕' : '✓'}
+      </span>
+    </button>
+  );
+}
+
+// ── Sub-tabs ───────────────────────────────────────────────────────────────
+
+function FactionsTab({ state, actions }) {
+  const { ownedExpansions, bannedFactions } = state;
+
+  const available = FACTIONS.filter(f =>
+    !f.isBot &&
+    ownedExpansions.has(f.expansion) &&
+    (!f.requiresExpansion || ownedExpansions.has(f.requiresExpansion))
+  );
+  const bots = FACTIONS.filter(f =>
+    f.isBot &&
+    ownedExpansions.has(f.expansion) &&
+    (!f.requiresExpansion || ownedExpansions.has(f.requiresExpansion))
+  );
+
+  if (available.length === 0 && bots.length === 0) {
+    return <EmptyPoolMessage message="No factions available. Enable expansions in Settings." />;
+  }
+
+  const militants  = available.filter(f => f.type === 'militant').sort((a, b) => b.reach - a.reach);
+  const insurgents = available.filter(f => f.type === 'insurgent').sort((a, b) => b.reach - a.reach);
+
+  return (
+    <div className="pool-tab-content">
+      <p className="pool-tab-hint">Click a faction to exclude or include it in the randomization pool.</p>
+
+      {militants.length > 0 && (
+        <div className="pool-section">
+          <h4 className="pool-section-heading militant">Militants</h4>
+          <div className="pool-grid">
+            {militants.map(f => (
+              <PoolItem
+                key={f.id}
+                name={f.name}
+                icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
+                meta={`Reach ${f.reach} · ${'★'.repeat(f.difficulty)}`}
+                excluded={bannedFactions.has(f.id)}
+                onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {insurgents.length > 0 && (
+        <div className="pool-section">
+          <h4 className="pool-section-heading insurgent">Insurgents</h4>
+          <div className="pool-grid">
+            {insurgents.map(f => (
+              <PoolItem
+                key={f.id}
+                name={f.name}
+                icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
+                meta={`Reach ${f.reach} · ${'★'.repeat(f.difficulty)}`}
+                excluded={bannedFactions.has(f.id)}
+                onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {bots.length > 0 && (
+        <div className="pool-section">
+          <h4 className="pool-section-heading">Bots</h4>
+          <div className="pool-grid">
+            {bots.map(f => (
+              <PoolItem
+                key={f.id}
+                name={f.name}
+                icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
+                meta={`Reach ${f.reach} · ${f.type === 'militant' ? 'Militant' : 'Insurgent'}`}
+                excluded={bannedFactions.has(f.id)}
+                onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MapsTab({ state, actions }) {
+  const { ownedExpansions, excludedMaps } = state;
+
+  const COMPLEXITY = { 1: '★ Beginner', 2: '★★ Moderate', 3: '★★★ Complex' };
+
+  const available = MAPS.filter(m => ownedExpansions.has(m.expansion));
+
+  if (available.length === 0) {
+    return <EmptyPoolMessage message="No maps available. Enable expansions in Settings." />;
+  }
+
+  return (
+    <div className="pool-tab-content">
+      <p className="pool-tab-hint">Click a map to exclude or include it. Use Settings → Maps to filter by complexity.</p>
+      <div className="pool-grid">
+        {available.map(m => (
+          <PoolItem
+            key={m.id}
+            name={m.name}
+            icon={<span className="pool-map-icon">🗺</span>}
+            meta={COMPLEXITY[m.difficulty]}
+            description={m.description}
+            excluded={excludedMaps.has(m.id)}
+            onToggle={() => actions.toggleExcludedMap(m.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HirelingsTab({ state, actions }) {
+  const { ownedExpansions, ownedAccessories, excludedHirelings } = state;
+
+  const available = HIRELING_SETS.filter(h => {
+    if (h.source === 'marauder') return ownedExpansions.has('marauder');
+    return ownedAccessories.has(h.source);
+  });
+
+  if (available.length === 0) {
+    return <EmptyPoolMessage message="No hirelings available. Enable the Marauder Expansion or hireling packs in Settings." />;
+  }
+
+  return (
+    <div className="pool-tab-content">
+      <p className="pool-tab-hint">Click a hireling set to exclude or include it.</p>
+      <div className="pool-grid">
+        {available.map(h => (
+          <PoolItem
+            key={h.id}
+            name={h.name}
+            icon={<span className="pool-generic-icon">⚔</span>}
+            meta={`${h.promoted} / ${h.demoted}`}
+            description={h.description}
+            excluded={excludedHirelings.has(h.id)}
+            onToggle={() => actions.toggleExcludedHireling(h.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CharactersTab({ state, actions }) {
+  const { ownedExpansions, ownedAccessories, excludedCharacters } = state;
+
+  const SOURCE_LABEL = {
+    base: 'Base Game',
+    riverfolk: 'Riverfolk',
+    vagabond_pack: 'Vagabond Pack',
+  };
+
+  const available = VAGABOND_CHARACTERS.filter(c => {
+    if (c.source === 'base') return true;
+    if (['riverfolk', 'underworld', 'marauder', 'homeland'].includes(c.source)) return ownedExpansions.has(c.source);
+    return ownedAccessories.has(c.source);
+  });
+
+  if (available.length === 0) {
+    return <EmptyPoolMessage message="No vagabond characters available." />;
+  }
+
+  return (
+    <div className="pool-tab-content">
+      <p className="pool-tab-hint">Click a character to exclude or include it from vagabond assignment.</p>
+      <div className="pool-grid">
+        {available.map(c => (
+          <PoolItem
+            key={c.id}
+            name={c.name}
+            icon={<span className="pool-generic-icon">🎒</span>}
+            meta={SOURCE_LABEL[c.source] ?? c.source}
+            excluded={excludedCharacters.has(c.id)}
+            onToggle={() => actions.toggleExcludedCharacter(c.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LandmarksTab({ state, actions }) {
+  const { ownedExpansions, ownedAccessories, excludedLandmarks } = state;
+
+  const SOURCE_LABEL = {
+    underworld: 'Underworld Expansion',
+    landmarks_pack: 'Landmarks Pack',
+  };
+
+  const available = LANDMARKS.filter(l => {
+    if (l.source === 'underworld') return ownedExpansions.has('underworld');
+    return ownedAccessories.has(l.source);
+  });
+
+  if (available.length === 0) {
+    return <EmptyPoolMessage message="No landmarks available. Enable the Underworld Expansion or Landmarks Pack in Settings." />;
+  }
+
+  return (
+    <div className="pool-tab-content">
+      <p className="pool-tab-hint">Click a landmark to exclude or include it.</p>
+      <div className="pool-grid">
+        {available.map(l => (
+          <PoolItem
+            key={l.id}
+            name={l.name}
+            icon={<span className="pool-generic-icon">🏛</span>}
+            meta={SOURCE_LABEL[l.source] ?? l.source}
+            description={l.description}
+            excluded={excludedLandmarks.has(l.id)}
+            onToggle={() => actions.toggleExcludedLandmark(l.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────
+
+export default function ManagePool({ state, actions }) {
+  const [subTab, setSubTab] = useState('factions');
+
+  const {
+    bannedFactions, excludedMaps, excludedHirelings, excludedCharacters, excludedLandmarks,
+  } = state;
+
+  const subTabs = [
+    { id: 'factions',   label: 'Factions',   count: bannedFactions.size },
+    { id: 'maps',       label: 'Maps',        count: excludedMaps.size },
+    { id: 'hirelings',  label: 'Hirelings',   count: excludedHirelings.size },
+    { id: 'characters', label: 'Characters',  count: excludedCharacters.size },
+    { id: 'landmarks',  label: 'Landmarks',   count: excludedLandmarks.size },
+  ];
+
+  return (
+    <div className="manage-pool">
+      <nav className="pool-subtabs" role="tablist" aria-label="Pool categories">
+        {subTabs.map(tab => (
+          <button
+            key={tab.id}
+            className={`pool-subtab ${subTab === tab.id ? 'active' : ''}`}
+            role="tab"
+            aria-selected={subTab === tab.id}
+            onClick={() => setSubTab(tab.id)}
+          >
+            {tab.label}
+            {tab.count > 0 && <span className="pool-subtab-count">{tab.count}</span>}
+          </button>
+        ))}
+      </nav>
+
+      {subTab === 'factions'   && <FactionsTab   state={state} actions={actions} />}
+      {subTab === 'maps'       && <MapsTab        state={state} actions={actions} />}
+      {subTab === 'hirelings'  && <HirelingsTab   state={state} actions={actions} />}
+      {subTab === 'characters' && <CharactersTab  state={state} actions={actions} />}
+      {subTab === 'landmarks'  && <LandmarksTab   state={state} actions={actions} />}
+    </div>
+  );
+}

@@ -17,25 +17,27 @@ function InfoIcon({ tip }) {
 
 export default function SetupPanel({ state, actions }) {
   const {
-    ownedExpansions, playerCount, balanceMode, requireBalance,
-    difficulties, advancedMode, customMinReach, customMaxReach, allowedExclusions,
-    ownedAccessories, useHirelings, useLandmarks, landmarkCount, customHirelingCount,
+    ownedExpansions, playerCount, botCount, balanceMode, requireBalance,
+    difficulties, mapDifficulties, advancedMode, customMinReach, customMaxReach,
+    allowedExclusions, ownedAccessories, useHirelings, useLandmarks, landmarkCount,
+    customHirelingCount,
   } = state;
 
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [accessoriesOpen, setAccessoriesOpen] = useState(false);
+  const [mapsOpen, setMapsOpen] = useState(false);
 
-  // Determine which accessories are available given owned expansions
   const availableAccessories = ACCESSORIES.filter(
     a => a.requiresExpansion === null || ownedExpansions.has(a.requiresExpansion)
   );
 
-  // Hirelings require Marauder expansion for the rules
   const canUseHirelings = ownedExpansions.has('marauder');
-  // Can use landmarks if Underworld owned (Tower) or Landmarks Pack owned
   const canUseLandmarks = ownedExpansions.has('underworld') || ownedAccessories.has('landmarks_pack');
-  const threshold = getReachThreshold(balanceMode, playerCount);
+  const canUseBots = ownedExpansions.has('clockwork') || ownedExpansions.has('clockwork2');
+  const maxBots = 6 - playerCount;
+  const threshold = getReachThreshold(balanceMode, playerCount + botCount);
   const hasAdvancedOverrides = customMinReach !== null || customMaxReach !== null || allowedExclusions.size > 0 || customHirelingCount !== null;
+  const mapsFiltered = !mapDifficulties.has(1) || !mapDifficulties.has(2) || !mapDifficulties.has(3);
 
   const eligibleHirelingCount = HIRELING_SETS.filter(h => {
     if (h.source === 'marauder') return ownedExpansions.has('marauder');
@@ -88,6 +90,33 @@ export default function SetupPanel({ state, actions }) {
         </p>
       </div>
 
+      {/* Bots */}
+      {canUseBots && (
+        <div className="setup-section">
+          <h2 className="setup-heading">
+            Bots
+            <InfoIcon tip="Clockwork bots fill seats without needing a human player. Max bots = 6 minus your human player count." />
+          </h2>
+          <div className="player-count-row">
+            {Array.from({ length: maxBots + 1 }, (_, i) => i).map(n => (
+              <button
+                key={n}
+                className={`player-btn ${botCount === n ? 'active' : ''}`}
+                onClick={() => actions.setBotCount(n)}
+                aria-pressed={botCount === n}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          {botCount > 0 && (
+            <p className="reach-label">
+              Total factions: <strong>{playerCount + botCount}</strong>
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Game Balance */}
       <div className="setup-section">
         <h2 className="setup-heading">Game Balance</h2>
@@ -136,9 +165,13 @@ export default function SetupPanel({ state, actions }) {
         </p>
       </div>
 
-      {/* Difficulty */}
+      {/* Faction Difficulty */}
       <div className="setup-section">
-        <h2 className="setup-heading">Difficulty</h2>
+        <h2 className="setup-heading">
+          Faction Difficulty
+          <InfoIcon tip="Only factions matching the selected difficulties will appear in the pool." />
+        </h2>
+        <p className="setup-heading-sub">Include in pool</p>
         <div className="difficulty-pills">
           {[
             { level: 1, label: '★ Beginner' },
@@ -151,23 +184,67 @@ export default function SetupPanel({ state, actions }) {
               onClick={() => actions.toggleDifficulty(level)}
               aria-pressed={difficulties.has(level)}
             >
-              {label}
+              {difficulties.has(level) ? `✓ ${label}` : label}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Maps */}
+      <div className="setup-section setup-section-full">
+        <button
+          className={`advanced-toggle ${mapsOpen ? 'open' : ''} ${mapsFiltered ? 'has-overrides' : ''}`}
+          onClick={() => setMapsOpen(o => !o)}
+          aria-expanded={mapsOpen}
+        >
+          <span>
+            🗺 Maps
+            {mapsFiltered && <span className="override-badge">filtered</span>}
+          </span>
+          <span className={`chevron ${mapsOpen ? 'up' : ''}`}>▾</span>
+        </button>
+
+        {mapsOpen && (
+          <div className="advanced-panel">
+            <div className="advanced-sub-heading">
+              Map Complexity
+              <InfoIcon tip="Only maps matching the selected complexity levels will be picked." />
+            </div>
+            <p className="setup-heading-sub" style={{ marginTop: 0, marginBottom: '0.5rem' }}>Include in pool</p>
+            <div className="difficulty-pills">
+              {[
+                { level: 1, label: '★ Beginner' },
+                { level: 2, label: '★★ Moderate' },
+                { level: 3, label: '★★★ Complex' },
+              ].map(({ level, label }) => (
+                <button
+                  key={level}
+                  className={`diff-pill ${mapDifficulties.has(level) ? 'active' : ''}`}
+                  onClick={() => actions.toggleMapDifficulty(level)}
+                  aria-pressed={mapDifficulties.has(level)}
+                >
+                  {mapDifficulties.has(level) ? `✓ ${label}` : label}
+                </button>
+              ))}
+            </div>
+            <p className="mode-description" style={{ marginTop: '0.5rem' }}>
+              To exclude specific maps, use the Manage Pool tab.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Add-ons & Accessories */}
       <div className="setup-section setup-section-full">
         <button
-          className={`advanced-toggle ${accessoriesOpen ? 'open' : ''} ${ownedAccessories.size > 0 ? 'has-overrides' : ''}`}
+          className={`advanced-toggle ${accessoriesOpen ? 'open' : ''} ${ownedAccessories.size > 1 ? 'has-overrides' : ''}`}
           onClick={() => setAccessoriesOpen(o => !o)}
           aria-expanded={accessoriesOpen}
         >
           <span>
             🎒 Add-ons &amp; Accessories
-            {ownedAccessories.size > 0 && (
-              <span className="override-badge">{ownedAccessories.size} owned</span>
+            {ownedAccessories.size > 1 && (
+              <span className="override-badge">{ownedAccessories.size - 1} owned</span>
             )}
           </span>
           <span className={`chevron ${accessoriesOpen ? 'up' : ''}`}>▾</span>
@@ -178,7 +255,7 @@ export default function SetupPanel({ state, actions }) {
 
             {/* Deck accessories */}
             <div className="accessories-group">
-              <div className="accessories-group-label">Alternate Decks</div>
+              <div className="accessories-group-label">Decks</div>
               {availableAccessories.filter(a => a.category === 'deck').map(a => (
                 <label key={a.id} className={`expansion-check ${ownedAccessories.has(a.id) ? 'checked' : ''}`}>
                   <input type="checkbox" checked={ownedAccessories.has(a.id)} onChange={() => actions.toggleAccessory(a.id)} />

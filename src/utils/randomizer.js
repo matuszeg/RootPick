@@ -21,15 +21,16 @@ function conflictsWith(faction, others, allowedExclusions = new Set()) {
   return false;
 }
 
-export function getReachThreshold(balanceMode, playerCount) {
+export function getReachThreshold(balanceMode, totalCount) {
   if (balanceMode === 'chaos') return 0;
   if (balanceMode === 'standard') return 17;
   // balanced — official minimums
-  return REACH_MINIMUMS[playerCount] ?? 17;
+  return REACH_MINIMUMS[totalCount] ?? 17;
 }
 
 export function generateCombination({
-  playerCount,
+  playerCount,        // human players
+  botCount = 0,       // bot players
   ownedExpansions,
   bannedFactions,
   lockedFactionIds,
@@ -40,50 +41,79 @@ export function generateCombination({
   customMaxReach = null,
   allowedExclusions = new Set(),
 }) {
-  const pool = FACTIONS.filter(
+  const totalCount = playerCount + botCount;
+
+  // Human pool: non-bot factions passing all filters
+  const humanPool = FACTIONS.filter(
     f =>
+      !f.isBot &&
       ownedExpansions.has(f.expansion) &&
+      (!f.requiresExpansion || ownedExpansions.has(f.requiresExpansion)) &&
       !bannedFactions.has(f.id) &&
       difficulties.has(f.difficulty)
   );
 
-  const lockedFactions = lockedFactionIds
-    .map(id => FACTION_MAP[id])
-    .filter(Boolean);
+  // Bot pool: bot factions (skip difficulty filter)
+  const botPool = FACTIONS.filter(
+    f =>
+      f.isBot &&
+      ownedExpansions.has(f.expansion) &&
+      (!f.requiresExpansion || ownedExpansions.has(f.requiresExpansion)) &&
+      !bannedFactions.has(f.id)
+  );
 
-  const slotsToFill = playerCount - lockedFactions.length;
+  const lockedFactions = lockedFactionIds.map(id => FACTION_MAP[id]).filter(Boolean);
+  const lockedBots = lockedFactions.filter(f => f.isBot);
+  const lockedHumans = lockedFactions.filter(f => !f.isBot);
 
-  if (slotsToFill < 0) {
+  const botSlotsToFill = botCount - lockedBots.length;
+  const humanSlotsToFill = playerCount - lockedHumans.length;
+
+  if (botSlotsToFill < 0 || humanSlotsToFill < 0) {
     return {
       error:
         'More factions are locked than the current player count allows. Reduce locked factions or increase player count.',
     };
   }
 
-  const eligiblePool = pool.filter(f => {
-    if (lockedFactionIds.includes(f.id)) return false;
-    if (conflictsWith(f, lockedFactions, allowedExclusions)) return false;
-    return true;
-  });
+  const eligibleBotPool = botPool.filter(f => !lockedFactionIds.includes(f.id));
+  const eligibleHumanPool = humanPool.filter(
+    f => !lockedFactionIds.includes(f.id) && !conflictsWith(f, lockedHumans, allowedExclusions)
+  );
 
-  const baseThreshold = getReachThreshold(balanceMode, playerCount);
+  const baseThreshold = getReachThreshold(balanceMode, totalCount);
   const minReach = customMinReach !== null ? customMinReach : baseThreshold;
   const maxReach = customMaxReach !== null ? customMaxReach : Infinity;
 
   for (let attempt = 0; attempt < 100; attempt++) {
-    const shuffled = shuffle(eligiblePool);
-    const picked = [];
-
-    for (const faction of shuffled) {
-      if (picked.length >= slotsToFill) break;
-      if (!conflictsWith(faction, picked, allowedExclusions)) {
-        picked.push(faction);
+    // Pick bots first
+    const shuffledBots = shuffle(eligibleBotPool);
+    const pickedBots = [];
+    for (const faction of shuffledBots) {
+      if (pickedBots.length >= botSlotsToFill) break;
+      if (!conflictsWith(faction, [...lockedBots, ...pickedBots], allowedExclusions)) {
+        pickedBots.push(faction);
       }
     }
+    if (pickedBots.length < botSlotsToFill) continue;
 
-    if (picked.length < slotsToFill) continue;
+    const allBots = [...lockedBots, ...pickedBots];
 
-    const allSelected = [...lockedFactions, ...picked];
+    // Pick humans (must not conflict with bots or each other)
+    const humanCandidates = eligibleHumanPool.filter(
+      f => !conflictsWith(f, allBots, allowedExclusions)
+    );
+    const shuffledHumans = shuffle(humanCandidates);
+    const pickedHumans = [];
+    for (const faction of shuffledHumans) {
+      if (pickedHumans.length >= humanSlotsToFill) break;
+      if (!conflictsWith(faction, [...lockedHumans, ...pickedHumans], allowedExclusions)) {
+        pickedHumans.push(faction);
+      }
+    }
+    if (pickedHumans.length < humanSlotsToFill) continue;
+
+    const allSelected = [...lockedFactions, ...pickedBots, ...pickedHumans];
     const totalReach = allSelected.reduce((sum, f) => sum + f.reach, 0);
 
     if (totalReach < minReach) continue;

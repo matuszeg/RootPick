@@ -3,7 +3,7 @@ export const DECKS = [
   {
     id: 'standard',
     name: 'Standard Deck',
-    accessory: null, // always available
+    accessory: 'standard_deck',
     description: 'The classic Root deck. Familiar crafting paths and persistent effects.',
   },
   {
@@ -106,6 +106,7 @@ export const HIRELING_SETS = [
 
 // ─── Accessories (owned toggles shown in settings) ────────────────────────────
 export const ACCESSORIES = [
+  { id: 'standard_deck',        name: 'Standard Deck',           category: 'deck',     requiresExpansion: null },
   { id: 'exiles_deck',          name: 'Exiles & Partisans Deck', category: 'deck',     requiresExpansion: null },
   { id: 'squires_deck',         name: 'Squires & Disciples Deck', category: 'deck',    requiresExpansion: 'homeland' },
   { id: 'vagabond_pack',        name: 'Vagabond Pack',            category: 'vagabond', requiresExpansion: null },
