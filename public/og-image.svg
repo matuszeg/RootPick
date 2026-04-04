@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <!-- Dark bark/espresso background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0704"/>
+      <stop offset="60%" style="stop-color:#120d06"/>
+      <stop offset="100%" style="stop-color:#1c1309"/>
+    </linearGradient>
+    <!-- Accent glow for the title -->
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Subtle radial highlight behind the wordmark -->
+    <radialGradient id="spotlight" cx="50%" cy="42%" r="45%">
+      <stop offset="0%" style="stop-color:#2a1a0a;stop-opacity:0.7"/>
+      <stop offset="100%" style="stop-color:#120d06;stop-opacity:0"/>
+    </radialGradient>
+    <!-- Border frame gradient -->
+    <linearGradient id="frameLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8b4513;stop-opacity:0"/>
+      <stop offset="25%" style="stop-color:#c8922a;stop-opacity:0.9"/>
+      <stop offset="75%" style="stop-color:#c8922a;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#8b4513;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#spotlight)"/>
+
+  <!-- Decorative border frame -->
+  <rect x="32" y="32" width="1136" height="566" rx="8" ry="8"
+        fill="none" stroke="#c8922a" stroke-width="1.5" stroke-opacity="0.35"/>
+  <rect x="44" y="44" width="1112" height="542" rx="6" ry="6"
+        fill="none" stroke="#c8922a" stroke-width="0.5" stroke-opacity="0.2"/>
+
+  <!-- Top decorative line -->
+  <line x1="80" y1="80" x2="1120" y2="80" stroke="url(#frameLine)" stroke-width="1"/>
+  <!-- Bottom decorative line -->
+  <line x1="80" y1="550" x2="1120" y2="550" stroke="url(#frameLine)" stroke-width="1"/>
+
+  <!-- Corner ornaments -->
+  <text x="58" y="74" font-size="18" fill="#c8922a" opacity="0.6" font-family="serif">✦</text>
+  <text x="1122" y="74" font-size="18" fill="#c8922a" opacity="0.6" font-family="serif">✦</text>
+  <text x="58" y="560" font-size="18" fill="#c8922a" opacity="0.6" font-family="serif">✦</text>
+  <text x="1122" y="560" font-size="18" fill="#c8922a" opacity="0.6" font-family="serif">✦</text>
+
+  <!-- Faction color accent strips at top -->
+  <rect x="0" y="0" width="1200" height="5" fill="none"/>
+  <rect x="32" y="32" width="160" height="3" rx="1.5" fill="#e8432d" opacity="0.7"/>
+  <rect x="200" y="32" width="160" height="3" rx="1.5" fill="#4a90d9" opacity="0.7"/>
+  <rect x="368" y="32" width="160" height="3" rx="1.5" fill="#e8b84b" opacity="0.7"/>
+  <rect x="536" y="32" width="160" height="3" rx="1.5" fill="#8b5e3c" opacity="0.7"/>
+  <rect x="704" y="32" width="160" height="3" rx="1.5" fill="#6b9e3c" opacity="0.7"/>
+  <rect x="872" y="32" width="160" height="3" rx="1.5" fill="#9b6bbf" opacity="0.7"/>
+  <rect x="1040" y="32" width="128" height="3" rx="1.5" fill="#d4a84b" opacity="0.7"/>
+
+  <!-- Eyebrow label -->
+  <text x="600" y="185"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="18"
+        font-weight="400"
+        letter-spacing="6"
+        fill="#c8922a"
+        opacity="0.85"
+        text-anchor="middle">ROOT BOARD GAME</text>
+
+  <!-- Main wordmark: Root + Pick -->
+  <text x="600" y="310"
+        font-family="Georgia, 'Palatino Linotype', Palatino, serif"
+        font-size="130"
+        font-weight="700"
+        fill="#f5ede0"
+        text-anchor="middle"
+        filter="url(#glow)"
+        letter-spacing="-2">
+    <tspan fill="#e5a83a">Root</tspan><tspan fill="#d4bfa0">Pick</tspan>
+  </text>
+
+  <!-- Divider ornament -->
+  <line x1="460" y1="345" x2="545" y2="345" stroke="#c8922a" stroke-width="1" opacity="0.5"/>
+  <text x="600" y="352" font-size="14" fill="#c8922a" opacity="0.7" text-anchor="middle" font-family="serif">✦</text>
+  <line x1="655" y1="345" x2="740" y2="345" stroke="#c8922a" stroke-width="1" opacity="0.5"/>
+
+  <!-- Tagline -->
+  <text x="600" y="400"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="26"
+        font-weight="400"
+        fill="#c8b89a"
+        text-anchor="middle"
+        letter-spacing="1"
+        opacity="0.9">Faction randomizer for Root</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(600, 460)">
+    <!-- Balanced factions -->
+    <rect x="-420" y="-18" width="185" height="34" rx="17" fill="#1c1309" stroke="#c8922a" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="-328" y="7" font-family="Georgia, serif" font-size="16" fill="#c8b89a" text-anchor="middle" opacity="0.9">⚖ Balanced Reach</text>
+
+    <!-- All expansions -->
+    <rect x="-210" y="-18" width="175" height="34" rx="17" fill="#1c1309" stroke="#c8922a" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="-122" y="7" font-family="Georgia, serif" font-size="16" fill="#c8b89a" text-anchor="middle" opacity="0.9">📦 All Expansions</text>
+
+    <!-- Win rates -->
+    <rect x="-13" y="-18" width="155" height="34" rx="17" fill="#1c1309" stroke="#c8922a" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="65" y="7" font-family="Georgia, serif" font-size="16" fill="#c8b89a" text-anchor="middle" opacity="0.9">📊 Win Rates</text>
+
+    <!-- Free -->
+    <rect x="162" y="-18" width="100" height="34" rx="17" fill="#1c1309" stroke="#c8922a" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="212" y="7" font-family="Georgia, serif" font-size="16" fill="#c8b89a" text-anchor="middle" opacity="0.9">★ Free</text>
+
+    <!-- Hirelings -->
+    <rect x="282" y="-18" width="138" height="34" rx="17" fill="#1c1309" stroke="#c8922a" stroke-width="1" stroke-opacity="0.4"/>
+    <text x="351" y="7" font-family="Georgia, serif" font-size="16" fill="#c8b89a" text-anchor="middle" opacity="0.9">🎴 Hirelings</text>
+  </g>
+
+  <!-- URL -->
+  <text x="600" y="527"
+        font-family="'Courier New', Courier, monospace"
+        font-size="18"
+        fill="#c8922a"
+        text-anchor="middle"
+        opacity="0.6"
+        letter-spacing="2">rootpick.app</text>
+</svg>

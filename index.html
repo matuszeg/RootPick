@@ -2,17 +2,92 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="RootPick — Faction randomizer for Root board game. Generate balanced, compatible faction combinations for your session." />
-    <meta property="og:title" content="RootPick — Root Faction Randomizer" />
-    <meta property="og:description" content="Generate balanced faction combinations for Root board game. Built for the table." />
-    <meta property="og:url" content="https://rootpick.app" />
+
+    <!-- Primary SEO -->
+    <title>RootPick — Root Board Game Faction Randomizer</title>
+    <meta name="description" content="The go-to faction randomizer for Root board game. Instantly generate balanced, compatible faction combinations with win-rate data, full expansion support, hirelings, landmarks, and bot factions. Free, fast, and built by the community." />
+    <meta name="keywords" content="Root board game, Root faction randomizer, Root faction picker, Leder Games Root, Root setup tool, Root faction generator, Root board game tool, Root game factions, Root balanced setup" />
+    <link rel="canonical" href="https://rootpick.app/" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="RootPick" />
+
+    <!-- Open Graph / Facebook / Discord / Slack -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RootPick" />
+    <meta property="og:title" content="RootPick — Root Board Game Faction Randomizer" />
+    <meta property="og:description" content="Generate perfectly balanced Root factions in seconds. Supports all expansions, hirelings, landmarks, win-rate data, and bots. The community's go-to setup tool." />
+    <meta property="og:url" content="https://rootpick.app/" />
+    <meta property="og:image" content="https://rootpick.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="RootPick — Root Board Game Faction Randomizer" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RootPick — Root Board Game Faction Randomizer" />
+    <meta name="twitter:description" content="Generate perfectly balanced Root factions in seconds. Supports all expansions, hirelings, landmarks, win-rate data, and bots." />
+    <meta name="twitter:image" content="https://rootpick.app/og-image.png" />
+    <meta name="twitter:image:alt" content="RootPick — Root Board Game Faction Randomizer" />
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0e1a10" />
+    <meta name="application-name" content="RootPick" />
+    <meta name="apple-mobile-web-app-title" content="RootPick" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
-    <title>RootPick — Root Faction Randomizer</title>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "RootPick",
+      "alternateName": "Root Faction Randomizer",
+      "description": "A free, community-built faction randomizer for Root board game by Leder Games. Generates balanced faction combinations with support for all expansions, hirelings, landmarks, and bot factions. Includes community win-rate data to help players pick fair matchups.",
+      "url": "https://rootpick.app",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Balanced faction randomization with reach scoring",
+        "Win-rate data from the Woodland Warriors community",
+        "Support for all Root expansions: Riverfolk, Underworld, Marauder, Homeland, Clockwork",
+        "Hireling and landmark support",
+        "Bot faction support for solo and co-op play",
+        "Map and deck randomization",
+        "Shareable session links",
+        "Faction pool management and exclusions"
+      ],
+      "about": {
+        "@type": "Game",
+        "name": "Root",
+        "description": "Root is an asymmetric strategy board game by Leder Games where each player controls a unique faction with different rules, abilities, and victory conditions.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "Leder Games",
+          "url": "https://ledergames.com"
+        },
+        "genre": "Strategy, Asymmetric",
+        "numberOfPlayers": "2-6"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
