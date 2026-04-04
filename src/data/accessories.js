@@ -111,7 +111,7 @@ export const ACCESSORIES = [
   { id: 'squires_deck',         name: 'Squires & Disciples Deck', category: 'deck',    requiresExpansion: 'homeland' },
   { id: 'vagabond_pack',        name: 'Vagabond Pack',            category: 'vagabond', requiresExpansion: null },
   { id: 'landmarks_pack',       name: 'Landmarks Pack',           category: 'landmark', requiresExpansion: null },
-  { id: 'marauder_hirelings',   name: 'Marauder Hirelings Pack',  category: 'hireling', requiresExpansion: 'marauder' },
+  { id: 'marauder_hirelings',   name: 'Marauder Hirelings Pack',  category: 'hireling', requiresExpansion: null },
   { id: 'riverfolk_hirelings',  name: 'Riverfolk Hirelings Pack', category: 'hireling', requiresExpansion: null },
   { id: 'underworld_hirelings', name: 'Underworld Hirelings Pack',category: 'hireling', requiresExpansion: null },
   { id: 'homeland_hirelings',   name: 'Homeland Hirelings Pack',  category: 'hireling', requiresExpansion: 'homeland' },

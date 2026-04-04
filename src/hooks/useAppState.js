@@ -104,6 +104,7 @@ function loadSettings() {
       customMaxReach:      parsed.customMaxReach            ?? null,
       allowedExclusions:   new Set(parsed.allowedExclusions ?? []),
       ownedAccessories:    accessories,
+      avoidUnderdogs:      parsed.avoidUnderdogs            ?? false,
       useHirelings:        parsed.useHirelings              ?? false,
       useLandmarks:        parsed.useLandmarks              ?? false,
       landmarkCount:       parsed.landmarkCount             ?? 2,
@@ -133,6 +134,7 @@ function saveSettings(state) {
       customMaxReach:      state.customMaxReach,
       allowedExclusions:   [...state.allowedExclusions],
       ownedAccessories:    [...state.ownedAccessories],
+      avoidUnderdogs:      state.avoidUnderdogs,
       useHirelings:        state.useHirelings,
       useLandmarks:        state.useLandmarks,
       landmarkCount:       state.landmarkCount,
@@ -162,6 +164,7 @@ function getInitialState() {
     customMaxReach:      null,
     allowedExclusions:   new Set(),
     ownedAccessories:    new Set(['standard_deck']),
+    avoidUnderdogs:      false,
     useHirelings:        false,
     useLandmarks:        false,
     landmarkCount:       2,
@@ -199,7 +202,7 @@ export function useAppState() {
     state.ownedExpansions, state.playerCount, state.balanceMode,
     state.requireBalance, state.difficulties, state.mapDifficulties,
     state.advancedMode, state.customMinReach, state.customMaxReach,
-    state.allowedExclusions, state.ownedAccessories, state.useHirelings,
+    state.allowedExclusions, state.ownedAccessories, state.avoidUnderdogs, state.useHirelings,
     state.useLandmarks, state.landmarkCount, state.customHirelingCount,
     state.botCount, state.excludedMaps, state.excludedHirelings,
     state.excludedCharacters, state.excludedLandmarks,
@@ -236,6 +239,10 @@ export function useAppState() {
 
   const setRequireBalance = useCallback(val => {
     setState(s => ({ ...s, requireBalance: val }));
+  }, []);
+
+  const setAvoidUnderdogs = useCallback(val => {
+    setState(s => ({ ...s, avoidUnderdogs: val, selectedFactions: [], error: null }));
   }, []);
 
   const toggleDifficulty = useCallback(level => {
@@ -366,6 +373,7 @@ export function useAppState() {
         customMinReach:    s.customMinReach,
         customMaxReach:    s.customMaxReach,
         allowedExclusions: s.allowedExclusions,
+        avoidUnderdogs:    s.avoidUnderdogs,
       });
 
       if (result.error) return { ...s, error: result.error };
@@ -406,7 +414,7 @@ export function useAppState() {
     setState(s => {
       const isBot = FACTION_MAP[factionId]?.isBot ?? false;
       const otherSelected = s.selectedFactions.filter(id => id !== factionId);
-      const tempBanned = new Set([...s.bannedFactions, ...otherSelected]);
+      const tempBanned = new Set([...s.bannedFactions, ...otherSelected, factionId]);
 
       const result = generateCombination({
         playerCount:       isBot ? 0 : 1,
@@ -600,7 +608,7 @@ export function useAppState() {
   return {
     state,
     actions: {
-      toggleExpansion, setPlayerCount, setBotCount, setBalanceMode, setRequireBalance,
+      toggleExpansion, setPlayerCount, setBotCount, setBalanceMode, setRequireBalance, setAvoidUnderdogs,
       toggleDifficulty, toggleMapDifficulty, toggleAccessory, setUseHirelings,
       setUseLandmarks, setLandmarkCount, setCustomHirelingCount,
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
@@ -608,6 +616,7 @@ export function useAppState() {
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
       rerollSingleHireling, rerollLandmarks, rerollVagabondCharacter,
       undo, toggleLock, banFaction, unbanFaction, share, clearError,
+      resetAll: () => { localStorage.removeItem(LS_KEY); window.location.reload(); },
     },
   };
 }

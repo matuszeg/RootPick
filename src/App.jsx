@@ -9,7 +9,7 @@ import ReachSummary from './components/ReachSummary.jsx';
 import ActionBar from './components/ActionBar.jsx';
 import ManagePool from './components/ManagePool.jsx';
 import { useState } from 'react';
-import { FACTIONS } from './data/factions.js';
+import { FACTIONS, FACTION_MAP } from './data/factions.js';
 import { MAPS, MAP_MAP } from './data/maps.js';
 import { DECKS } from './data/accessories.js';
 import { getReachThreshold } from './utils/randomizer.js';
@@ -28,6 +28,10 @@ export default function App() {
   const { state, actions } = useAppState();
   const [setupOpen, setSetupOpen] = useState(true);
   const [viewMode, setViewMode] = useState('pick'); // 'pick' | 'manage'
+  const [secFactions, setSecFactions] = useState(true);
+  const [secMaps, setSecMaps] = useState(true);
+  const [secHirelings, setSecHirelings] = useState(true);
+  const [secLandmarks, setSecLandmarks] = useState(true);
 
   const {
     selectedFactions,
@@ -59,6 +63,19 @@ export default function App() {
     state.mapDifficulties.has(m.difficulty)
   ).length > 1;
   const canRerollDeck = DECKS.filter(d => d.accessory === null || ownedAccessories.has(d.accessory)).length > 1;
+
+  function canRerollFaction(factionId) {
+    const isBot = FACTION_MAP[factionId]?.isBot ?? false;
+    const excluded = new Set([...bannedFactions, ...selectedFactions]);
+    return FACTIONS.some(f => {
+      if (!!f.isBot !== isBot) return false;
+      if (excluded.has(f.id)) return false;
+      if (!ownedExpansions.has(f.expansion)) return false;
+      if (f.requiresExpansion && !ownedExpansions.has(f.requiresExpansion)) return false;
+      if (!isBot && !state.difficulties.has(f.difficulty)) return false;
+      return true;
+    });
+  }
 
   // Compute total excluded count for tab indicator
   const excludedCounts = [
@@ -106,7 +123,7 @@ export default function App() {
             aria-selected={viewMode === 'pick'}
             onClick={() => setViewMode('pick')}
           >
-            <span className="tab-icon">🎲</span> Pick Factions
+            <span className="tab-icon">🎲</span> Game Setup
           </button>
           <button
             className={`view-tab ${viewMode === 'manage' ? 'active' : ''}`}
@@ -151,69 +168,123 @@ export default function App() {
 
             {selectedFactions.length > 0 ? (
               <>
-                {/* Session setup row: Map + Deck */}
-                <div className="session-row">
-                  {selectedMap && (
-                    <MapCard
-                      mapId={selectedMap}
-                      onReroll={actions.rerollMap}
-                      canReroll={canRerollMap}
-                    />
-                  )}
-                  {selectedDeck && (
-                    <DeckCard
-                      deckId={selectedDeck}
-                      onReroll={actions.rerollDeck}
-                      canReroll={canRerollDeck}
-                    />
-                  )}
-                </div>
-
-                {/* Landmarks */}
-                {selectedLandmarks.length > 0 && (
-                  <LandmarkCard
-                    landmarkIds={selectedLandmarks}
-                    onReroll={actions.rerollLandmarks}
-                  />
-                )}
-
-                {/* Faction Cards */}
-                <div className="cards-grid">
-                  {selectedFactions.map((id, i) => (
-                    <FactionCard
-                      key={`${id}-${i}`}
-                      factionId={id}
-                      locked={lockedFactions.has(id)}
-                      animIndex={i}
-                      onLock={() => actions.toggleLock(id)}
-                      onReroll={() => actions.rerollSingle(id)}
-                      onBan={() => actions.banFaction(id)}
-                      mapNote={mapData?.factionNotes?.[id] ?? null}
-                      vagabondCharacter={vagabondCharacters[id] ?? null}
-                      onRerollCharacter={() => actions.rerollVagabondCharacter(id)}
-                      playerCount={playerCount}
-                    />
-                  ))}
-                </div>
-
-                {/* Hirelings */}
-                {selectedHirelings.length > 0 && (
-                  <div className="hirelings-section">
-                    <h3 className="hirelings-heading">Hirelings</h3>
-                    <div className="hirelings-grid">
-                      {selectedHirelings.map((hid, i) => (
-                        <HirelingCard
-                          key={hid}
-                          hirelingId={hid}
-                          index={i}
-                          status={hirelingStatuses[i] ?? null}
-                          onReroll={() => actions.rerollSingleHireling(hid)}
+                {/* Factions */}
+                <div className="result-section">
+                  <button
+                    className="result-section-heading"
+                    onClick={() => setSecFactions(o => !o)}
+                    aria-expanded={secFactions}
+                  >
+                    <span className="result-section-chevron">{secFactions ? '▾' : '▸'}</span>
+                    Factions
+                    <span className="result-section-count">{selectedFactions.length}</span>
+                  </button>
+                  {secFactions && (
+                    <div className="cards-grid">
+                      {selectedFactions.map((id, i) => (
+                        <FactionCard
+                          key={`${id}-${i}`}
+                          factionId={id}
+                          locked={lockedFactions.has(id)}
+                          animIndex={i}
+                          onLock={() => actions.toggleLock(id)}
+                          onReroll={() => actions.rerollSingle(id)}
+                          canReroll={canRerollFaction(id)}
+                          onBan={() => actions.banFaction(id)}
+                          mapNote={mapData?.factionNotes?.[id] ?? null}
+                          vagabondCharacter={vagabondCharacters[id] ?? null}
+                          onRerollCharacter={() => actions.rerollVagabondCharacter(id)}
+                          playerCount={playerCount}
                         />
                       ))}
                     </div>
-                    <button className="reroll-all-hirelings" onClick={actions.rerollHirelings}>
-                      🔄 Re-roll all hirelings
+                  )}
+                </div>
+
+                {/* Maps + Deck */}
+                {(selectedMap || selectedDeck) && (
+                  <div className="result-section">
+                    <button
+                      className="result-section-heading"
+                      onClick={() => setSecMaps(o => !o)}
+                      aria-expanded={secMaps}
+                    >
+                      <span className="result-section-chevron">{secMaps ? '▾' : '▸'}</span>
+                      Maps
+                      {selectedDeck && <span className="result-section-sub">+ Deck</span>}
                     </button>
+                    {secMaps && (
+                      <div className="session-row">
+                        {selectedMap && (
+                          <MapCard
+                            mapId={selectedMap}
+                            onReroll={actions.rerollMap}
+                            canReroll={canRerollMap}
+                          />
+                        )}
+                        {selectedDeck && (
+                          <DeckCard
+                            deckId={selectedDeck}
+                            onReroll={actions.rerollDeck}
+                            canReroll={canRerollDeck}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Hirelings */}
+                {selectedHirelings.length > 0 && (
+                  <div className="result-section">
+                    <button
+                      className="result-section-heading"
+                      onClick={() => setSecHirelings(o => !o)}
+                      aria-expanded={secHirelings}
+                    >
+                      <span className="result-section-chevron">{secHirelings ? '▾' : '▸'}</span>
+                      Hirelings
+                      <span className="result-section-count">{selectedHirelings.length}</span>
+                    </button>
+                    {secHirelings && (
+                      <div className="hirelings-section">
+                        <div className="hirelings-grid">
+                          {selectedHirelings.map((hid, i) => (
+                            <HirelingCard
+                              key={hid}
+                              hirelingId={hid}
+                              index={i}
+                              status={hirelingStatuses[i] ?? null}
+                              onReroll={() => actions.rerollSingleHireling(hid)}
+                            />
+                          ))}
+                        </div>
+                        <button className="reroll-all-hirelings" onClick={actions.rerollHirelings}>
+                          🔄 Re-roll all hirelings
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Landmarks */}
+                {selectedLandmarks.length > 0 && (
+                  <div className="result-section">
+                    <button
+                      className="result-section-heading"
+                      onClick={() => setSecLandmarks(o => !o)}
+                      aria-expanded={secLandmarks}
+                    >
+                      <span className="result-section-chevron">{secLandmarks ? '▾' : '▸'}</span>
+                      Landmarks
+                      <span className="result-section-count">{selectedLandmarks.length}</span>
+                    </button>
+                    {secLandmarks && (
+                      <LandmarkCard
+                        landmarkIds={selectedLandmarks}
+                        onReroll={actions.rerollLandmarks}
+                      />
+                    )}
                   </div>
                 )}
               </>

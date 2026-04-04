@@ -1,4 +1,7 @@
 import { FACTIONS, REACH_MINIMUMS, FACTION_MAP } from '../data/factions.js';
+import { getWinRate } from '../data/winRates.js';
+
+const UNDERDOG_THRESHOLD = 0.20; // factions below this WR are considered underdogs
 
 function shuffle(arr) {
   const a = [...arr];
@@ -40,18 +43,24 @@ export function generateCombination({
   customMinReach = null,
   customMaxReach = null,
   allowedExclusions = new Set(),
+  avoidUnderdogs = false,
 }) {
   const totalCount = playerCount + botCount;
 
   // Human pool: non-bot factions passing all filters
-  const humanPool = FACTIONS.filter(
-    f =>
-      !f.isBot &&
-      ownedExpansions.has(f.expansion) &&
-      (!f.requiresExpansion || ownedExpansions.has(f.requiresExpansion)) &&
-      !bannedFactions.has(f.id) &&
-      difficulties.has(f.difficulty)
-  );
+  const humanPool = FACTIONS.filter(f => {
+    if (f.isBot) return false;
+    if (!ownedExpansions.has(f.expansion)) return false;
+    if (f.requiresExpansion && !ownedExpansions.has(f.requiresExpansion)) return false;
+    if (bannedFactions.has(f.id)) return false;
+    if (!difficulties.has(f.difficulty)) return false;
+    if (avoidUnderdogs) {
+      const wrData = getWinRate(f.id, playerCount + botCount);
+      // Only filter out if we have reliable data AND it's below threshold
+      if (wrData !== null && wrData.wr < UNDERDOG_THRESHOLD) return false;
+    }
+    return true;
+  });
 
   // Bot pool: bot factions (skip difficulty filter)
   const botPool = FACTIONS.filter(

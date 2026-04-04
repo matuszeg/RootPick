@@ -1,6 +1,7 @@
+import { useState, useRef } from 'react';
 import { FACTION_MAP } from '../data/factions.js';
 import { CHARACTER_MAP } from '../data/accessories.js';
-import { getWinRate } from '../data/winRates.js';
+import { getWinRate, WIN_RATES } from '../data/winRates.js';
 import FactionIcon from './FactionIcon.jsx';
 
 const EXPANSION_LABELS = {
@@ -34,20 +35,53 @@ function isDark(hex) {
   return (r * 299 + g * 587 + b * 114) / 1000 < 155;
 }
 
-export default function FactionCard({ factionId, locked, onLock, onReroll, onBan, animIndex, browseMode, mapNote, vagabondCharacter, onRerollCharacter, playerCount }) {
+export default function FactionCard({ factionId, locked, onLock, onReroll, canReroll = true, onBan, animIndex, browseMode, mapNote, vagabondCharacter, onRerollCharacter, playerCount }) {
   const faction = FACTION_MAP[factionId];
   if (!faction) return null;
+
+  const [lockSnap, setLockSnap] = useState(false);
+  const lockSnapTimer = useRef(null);
+  const [flipPhase, setFlipPhase] = useState(null); // null | 'out' | 'in'
+  const flipTimer = useRef(null);
+  const [banning, setBanning] = useState(false);
+
+  function handleLock() {
+    clearTimeout(lockSnapTimer.current);
+    setLockSnap(true);
+    lockSnapTimer.current = setTimeout(() => setLockSnap(false), 220);
+    onLock();
+  }
+
+  function handleReroll() {
+    clearTimeout(flipTimer.current);
+    setFlipPhase('out');
+    flipTimer.current = setTimeout(() => {
+      onReroll();
+      setFlipPhase('in');
+      flipTimer.current = setTimeout(() => setFlipPhase(null), 180);
+    }, 150);
+  }
+
+  function handleBan() {
+    setBanning(true);
+    setTimeout(() => onBan(), 360);
+  }
 
   const headerBg = faction.color;
   const headerText = isDark(headerBg) ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.80)';
   const headerMuted = isDark(headerBg) ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)';
 
-  const winRate = faction.isBot ? null : getWinRate(factionId, playerCount);
-  const isP2Specific = playerCount === 2 && winRate !== null;
+  const wrData = faction.isBot ? null : getWinRate(factionId, playerCount);
+  // Show "No data" label for non-bot factions — either tracked with insufficient games, or not tracked yet
+  const showWrRow = !faction.isBot && playerCount != null;
+  const wrColor = wrData === null ? null
+    : wrData.wr >= 0.30 ? '#5cad78'
+    : wrData.wr >= 0.20 ? '#c8a832'
+    : '#c85040';
 
   return (
     <div
-      className={`faction-card ${locked ? 'locked' : ''} type-${faction.type}`}
+      className={`faction-card ${locked ? 'locked' : ''} type-${faction.type} ${banning ? 'banning' : ''} ${flipPhase ? `flip-${flipPhase}` : ''}`}
       style={{
         '--anim-delay': `${animIndex * 60}ms`,
         '--faction-color': headerBg,
@@ -79,17 +113,29 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
         <div className="reach-block">
           <span className="reach-value">{faction.reach}</span>
           <span className="reach-label-sm" style={{ color: headerMuted }}>reach</span>
-          {winRate !== null && (
-            <span className="wr-badge" style={{ color: headerMuted }} title={isP2Specific ? '2-player win rate (community data)' : 'Overall win rate (community data)'}>
-              {Math.round(winRate * 100)}%{isP2Specific ? ' 2p' : ''}
-            </span>
-          )}
         </div>
       </div>
 
       <div className="card-body">
         <h3 className="faction-name">{faction.name}</h3>
         <p className="faction-flavor">{faction.flavor}</p>
+        {showWrRow && (
+          <div className="faction-wr-row">
+            <span className="faction-wr-label">
+              Win rate{wrData?.playerCountSpecific ? ` (${playerCount}p)` : ''}
+            </span>
+            {wrData !== null ? (
+              <span className="faction-wr-value" style={{ color: wrColor }} title={`${wrData.n} games · community data`}>
+                {Math.round(wrData.wr * 100)}%
+                {!wrData.playerCountSpecific && <span className="faction-wr-qualifier"> avg</span>}
+              </span>
+            ) : (
+              <span className="faction-wr-nodata" title="Not enough recorded games to show a reliable win rate">
+                No data
+              </span>
+            )}
+          </div>
+        )}
         {vagabondCharacter && CHARACTER_MAP[vagabondCharacter] && (
           <div className="vagabond-character">
             <span className="vagabond-character-label">Character</span>
@@ -123,8 +169,8 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
           {!browseMode && (
             <>
               <button
-                className={`card-btn lock-btn ${locked ? 'active' : ''}`}
-                onClick={onLock}
+                className={`card-btn lock-btn ${locked ? 'active' : ''} ${lockSnap ? 'snapping' : ''}`}
+                onClick={handleLock}
                 title={locked ? 'Unlock — this faction will be replaced on re-roll' : 'Lock — keep this faction when re-rolling'}
                 aria-label={locked ? 'Unlock faction' : 'Lock faction'}
                 style={locked ? { '--btn-active-color': faction.color } : {}}
@@ -134,10 +180,10 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
               </button>
               <button
                 className="card-btn reroll-btn"
-                onClick={onReroll}
-                title="Re-roll just this faction"
+                onClick={handleReroll}
+                title={!canReroll ? 'No other eligible factions available — expand your pool or change difficulty filters' : locked ? 'Unlock to re-roll' : 'Re-roll just this faction'}
                 aria-label="Re-roll"
-                disabled={locked}
+                disabled={locked || !canReroll}
               >
                 🔄 <span>Re-roll</span>
               </button>
@@ -145,7 +191,7 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, onBan
           )}
           <button
             className="card-btn ban-btn"
-            onClick={onBan}
+            onClick={handleBan}
             title="Remove this faction from the pool for this session"
             aria-label="Ban"
             disabled={!browseMode && locked}

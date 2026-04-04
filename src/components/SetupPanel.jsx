@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { EXPANSIONS } from '../data/factions.js';
 import { ACCESSORIES, HIRELING_SETS } from '../data/accessories.js';
 import { getReachThreshold } from '../utils/randomizer.js';
@@ -17,23 +17,46 @@ function InfoIcon({ tip }) {
 
 export default function SetupPanel({ state, actions }) {
   const {
-    ownedExpansions, playerCount, botCount, balanceMode, requireBalance,
+    ownedExpansions, playerCount, botCount, balanceMode, requireBalance, avoidUnderdogs,
     difficulties, mapDifficulties, advancedMode, customMinReach, customMaxReach,
     allowedExclusions, ownedAccessories, useHirelings, useLandmarks, landmarkCount,
     customHirelingCount,
   } = state;
 
+  const canUseHirelings = HIRELING_SETS.some(h =>
+    h.source === 'marauder' ? ownedExpansions.has('marauder') : ownedAccessories.has(h.source)
+  );
+  const canUseLandmarks = ownedAccessories.has('landmarks_pack');
+  const canUseBots = ownedExpansions.has('clockwork') || ownedExpansions.has('clockwork2');
+
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [accessoriesOpen, setAccessoriesOpen] = useState(false);
   const [mapsOpen, setMapsOpen] = useState(false);
+  const [botsOpen, setBotsOpen] = useState(false);
+  const [botAnim, setBotAnim] = useState('idle'); // 'idle' | 'activating' | 'deactivating'
+  const prevCanUseBots = useRef(canUseBots);
+  useEffect(() => {
+    if (prevCanUseBots.current === canUseBots) return;
+    prevCanUseBots.current = canUseBots;
+    setBotAnim(canUseBots ? 'activating' : 'deactivating');
+    if (canUseBots) setBotsOpen(true);
+    const t = setTimeout(() => setBotAnim('idle'), 900);
+    return () => clearTimeout(t);
+  }, [canUseBots]);
+
+  const [hirelingAnim, setHirelingAnim] = useState('idle');
+  const prevCanUseHirelings = useRef(canUseHirelings);
+  useEffect(() => {
+    if (prevCanUseHirelings.current === canUseHirelings) return;
+    prevCanUseHirelings.current = canUseHirelings;
+    setHirelingAnim(canUseHirelings ? 'activating' : 'idle');
+    const t = setTimeout(() => setHirelingAnim('idle'), 800);
+    return () => clearTimeout(t);
+  }, [canUseHirelings]);
 
   const availableAccessories = ACCESSORIES.filter(
     a => a.requiresExpansion === null || ownedExpansions.has(a.requiresExpansion)
   );
-
-  const canUseHirelings = ownedExpansions.has('marauder');
-  const canUseLandmarks = ownedExpansions.has('underworld') || ownedAccessories.has('landmarks_pack');
-  const canUseBots = ownedExpansions.has('clockwork') || ownedExpansions.has('clockwork2');
   const maxBots = 6 - playerCount;
   const threshold = getReachThreshold(balanceMode, playerCount + botCount);
   const hasAdvancedOverrides = customMinReach !== null || customMaxReach !== null || allowedExclusions.size > 0 || customHirelingCount !== null;
@@ -90,33 +113,6 @@ export default function SetupPanel({ state, actions }) {
         </p>
       </div>
 
-      {/* Bots */}
-      {canUseBots && (
-        <div className="setup-section">
-          <h2 className="setup-heading">
-            Bots
-            <InfoIcon tip="Clockwork bots fill seats without needing a human player. Max bots = 6 minus your human player count." />
-          </h2>
-          <div className="player-count-row">
-            {Array.from({ length: maxBots + 1 }, (_, i) => i).map(n => (
-              <button
-                key={n}
-                className={`player-btn ${botCount === n ? 'active' : ''}`}
-                onClick={() => actions.setBotCount(n)}
-                aria-pressed={botCount === n}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-          {botCount > 0 && (
-            <p className="reach-label">
-              Total factions: <strong>{playerCount + botCount}</strong>
-            </p>
-          )}
-        </div>
-      )}
-
       {/* Game Balance */}
       <div className="setup-section">
         <h2 className="setup-heading">Game Balance</h2>
@@ -165,6 +161,26 @@ export default function SetupPanel({ state, actions }) {
         </p>
       </div>
 
+      {/* Win Rate Filter */}
+      <div className="setup-section">
+        <h2 className="setup-heading">
+          Win Rate Filter
+          <InfoIcon tip="Excludes factions with a win rate below 20% for the current player count, based on community game data. Factions without enough recorded games are always included." />
+        </h2>
+        <label className={`expansion-check ${avoidUnderdogs ? 'checked' : ''}`}>
+          <input
+            type="checkbox"
+            checked={avoidUnderdogs}
+            onChange={e => actions.setAvoidUnderdogs(e.target.checked)}
+          />
+          <span className="checkbox-box" />
+          <span className="expansion-name">Avoid underdogs (below 20% WR)</span>
+        </label>
+        <p className="mode-description">
+          Only affects factions with ≥50 recorded games. Factions without data are always included.
+        </p>
+      </div>
+
       {/* Faction Difficulty */}
       <div className="setup-section">
         <h2 className="setup-heading">
@@ -188,6 +204,49 @@ export default function SetupPanel({ state, actions }) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Bots — always rendered, disabled until Clockwork is owned */}
+      <div className={`setup-section setup-section-full bots-section ${!canUseBots ? 'bots-disabled' : ''} ${botAnim !== 'idle' ? `bots-${botAnim}` : ''}`}>
+        <button
+          className={`advanced-toggle ${botsOpen ? 'open' : ''} ${botCount > 0 ? 'has-overrides' : ''}`}
+          onClick={() => setBotsOpen(o => !o)}
+          aria-expanded={botsOpen}
+        >
+          <span>
+            <span className={`bot-icon${!canUseBots ? ' bot-icon--offline' : ''}${botAnim !== 'idle' ? ` bot-icon--${botAnim}` : ''}`}>🤖</span>
+            {' '}Bots
+            {botCount > 0 && <span className="override-badge">{botCount} bot{botCount !== 1 ? 's' : ''}</span>}
+          </span>
+          <span className={`chevron ${botsOpen ? 'up' : ''}`}>▾</span>
+        </button>
+
+        {botsOpen && (
+          <div className="advanced-panel">
+            {!canUseBots ? (
+              <p className="mode-description bots-locked-hint">Requires the Clockwork Expansion.</p>
+            ) : (
+              <p className="mode-description">Bots fill seats without a human player. Max bots = 6 − players.</p>
+            )}
+            <div className="player-count-row">
+              {Array.from({ length: maxBots + 1 }, (_, i) => i).map(n => (
+                <button
+                  key={n}
+                  className={`player-btn ${botCount === n ? 'active' : ''}`}
+                  onClick={() => actions.setBotCount(n)}
+                  aria-pressed={botCount === n}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            {botCount > 0 && (
+              <p className="reach-label">
+                Total factions: <strong>{playerCount + botCount}</strong>
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Maps */}
@@ -279,7 +338,7 @@ export default function SetupPanel({ state, actions }) {
             </div>
 
             {/* Landmarks */}
-            <div className="accessories-group">
+            <div className={`accessories-group ${!canUseLandmarks ? 'group-locked' : ''}`}>
               <div className="accessories-group-label">Landmarks</div>
               {availableAccessories.filter(a => a.category === 'landmark').map(a => (
                 <label key={a.id} className={`expansion-check ${ownedAccessories.has(a.id) ? 'checked' : ''}`}>
@@ -288,37 +347,32 @@ export default function SetupPanel({ state, actions }) {
                   <span className="expansion-name">{a.name}</span>
                 </label>
               ))}
-              {canUseLandmarks && (
-                <div className="landmark-count-control">
-                  <span className="landmark-count-control-label">Landmarks in play</span>
-                  <div className="landmark-count-btns">
+              <div className="landmark-count-control">
+                <span className="landmark-count-control-label">Landmarks in play</span>
+                <div className="landmark-count-btns">
+                  <button
+                    className={`landmark-count-btn ${!useLandmarks ? 'active' : ''}`}
+                    onClick={() => actions.setUseLandmarks(false)}
+                    aria-pressed={!useLandmarks}
+                  >
+                    Off
+                  </button>
+                  {[1, 2].map(n => (
                     <button
-                      className={`landmark-count-btn ${!useLandmarks ? 'active' : ''}`}
-                      onClick={() => actions.setUseLandmarks(false)}
-                      aria-pressed={!useLandmarks}
+                      key={n}
+                      className={`landmark-count-btn ${useLandmarks && landmarkCount === n ? 'active' : ''}`}
+                      onClick={() => { actions.setUseLandmarks(true); actions.setLandmarkCount(n); }}
+                      aria-pressed={useLandmarks && landmarkCount === n}
                     >
-                      Off
+                      {n}
                     </button>
-                    {[1, 2].map(n => (
-                      <button
-                        key={n}
-                        className={`landmark-count-btn ${useLandmarks && landmarkCount === n ? 'active' : ''}`}
-                        onClick={() => { actions.setUseLandmarks(true); actions.setLandmarkCount(n); }}
-                        aria-pressed={useLandmarks && landmarkCount === n}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
+                  ))}
                 </div>
-              )}
-              {!canUseLandmarks && (
-                <p className="mode-description">Requires Underworld Expansion or Landmarks Pack.</p>
-              )}
+              </div>
             </div>
 
             {/* Hireling packs */}
-            <div className="accessories-group">
+            <div className={`accessories-group ${!canUseHirelings ? 'group-locked' : ''} ${hirelingAnim === 'activating' ? 'group-activating' : ''}`}>
               <div className="accessories-group-label">Hireling Packs</div>
               {availableAccessories.filter(a => a.category === 'hireling').map(a => (
                 <label key={a.id} className={`expansion-check ${ownedAccessories.has(a.id) ? 'checked' : ''}`}>
@@ -327,16 +381,11 @@ export default function SetupPanel({ state, actions }) {
                   <span className="expansion-name">{a.name}</span>
                 </label>
               ))}
-              {canUseHirelings && (
-                <label className={`expansion-check ${useHirelings ? 'checked' : ''}`}>
-                  <input type="checkbox" checked={useHirelings} onChange={e => actions.setUseHirelings(e.target.checked)} />
-                  <span className="checkbox-box" />
-                  <span className="expansion-name">Randomize hirelings for this session</span>
-                </label>
-              )}
-              {!canUseHirelings && (
-                <p className="mode-description">Requires the Marauder Expansion for hireling rules.</p>
-              )}
+              <label className={`expansion-check ${useHirelings ? 'checked' : ''}`}>
+                <input type="checkbox" checked={useHirelings} onChange={e => actions.setUseHirelings(e.target.checked)} />
+                <span className="checkbox-box" />
+                <span className="expansion-name">Randomize hirelings for this session</span>
+              </label>
             </div>
 
           </div>
@@ -462,6 +511,13 @@ export default function SetupPanel({ state, actions }) {
             )}
           </div>
         )}
+      </div>
+
+      {/* Reset */}
+      <div className="setup-section setup-section-full">
+        <button className="reset-btn" onClick={actions.resetAll}>
+          Reset all settings to defaults
+        </button>
       </div>
 
     </aside>

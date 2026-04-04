@@ -82,3 +82,12 @@ export const MAPS = [
 ];
 
 export const MAP_MAP = Object.fromEntries(MAPS.map(m => [m.id, m]));
+
+export const MAP_COLORS = {
+  autumn:   { primary: '#C4621A', secondary: '#8B3A0A' },
+  winter:   { primary: '#6AAFD4', secondary: '#2A6A9A' },
+  mountain: { primary: '#7A7060', secondary: '#3A3028' },
+  lake:     { primary: '#1A8FA0', secondary: '#0A4A60' },
+  marsh:    { primary: '#6A9A30', secondary: '#2A5A18' },
+  gorge:    { primary: '#B05A20', secondary: '#602010' },
+};

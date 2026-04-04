@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { FACTIONS } from '../data/factions.js';
-import { MAPS } from '../data/maps.js';
+import { MAPS, MAP_COLORS } from '../data/maps.js';
 import { HIRELING_SETS, VAGABOND_CHARACTERS, LANDMARKS } from '../data/accessories.js';
 import FactionIcon from './FactionIcon.jsx';
+
+const HIRELING_COLOR  = '#7A5A2A';
+const CHARACTER_COLOR = '#8C7B6A';
+const LANDMARK_COLOR  = '#5A7A3A';
 
 function EmptyPoolMessage({ message }) {
   return (
@@ -14,12 +18,13 @@ function EmptyPoolMessage({ message }) {
 
 // ── Reusable toggle row ────────────────────────────────────────────────────
 
-function PoolItem({ name, icon, meta, description, excluded, onToggle }) {
+function PoolItem({ name, icon, meta, description, excluded, onToggle, accentColor }) {
   return (
     <button
       className={`pool-item ${excluded ? 'excluded' : ''}`}
       onClick={onToggle}
       title={excluded ? `Click to include "${name}" in pool` : `Click to exclude "${name}" from pool`}
+      style={{ '--pool-accent': accentColor ?? 'var(--gold)' }}
     >
       <span className="pool-item-icon">{icon}</span>
       <span className="pool-item-body">
@@ -71,6 +76,7 @@ function FactionsTab({ state, actions }) {
                 name={f.name}
                 icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
                 meta={`Reach ${f.reach} · ${'★'.repeat(f.difficulty)}`}
+                accentColor={f.color}
                 excluded={bannedFactions.has(f.id)}
                 onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
               />
@@ -89,6 +95,7 @@ function FactionsTab({ state, actions }) {
                 name={f.name}
                 icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
                 meta={`Reach ${f.reach} · ${'★'.repeat(f.difficulty)}`}
+                accentColor={f.color}
                 excluded={bannedFactions.has(f.id)}
                 onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
               />
@@ -107,6 +114,7 @@ function FactionsTab({ state, actions }) {
                 name={f.name}
                 icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
                 meta={`Reach ${f.reach} · ${f.type === 'militant' ? 'Militant' : 'Insurgent'}`}
+                accentColor={f.color}
                 excluded={bannedFactions.has(f.id)}
                 onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
               />
@@ -140,6 +148,7 @@ function MapsTab({ state, actions }) {
             icon={<span className="pool-map-icon">🗺</span>}
             meta={COMPLEXITY[m.difficulty]}
             description={m.description}
+            accentColor={(MAP_COLORS[m.id] ?? {}).primary}
             excluded={excludedMaps.has(m.id)}
             onToggle={() => actions.toggleExcludedMap(m.id)}
           />
@@ -172,6 +181,7 @@ function HirelingsTab({ state, actions }) {
             icon={<span className="pool-generic-icon">⚔</span>}
             meta={`${h.promoted} / ${h.demoted}`}
             description={h.description}
+            accentColor={HIRELING_COLOR}
             excluded={excludedHirelings.has(h.id)}
             onToggle={() => actions.toggleExcludedHireling(h.id)}
           />
@@ -210,6 +220,7 @@ function CharactersTab({ state, actions }) {
             name={c.name}
             icon={<span className="pool-generic-icon">🎒</span>}
             meta={SOURCE_LABEL[c.source] ?? c.source}
+            accentColor={CHARACTER_COLOR}
             excluded={excludedCharacters.has(c.id)}
             onToggle={() => actions.toggleExcludedCharacter(c.id)}
           />
@@ -247,6 +258,7 @@ function LandmarksTab({ state, actions }) {
             icon={<span className="pool-generic-icon">🏛</span>}
             meta={SOURCE_LABEL[l.source] ?? l.source}
             description={l.description}
+            accentColor={LANDMARK_COLOR}
             excluded={excludedLandmarks.has(l.id)}
             onToggle={() => actions.toggleExcludedLandmark(l.id)}
           />

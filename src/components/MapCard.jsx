@@ -1,4 +1,4 @@
-import { MAP_MAP } from '../data/maps.js';
+import { MAP_MAP, MAP_COLORS } from '../data/maps.js';
 
 const DIFFICULTY_LABELS = { 1: 'Beginner-friendly', 2: 'Intermediate', 3: 'Advanced' };
 
@@ -79,15 +79,6 @@ const MAP_ICONS = {
   ),
 };
 
-// Primary color + secondary for gradient header
-const MAP_COLORS = {
-  autumn:   { primary: '#C4621A', secondary: '#8B3A0A' }, // burnt orange / deep ember
-  winter:   { primary: '#6AAFD4', secondary: '#2A6A9A' }, // icy blue / deep frost
-  mountain: { primary: '#7A7060', secondary: '#3A3028' }, // slate stone / dark rock
-  lake:     { primary: '#1A8FA0', secondary: '#0A4A60' }, // clear teal / deep water
-  marsh:    { primary: '#6A9A30', secondary: '#2A5A18' }, // murky yellow-green / swamp
-  gorge:    { primary: '#B05A20', secondary: '#602010' }, // canyon terracotta / deep rust
-};
 
 export default function MapCard({ mapId, onReroll, canReroll }) {
   const map = MAP_MAP[mapId];
