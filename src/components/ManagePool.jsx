@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { FACTIONS } from '../data/factions.js';
+import { FACTIONS, FACTION_MAP } from '../data/factions.js';
 import { MAPS, MAP_COLORS } from '../data/maps.js';
 import { HIRELING_SETS, VAGABOND_CHARACTERS, LANDMARKS } from '../data/accessories.js';
 import FactionIcon from './FactionIcon.jsx';
 
-const HIRELING_COLOR  = '#7A5A2A';
+const HIRELING_SOURCE_COLORS = {
+  marauder:             '#C83228',
+  marauder_hirelings:   '#C83228',
+  riverfolk_hirelings:  '#3AACA8',
+  underworld_hirelings: '#7B4FA3',
+  homeland_hirelings:   '#3A9CB0',
+};
 const CHARACTER_COLOR = '#8C7B6A';
 const LANDMARK_COLOR  = '#5A7A3A';
 
@@ -112,9 +118,9 @@ function FactionsTab({ state, actions }) {
               <PoolItem
                 key={f.id}
                 name={f.name}
-                icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
+                icon={<FactionIcon factionId={f.automatesId} className="pool-faction-icon" />}
                 meta={`Reach ${f.reach} · ${f.type === 'militant' ? 'Militant' : 'Insurgent'}`}
-                accentColor={f.color}
+                accentColor={FACTION_MAP[f.automatesId].color}
                 excluded={bannedFactions.has(f.id)}
                 onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
               />
@@ -181,7 +187,7 @@ function HirelingsTab({ state, actions }) {
             icon={<span className="pool-generic-icon">⚔</span>}
             meta={`${h.promoted} / ${h.demoted}`}
             description={h.description}
-            accentColor={HIRELING_COLOR}
+            accentColor={HIRELING_SOURCE_COLORS[h.source] ?? '#7A5A2A'}
             excluded={excludedHirelings.has(h.id)}
             onToggle={() => actions.toggleExcludedHireling(h.id)}
           />

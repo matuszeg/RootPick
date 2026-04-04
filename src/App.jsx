@@ -44,6 +44,7 @@ export default function App() {
     selectedLandmarks,
     vagabondCharacters,
     playerCount,
+    botCount,
     balanceMode,
     ownedExpansions,
     ownedAccessories,
@@ -194,7 +195,7 @@ export default function App() {
                           mapNote={mapData?.factionNotes?.[id] ?? null}
                           vagabondCharacter={vagabondCharacters[id] ?? null}
                           onRerollCharacter={() => actions.rerollVagabondCharacter(id)}
-                          playerCount={playerCount}
+                          playerCount={playerCount + botCount}
                         />
                       ))}
                     </div>
@@ -210,8 +211,7 @@ export default function App() {
                       aria-expanded={secMaps}
                     >
                       <span className="result-section-chevron">{secMaps ? '▾' : '▸'}</span>
-                      Maps
-                      {selectedDeck && <span className="result-section-sub">+ Deck</span>}
+                      {selectedMap && selectedDeck ? 'Map & Deck' : selectedMap ? 'Map' : 'Deck'}
                     </button>
                     {secMaps && (
                       <div className="session-row">

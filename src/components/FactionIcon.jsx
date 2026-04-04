@@ -141,7 +141,7 @@ const icons = {
 export default function FactionIcon({ factionId, className }) {
   return (
     <span className={`faction-icon ${className ?? ''}`} aria-hidden="true">
-      {icons[factionId] ?? null}
+      {icons[factionId] ?? <span className="faction-icon-fallback">🤖</span>}
     </span>
   );
 }

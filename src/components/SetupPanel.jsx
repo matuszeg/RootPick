@@ -39,7 +39,7 @@ export default function SetupPanel({ state, actions }) {
     if (prevCanUseBots.current === canUseBots) return;
     prevCanUseBots.current = canUseBots;
     setBotAnim(canUseBots ? 'activating' : 'deactivating');
-    if (canUseBots) setBotsOpen(true);
+    setBotsOpen(canUseBots);
     const t = setTimeout(() => setBotAnim('idle'), 900);
     return () => clearTimeout(t);
   }, [canUseBots]);

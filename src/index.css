@@ -1,7 +1,7 @@
 /* ─── Tokens ──────────────────────────────────────────────────────────── */
 :root {
-  --bg:            #0d1a0f;
-  --bg-alt:        #111f14;
+  --bg:            #120d06;
+  --bg-alt:        #1c1309;
   --bg-card:       #f5ecd7;
   --bg-card-hover: #f0e4c8;
   --ink:           #1a1007;
@@ -12,10 +12,11 @@
   --gold-dim:      rgba(200, 144, 42, 0.25);
   --militant:      #8b2e14;
   --militant-bg:   #fde8e2;
-  --insurgent:     #1a5c4a;
-  --insurgent-bg:  #e0f2eb;
-  --reach-ok:      #2d6b3a;
+  --insurgent:     #2a5c3a;
+  --insurgent-bg:  #dff0e6;
+  --reach-ok:      #2e6440;
   --reach-fail:    #8b2e14;
+  --danger:        #b03a22;
   --border:        rgba(200, 144, 42, 0.3);
   --border-strong: rgba(200, 144, 42, 0.55);
   --shadow:        0 4px 24px rgba(0,0,0,0.5);
@@ -38,7 +39,7 @@ body {
   min-height: 100dvh;
   /* Subtle bark/grain texture via CSS */
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% -10%, #1a3320 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% -10%, #2a1a0a 0%, transparent 70%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
 }
 
@@ -47,7 +48,7 @@ a { color: inherit; }
 
 /* ─── Header ──────────────────────────────────────────────────────────── */
 .app-header {
-  background: linear-gradient(to bottom, #0a1509 0%, var(--bg) 100%);
+  background: linear-gradient(to bottom, #0a0704 0%, var(--bg) 100%);
   border-bottom: 1px solid var(--border);
   padding: 1.25rem 1rem 1rem;
   text-align: center;
@@ -106,7 +107,7 @@ a { color: inherit; }
   text-transform: uppercase;
   transition: background 0.15s, border-color 0.15s;
 }
-.setup-toggle:hover { background: #162419; border-color: var(--border-strong); }
+.setup-toggle:hover { background: #241a0d; border-color: var(--border-strong); }
 .chevron { display: inline-block; transition: transform 0.2s; }
 .chevron.up { transform: rotate(180deg); }
 
@@ -564,7 +565,7 @@ a { color: inherit; }
   gap: 0.4rem;
 }
 .view-tab:last-child { border-right: none; }
-.view-tab:hover:not(.active) { color: #c8b89a; background: #162419; }
+.view-tab:hover:not(.active) { color: #c8b89a; background: #261b0e; }
 .view-tab.active {
   background: var(--gold-dim);
   color: var(--gold-bright);
@@ -802,7 +803,7 @@ a { color: inherit; }
 .balance-signal--warn  .balance-signal-icon,
 .balance-signal--warn  .balance-signal-label { color: #c8a832; }
 .balance-signal--bad   .balance-signal-icon,
-.balance-signal--bad   .balance-signal-label { color: #c85040; }
+.balance-signal--bad   .balance-signal-label { color: var(--danger); }
 
 /* ─── Session row (Map + Deck side by side) ───────────────────────────── */
 .session-row {
@@ -1607,6 +1608,15 @@ a { color: inherit; }
   width: 100%;
   height: 100%;
 }
+.faction-icon-fallback {
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
 
 .reach-block {
   display: flex;
@@ -1763,13 +1773,13 @@ a { color: inherit; }
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: rgba(200,80,64,0.45);
+  color: rgba(176,58,34,0.65);
   transition: color 0.15s;
   padding: 0.1rem 0.1rem 0 0;
   line-height: 1;
 }
 .ban-link:hover:not(:disabled) {
-  color: #c85040;
+  color: var(--danger);
 }
 .ban-link:disabled {
   opacity: 0.25;
@@ -1829,11 +1839,11 @@ a { color: inherit; }
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: rgba(200,80,64,0.45);
+  color: #9a8a70;
   transition: color 0.15s;
 }
 .reset-link:hover {
-  color: #c85040;
+  color: var(--danger);
 }
 
 /* ─── Empty state ─────────────────────────────────────────────────────── */
@@ -2017,8 +2027,8 @@ a { color: inherit; }
 .pool-section-heading:not(.militant):not(.insurgent) { color: var(--gold); }
 
 .pool-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0.3rem;
 }
 
@@ -2030,14 +2040,14 @@ a { color: inherit; }
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
   border-left: 3px solid var(--pool-accent, var(--gold));
-  background: #192d1d;
+  background: #261b0e;
   cursor: pointer;
   text-align: left;
   width: 100%;
   box-shadow: 0 1px 4px rgba(0,0,0,0.4);
   transition: opacity 0.15s, border-color 0.15s, background 0.15s;
 }
-.pool-item:hover { background: #1f3622; }
+.pool-item:hover { background: #261b0e; }
 .pool-item.excluded {
   opacity: 0.4;
   border-left-style: dashed;
@@ -2055,10 +2065,11 @@ a { color: inherit; }
   align-items: center;
   justify-content: center;
 }
-.pool-faction-icon { width: 1.4rem; height: 1.4rem; }
+.pool-faction-icon { width: 1.4rem; height: 1.4rem; color: var(--pool-accent, var(--gold)); }
 .pool-map-icon,
 .pool-generic-icon {
   font-size: 1rem;
+  color: var(--pool-accent, var(--gold));
 }
 
 .pool-item-body {

@@ -96,11 +96,7 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
           <FactionIcon factionId={factionId} className="card-faction-icon" />
           <div className="card-header-meta">
             <div className="card-badges">
-              {faction.isBot && (
-                <span className="bot-badge" style={{ color: headerMuted, borderColor: headerMuted }}>
-                  ⚙ Bot
-                </span>
-              )}
+
               <span className="type-badge" style={{ color: headerMuted, borderColor: headerMuted }}>
                 {faction.type === 'militant' ? 'Militant' : 'Insurgent'}
               </span>
