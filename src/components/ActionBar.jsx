@@ -1,6 +1,6 @@
 export default function ActionBar({ hasSelection, hasLockedFactions, hasHistory, copied, actions }) {
   return (
-    <div className="action-bar">
+    <div className="action-bar" role="toolbar" aria-label="Session actions">
       <button
         className="action-btn primary randomize-btn"
         onClick={() => actions.randomize(false)}
@@ -40,6 +40,14 @@ export default function ActionBar({ hasSelection, hasLockedFactions, hasHistory,
           <span>{copied ? 'Copied!' : 'Share'}</span>
         </button>
       </div>
+
+      <button
+        className="reset-link"
+        onClick={actions.resetAll}
+        title="Clear all settings and return to defaults"
+      >
+        ↺ Reset all settings
+      </button>
     </div>
   );
 }

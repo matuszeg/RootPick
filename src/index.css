@@ -1712,10 +1712,9 @@ a { color: inherit; }
 .card-btn:hover:not(:disabled) { background: rgba(0,0,0,0.1); transform: scale(1.08); }
 .card-btn:disabled { opacity: 0.3; cursor: default; }
 
-/* All labeled buttons share base text styles */
+/* Lock + Re-roll shared text styles */
 .card-btn.lock-btn,
-.card-btn.reroll-btn,
-.card-btn.ban-btn {
+.card-btn.reroll-btn {
   width: auto;
   padding: 0 0.55rem;
   gap: 0.25rem;
@@ -1728,16 +1727,53 @@ a { color: inherit; }
   border: 1.5px solid rgba(0,0,0,0.18);
   color: var(--ink-mid);
 }
-.card-btn.lock-btn:hover:not(:disabled),
-.card-btn.reroll-btn:hover:not(:disabled),
-.card-btn.ban-btn:hover:not(:disabled) {
-  border-color: rgba(0,0,0,0.3);
-  background: rgba(0,0,0,0.08);
+
+/* Lock: inactive state has a faint gold hint to signal it's a toggle with state */
+.card-btn.lock-btn {
+  border-color: rgba(200,144,42,0.35);
+  background: rgba(200,144,42,0.06);
+  color: color-mix(in srgb, var(--gold) 60%, var(--ink-mid));
+}
+.card-btn.lock-btn:hover:not(:disabled) {
+  border-color: rgba(200,144,42,0.55);
+  background: rgba(200,144,42,0.12);
 }
 .card-btn.lock-btn.active {
   background: color-mix(in srgb, var(--btn-active-color, var(--gold)) 15%, transparent);
   border-color: var(--btn-active-color, var(--gold));
   color: color-mix(in srgb, var(--btn-active-color, var(--gold)) 80%, var(--ink));
+}
+
+/* Re-roll: neutral action weight, no toggle hint */
+.card-btn.reroll-btn:hover:not(:disabled) {
+  border-color: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.08);
+}
+
+/* Ban: danger link — lives below the action row, not in it */
+.ban-link {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(200,80,64,0.45);
+  transition: color 0.15s;
+  padding: 0.1rem 0.1rem 0 0;
+  line-height: 1;
+}
+.ban-link:hover:not(:disabled) {
+  color: #c85040;
+}
+.ban-link:disabled {
+  opacity: 0.25;
+  cursor: default;
 }
 
 @keyframes card-ban {
@@ -1778,24 +1814,26 @@ a { color: inherit; }
   animation: lock-snap 0.22s ease-out forwards;
 }
 
-/* ─── Reset button ────────────────────────────────────────────────────── */
-.reset-btn {
+/* ─── Reset link ──────────────────────────────────────────────────────── */
+.reset-link {
   all: unset;
   cursor: pointer;
   display: block;
   width: 100%;
   box-sizing: border-box;
   text-align: center;
-  padding: 0.45rem;
-  font-size: 0.7rem;
-  color: var(--ink-muted);
-  border: 1px dashed var(--border);
-  border-radius: 5px;
-  transition: color 0.15s, border-color 0.15s;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(200,80,64,0.45);
+  transition: color 0.15s;
 }
-.reset-btn:hover {
+.reset-link:hover {
   color: #c85040;
-  border-color: #c85040;
 }
 
 /* ─── Empty state ─────────────────────────────────────────────────────── */

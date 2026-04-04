@@ -513,13 +513,6 @@ export default function SetupPanel({ state, actions }) {
         )}
       </div>
 
-      {/* Reset */}
-      <div className="setup-section setup-section-full">
-        <button className="reset-btn" onClick={actions.resetAll}>
-          Reset all settings to defaults
-        </button>
-      </div>
-
     </aside>
   );
 }

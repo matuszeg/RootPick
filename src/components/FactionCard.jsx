@@ -165,40 +165,39 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
 
       <div className="card-footer">
         <Stars count={faction.difficulty} />
-        <div className="card-actions">
-          {!browseMode && (
-            <>
-              <button
-                className={`card-btn lock-btn ${locked ? 'active' : ''} ${lockSnap ? 'snapping' : ''}`}
-                onClick={handleLock}
-                title={locked ? 'Unlock — this faction will be replaced on re-roll' : 'Lock — keep this faction when re-rolling'}
-                aria-label={locked ? 'Unlock faction' : 'Lock faction'}
-                style={locked ? { '--btn-active-color': faction.color } : {}}
-              >
-                {locked ? '🔒' : '🔓'}
-                <span>{locked ? 'Locked' : 'Lock'}</span>
-              </button>
-              <button
-                className="card-btn reroll-btn"
-                onClick={handleReroll}
-                title={!canReroll ? 'No other eligible factions available — expand your pool or change difficulty filters' : locked ? 'Unlock to re-roll' : 'Re-roll just this faction'}
-                aria-label="Re-roll"
-                disabled={locked || !canReroll}
-              >
-                🔄 <span>Re-roll</span>
-              </button>
-            </>
-          )}
-          <button
-            className="card-btn ban-btn"
-            onClick={handleBan}
-            title="Remove this faction from the pool for this session"
-            aria-label="Ban"
-            disabled={!browseMode && locked}
-          >
-            🚫 <span>Ban</span>
-          </button>
-        </div>
+        {!browseMode && (
+          <div className="card-actions">
+            <button
+              className={`card-btn lock-btn ${locked ? 'active' : ''} ${lockSnap ? 'snapping' : ''}`}
+              onClick={handleLock}
+              title={locked ? 'Unlock — this faction will be replaced on re-roll' : 'Lock — keep this faction when re-rolling'}
+              aria-label={locked ? 'Unlock faction' : 'Lock faction'}
+              style={locked ? { '--btn-active-color': faction.color } : {}}
+            >
+              {locked ? '🔒' : '🔓'}
+              <span>{locked ? 'Locked' : 'Lock'}</span>
+            </button>
+            <button
+              className="card-btn reroll-btn"
+              onClick={handleReroll}
+              title={!canReroll ? 'No other eligible factions available — expand your pool or change difficulty filters' : locked ? 'Unlock to re-roll' : 'Re-roll just this faction'}
+              aria-label="Re-roll"
+              disabled={locked || !canReroll}
+            >
+              <span className="reroll-icon">🔄</span>
+              {' '}<span>Re-roll</span>
+            </button>
+          </div>
+        )}
+        <button
+          className="ban-link"
+          onClick={handleBan}
+          title="Remove this faction from the pool for this session"
+          aria-label="Ban faction"
+          disabled={!browseMode && locked}
+        >
+          Ban
+        </button>
       </div>
     </div>
   );
