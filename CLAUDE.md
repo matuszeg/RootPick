@@ -10,6 +10,28 @@ RootPick is a faction randomizer for the Root board game by Leder Games. It help
 - Deployed to GitHub Pages via `npm run deploy`
 - `refs/` folder contains rulebook PDFs (readable with the Read tool + pages param)
 
+## Faction Animals
+
+Each faction is associated with a specific animal:
+
+| Faction | Animal |
+|---|---|
+| Marquise de Cat | Cat |
+| Eyrie Dynasties | Blue Jay (Birds) |
+| Woodland Alliance | Rabbit |
+| Vagabond | Raccoon |
+| Lizard Cult | Lizard |
+| Riverfolk Company | Otter |
+| Underground Duchy | Mole |
+| Corvid Conspiracy | Crow |
+| Lord of the Hundreds | Mouse |
+| Keepers in Iron | Badger |
+| Lilypad Diaspora | Frog |
+| Twilight Council | Bat |
+| Knaves of the Deepwood | Skunk |
+
+Bots automate their corresponding faction and share the same animal.
+
 ## Root Game Domain Knowledge
 
 Root is an asymmetric board game. Each player controls a different faction with unique rules.

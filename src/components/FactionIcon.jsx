@@ -1,139 +1,224 @@
-// Original SVG icons inspired by each faction's theme.
+// Original SVG icons inspired by each faction's animal.
 // Not reproductions of Leder Games artwork.
+//
+// Eye holes and identifying cutouts use compound SVG <path> elements.
+// Multiple subpaths within a single <path d="..."> with fillRule="evenodd"
+// punch transparent holes wherever subpaths overlap, revealing the DOM
+// background regardless of what currentColor resolves to in each context.
+// fillRule="evenodd" on a <g> does NOT do this — it must be on the <path>.
 
 const icons = {
   marquise: (
-    // Cat paw print
+    // Cat — pointed ears, face with punched eye holes
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="20" cy="26" rx="9" ry="7" />
-      <ellipse cx="11" cy="17" rx="3.5" ry="4.5" />
-      <ellipse cx="29" cy="17" rx="3.5" ry="4.5" />
-      <ellipse cx="15" cy="13" rx="3" ry="4" />
-      <ellipse cx="25" cy="13" rx="3" ry="4" />
+      <polygon points="7,14 5,4 15,11"/>
+      <polygon points="33,14 35,4 25,11"/>
+      <path fillRule="evenodd" d="
+        M6,22 a14,13 0 1,0 28,0 a14,13 0 1,0 -28,0Z
+        M11,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+        M23,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+      "/>
     </svg>
   ),
 
   eyrie: (
-    // Stylised wing / talon
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 34 C10 28, 4 18, 8 8 C12 16, 16 20, 20 22 C24 20, 28 16, 32 8 C36 18, 30 28, 20 34Z" fill="currentColor"/>
-      <path d="M20 22 L20 34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    // Blue Jay — two swept crest feathers, face with eye holes, downward beak
+    <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17,13 C16,8 14,4 17,1 C19,4 20,9 19,13Z"/>
+      <path d="M21,13 C21,7 23,3 27,4 C25,8 23,11 21,13Z"/>
+      <path fillRule="evenodd" d="
+        M7,24 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0Z
+        M10,22 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+        M24,22 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+      "/>
+      <polygon points="16,33 20,39 24,33"/>
     </svg>
   ),
 
   alliance: (
-    // Tree / spreading roots
+    // Rabbit — long ears, face with eye holes and nose hole
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 5 L28 17 H23 L30 26 H24 L31 35 H9 L16 26 H10 L17 17 H12 Z"/>
-      <rect x="18" y="33" width="4" height="5"/>
+      <ellipse cx="14" cy="10" rx="4.5" ry="10"/>
+      <ellipse cx="26" cy="10" rx="4.5" ry="10"/>
+      <path fillRule="evenodd" d="
+        M7,27 a13,11 0 1,0 26,0 a13,11 0 1,0 -26,0Z
+        M11.5,23 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+        M23.5,23 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+        M18.5,29 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0Z
+      "/>
     </svg>
   ),
 
   vagabond1: (
-    // Bindle / wanderer's pack
+    // Raccoon — ears, face with mask hole, eyes refilled inside mask (3 levels of evenodd)
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="26" cy="16" r="8"/>
-      <line x1="18" y1="22" x2="8" y2="35" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="8" y1="35" x2="14" y2="35" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+      <circle cx="11" cy="10" r="5"/>
+      <circle cx="29" cy="10" r="5"/>
+      <path fillRule="evenodd" d="
+        M7,22 a13,11 0 1,0 26,0 a13,11 0 1,0 -26,0Z
+        M11,16 L29,16 A4,4 0 0,1 33,20 A4,4 0 0,1 29,24 L11,24 A4,4 0 0,1 7,20 A4,4 0 0,1 11,16Z
+        M11,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+        M23,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+      "/>
     </svg>
   ),
 
   vagabond2: (
-    // Same wanderer icon
+    // Raccoon — same as vagabond1
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="26" cy="16" r="8"/>
-      <line x1="18" y1="22" x2="8" y2="35" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="8" y1="35" x2="14" y2="35" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+      <circle cx="11" cy="10" r="5"/>
+      <circle cx="29" cy="10" r="5"/>
+      <path fillRule="evenodd" d="
+        M7,22 a13,11 0 1,0 26,0 a13,11 0 1,0 -26,0Z
+        M11,16 L29,16 A4,4 0 0,1 33,20 A4,4 0 0,1 29,24 L11,24 A4,4 0 0,1 7,20 A4,4 0 0,1 11,16Z
+        M11,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+        M23,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+      "/>
     </svg>
   ),
 
   riverfolk: (
-    // Fish / wave
+    // Otter — ears, face with eye holes, wide muzzle with nose hole (separate path)
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 20 C10 12, 20 10, 30 16 L34 12 L34 28 L30 24 C20 30, 10 28, 6 20Z"/>
-      <circle cx="26" cy="19" r="1.5" fill="white" opacity="0.7"/>
+      <circle cx="11" cy="11" r="4.5"/>
+      <circle cx="29" cy="11" r="4.5"/>
+      <path fillRule="evenodd" d="
+        M7,22 a13,11 0 1,0 26,0 a13,11 0 1,0 -26,0Z
+        M11.5,19 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+        M23.5,19 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+      "/>
+      <path fillRule="evenodd" d="
+        M13,28 a7,5 0 1,0 14,0 a7,5 0 1,0 -14,0Z
+        M17.5,26 a2.5,1.5 0 1,0 5,0 a2.5,1.5 0 1,0 -5,0Z
+      "/>
     </svg>
   ),
 
   lizard: (
-    // Sun / radiant symbol
+    // Lizard — top-down: head with eye holes, oval body, four legs, tail
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="20" cy="20" r="6"/>
-      {[0,45,90,135,180,225,270,315].map((deg, i) => {
-        const r = Math.PI * deg / 180;
-        return (
-          <line
-            key={i}
-            x1={20 + 9 * Math.cos(r)}
-            y1={20 + 9 * Math.sin(r)}
-            x2={20 + 14 * Math.cos(r)}
-            y2={20 + 14 * Math.sin(r)}
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
-        );
-      })}
+      <path fillRule="evenodd" d="
+        M14,12 a6,5.5 0 1,0 12,0 a6,5.5 0 1,0 -12,0Z
+        M14,11 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0Z
+        M22,11 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0Z
+      "/>
+      <ellipse cx="20" cy="23" rx="7" ry="9"/>
+      <path d="M13,18 L4,13 M27,18 L36,13 M13,28 L4,33 M27,28 L36,33"
+            stroke="currentColor" strokeWidth="4" strokeLinecap="round" fill="none"/>
+      <path d="M20,32 C22,36 21,39 19,40"
+            stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
     </svg>
   ),
 
   duchy: (
-    // Tunnel arch / underground
+    // Mole — small ears, round face with tiny eye holes, wide snout with nostril holes
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 34 L6 20 Q6 8 20 8 Q34 8 34 20 L34 34 Z"/>
-      <path d="M13 34 L13 22 Q13 15 20 15 Q27 15 27 22 L27 34 Z" fill="white" opacity="0.25"/>
+      <circle cx="12" cy="11" r="5"/>
+      <circle cx="28" cy="11" r="5"/>
+      <path fillRule="evenodd" d="
+        M6,23 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0Z
+        M11,20 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0Z
+        M25,20 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0Z
+      "/>
+      <path fillRule="evenodd" d="
+        M11,32 a9,6 0 1,0 18,0 a9,6 0 1,0 -18,0Z
+        M15.5,31 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0Z
+        M21.5,31 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0Z
+      "/>
     </svg>
   ),
 
   corvid: (
-    // Crow / raven silhouette
+    // Crow — round head with large eye holes, thick downward beak
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 8 C14 8, 10 12, 10 17 C10 21, 12 24, 16 26 L14 36 L20 32 L26 36 L24 26 C28 24, 30 21, 30 17 C30 12, 26 8, 20 8Z"/>
-      <path d="M20 8 L8 12 C12 13, 16 13, 18 14" fill="currentColor"/>
-      <circle cx="17" cy="14" r="1.5" fill="white" opacity="0.7"/>
+      <path fillRule="evenodd" d="
+        M9,17 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0Z
+        M10.5,15 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0Z
+        M22.5,15 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0Z
+      "/>
+      <path d="M12,27 L20,39 L28,27Z"/>
     </svg>
   ),
 
   hundreds: (
-    // Crown with flames
+    // Mouse — large ears with inner holes, face with eye holes, pointed snout
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 32 L8 20 L14 26 L20 12 L26 26 L32 20 L32 32 Z"/>
-      <rect x="8" y="30" width="24" height="4" rx="1"/>
+      <path fillRule="evenodd" d="
+        M3,10 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0Z
+        M6,10 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0Z
+      "/>
+      <path fillRule="evenodd" d="
+        M23,10 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0Z
+        M26,10 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0Z
+      "/>
+      <path fillRule="evenodd" d="
+        M7,24 a13,11 0 1,0 26,0 a13,11 0 1,0 -26,0Z
+        M11.5,21 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+        M23.5,21 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+      "/>
+      <ellipse cx="20" cy="32" rx="4" ry="3"/>
     </svg>
   ),
 
   keepers: (
-    // Shield with rune mark
+    // Badger — ears, wide head with centre stripe hole and eye holes outside stripe, snout
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 5 L34 10 L34 22 C34 30, 27 36, 20 38 C13 36, 6 30, 6 22 L6 10 Z"/>
-      <path d="M14 20 L26 20 M20 14 L20 26" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.5"/>
+      <circle cx="10" cy="9" r="5"/>
+      <circle cx="30" cy="9" r="5"/>
+      <path fillRule="evenodd" d="
+        M5,23 a15,12 0 1,0 30,0 a15,12 0 1,0 -30,0Z
+        M16,21 a4,12 0 1,0 8,0 a4,12 0 1,0 -8,0Z
+        M10,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+        M24,20 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+      "/>
+      <ellipse cx="20" cy="30" rx="5" ry="4"/>
     </svg>
   ),
 
   lilypad: (
-    // Lily pad / water droplet
+    // Frog — bulging top-mounted eyes as rings (outer filled, inner hole), wide flat head
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 8 C20 8, 34 16, 34 26 C34 32, 27.6 36, 20 36 C12.4 36, 6 32, 6 26 C6 16, 20 8, 20 8Z"/>
-      <path d="M20 8 L20 36" stroke="white" strokeWidth="1.5" opacity="0.3"/>
-      <path d="M10 24 Q20 18 30 24" stroke="white" strokeWidth="1.5" fill="none" opacity="0.3"/>
+      <path fillRule="evenodd" d="
+        M5,14 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0Z
+        M8,14 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+      "/>
+      <path fillRule="evenodd" d="
+        M23,14 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0Z
+        M26,14 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0Z
+      "/>
+      <ellipse cx="20" cy="24" rx="15" ry="10"/>
+      <path d="M10,28 Q20,34 30,28" stroke="currentColor" strokeWidth="2.5" fill="none" opacity="0.4"/>
     </svg>
   ),
 
   twilight: (
-    // Crescent moon + star
+    // Bat — W-shaped wings, pointed ears, head with small eye holes
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22 8 C14 8, 8 14, 8 22 C8 30, 14 36, 22 36 C16 32, 13 27, 13 22 C13 14, 18 9, 25 8 C24 8, 23 8, 22 8Z"/>
-      <polygon points="31,8 32.5,13 37.5,13 33.5,16 35,21 31,18 27,21 28.5,16 24.5,13 29.5,13" />
+      <path d="M20,22 C16,20 8,14 2,16 C4,20 8,22 12,21 C10,24 8,28 10,30 C13,27 16,24 20,25Z"/>
+      <path d="M20,22 C24,20 32,14 38,16 C36,20 32,22 28,21 C30,24 32,28 30,30 C27,27 24,24 20,25Z"/>
+      <polygon points="16,16 14,8 19,14"/>
+      <polygon points="24,16 26,8 21,14"/>
+      <path fillRule="evenodd" d="
+        M15,20 a5,6 0 1,0 10,0 a5,6 0 1,0 -10,0Z
+        M16.5,18 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0Z
+        M20.5,18 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0Z
+      "/>
     </svg>
   ),
 
   knaves: (
-    // Diamond / playing card shape with mask
+    // Skunk — ears, bushy tail arc, face with centre stripe hole and eye holes outside stripe
     <svg viewBox="0 0 40 40" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 4 L36 20 L20 36 L4 20 Z"/>
-      <path d="M13 18 Q20 14 27 18 L27 23 Q24 27 20 27 Q16 27 13 23 Z" fill="white" opacity="0.2"/>
-      <circle cx="16" cy="20" r="2" fill="white" opacity="0.4"/>
-      <circle cx="24" cy="20" r="2" fill="white" opacity="0.4"/>
+      <circle cx="12" cy="9" r="4.5"/>
+      <circle cx="28" cy="9" r="4.5"/>
+      <path d="M7,14 C2,8 2,2 8,2 C12,2 14,6 12,10"
+            stroke="currentColor" strokeWidth="5" strokeLinecap="round" fill="none" opacity="0.7"/>
+      <path fillRule="evenodd" d="
+        M7,22 a13,11 0 1,0 26,0 a13,11 0 1,0 -26,0Z
+        M16.5,20 a3.5,11 0 1,0 7,0 a3.5,11 0 1,0 -7,0Z
+        M11,19 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+        M24,19 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0Z
+      "/>
     </svg>
   ),
 };
