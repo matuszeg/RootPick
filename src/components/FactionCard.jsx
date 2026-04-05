@@ -3,6 +3,8 @@ import { FACTION_MAP } from '../data/factions.js';
 import { CHARACTER_MAP } from '../data/accessories.js';
 import { getWinRate, WIN_RATES } from '../data/winRates.js';
 import FactionIcon from './FactionIcon.jsx';
+import DieIcon from './DieIcon.jsx';
+import LockIcon from './LockIcon.jsx';
 
 const EXPANSION_LABELS = {
   base: 'Base',
@@ -143,7 +145,7 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
                 title="Re-roll character"
                 aria-label="Re-roll vagabond character"
               >
-                🔄
+                <DieIcon width={13} height={13} />
               </button>
             )}
           </div>
@@ -170,7 +172,7 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
               aria-label={locked ? 'Unlock faction' : 'Lock faction'}
               style={locked ? { '--btn-active-color': faction.color } : {}}
             >
-              {locked ? '🔒' : '🔓'}
+              <LockIcon locked={locked} />
               <span>{locked ? 'Locked' : 'Lock'}</span>
             </button>
             <button
@@ -180,7 +182,7 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
               aria-label="Re-roll"
               disabled={locked || !canReroll}
             >
-              <span className="reroll-icon">🔄</span>
+              <span className="reroll-icon"><DieIcon /></span>
               {' '}<span>Re-roll</span>
             </button>
           </div>

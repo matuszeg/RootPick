@@ -1,4 +1,5 @@
 import { LANDMARK_MAP } from '../data/accessories.js';
+import DieIcon from './DieIcon.jsx';
 
 const LANDMARK_ICONS = {
   tower: (
@@ -55,7 +56,7 @@ export default function LandmarkCard({ landmarkIds, onReroll }) {
           <span className="landmark-count">{landmarks.length} in play</span>
         </div>
         <button className="landmark-reroll-btn" onClick={onReroll} title="Re-roll landmarks">
-          🔄 Re-roll
+          <DieIcon /> Re-roll
         </button>
       </div>
       <div className="landmark-list">

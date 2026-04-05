@@ -1,4 +1,5 @@
 import { MAP_MAP, MAP_COLORS } from '../data/maps.js';
+import DieIcon from './DieIcon.jsx';
 
 const DIFFICULTY_LABELS = { 1: 'Beginner-friendly', 2: 'Intermediate', 3: 'Advanced' };
 
@@ -107,7 +108,7 @@ export default function MapCard({ mapId, onReroll, canReroll }) {
               title="Re-roll map"
               aria-label="Re-roll map"
             >
-              🔄 Re-roll map
+              <DieIcon /> Re-roll map
             </button>
           )}
         </div>

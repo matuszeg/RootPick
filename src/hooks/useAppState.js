@@ -7,9 +7,9 @@ import {
   DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS,
 } from '../data/accessories.js';
 
-function pickRandomMap(ownedExpansions, excludedMaps, mapDifficulties) {
+function pickRandomMap(activeMapExpansions, excludedMaps, mapDifficulties) {
   const eligible = MAPS.filter(m =>
-    ownedExpansions.has(m.expansion) &&
+    activeMapExpansions.has(m.expansion) &&
     !excludedMaps.has(m.id) &&
     mapDifficulties.has(m.difficulty)
   );
@@ -23,15 +23,35 @@ function pickRandomDeck(ownedAccessories) {
   return eligible[Math.floor(Math.random() * eligible.length)].id;
 }
 
-function pickRandomHirelings(ownedExpansions, ownedAccessories, count = 3, excludedHirelings = new Set()) {
+function pickRandomHirelings(ownedExpansions, ownedAccessories, excludedHirelings = new Set(), bannedHirelings = new Set(), lockedHirelingIds = [], selectedFactionIds = new Set()) {
+  const COUNT = 3;
+  const lockedSet = new Set(lockedHirelingIds);
+
+  // Build expanded faction set: direct IDs + human faction IDs automated by any selected bot
+  const expandedFactions = new Set(selectedFactionIds);
+  for (const id of selectedFactionIds) {
+    const automatesId = FACTION_MAP[id]?.automatesId;
+    if (automatesId) expandedFactions.add(automatesId);
+  }
+
   const eligible = HIRELING_SETS.filter(h => {
+    if (lockedSet.has(h.id)) return false;
     if (excludedHirelings.has(h.id)) return false;
-    if (h.source === 'marauder') return ownedExpansions.has('marauder');
-    return ownedAccessories.has(h.source);
+    if (bannedHirelings.has(h.id)) return false;
+    if (!ownedAccessories.has(h.source)) return false;
+    // Exclude hirelings whose associated faction is in the current game
+    if (h.associatedFactions.some(id => expandedFactions.has(id))) return false;
+    return true;
   });
-  if (eligible.length < count) return eligible.map(h => h.id);
+
+  const needed = Math.max(0, COUNT - lockedHirelingIds.length);
   const shuffled = [...eligible].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count).map(h => h.id);
+  const picked = shuffled.slice(0, needed).map(h => h.id);
+  return [...lockedHirelingIds, ...picked];
+}
+
+function canUseHirelings(ownedAccessories) {
+  return HIRELING_SETS.some(h => ownedAccessories.has(h.source));
 }
 
 // Returns array of 'promoted'|'demoted' parallel to selectedHirelings
@@ -93,6 +113,7 @@ function loadSettings() {
     if (!accessories.has('standard_deck')) accessories.add('standard_deck');
     return {
       ownedExpansions:     new Set(parsed.ownedExpansions   ?? ['base']),
+      activeMapExpansions: new Set(parsed.activeMapExpansions ?? (parsed.ownedExpansions ?? ['base'])),
       playerCount:         parsed.playerCount               ?? 4,
       botCount:            parsed.botCount                  ?? 0,
       balanceMode:         parsed.balanceMode               ?? 'balanced',
@@ -105,12 +126,13 @@ function loadSettings() {
       allowedExclusions:   new Set(parsed.allowedExclusions ?? []),
       ownedAccessories:    accessories,
       avoidUnderdogs:      parsed.avoidUnderdogs            ?? false,
-      useHirelings:        parsed.useHirelings              ?? false,
+      useHirelings:        parsed.useHirelings              ?? true,
       useLandmarks:        parsed.useLandmarks              ?? false,
       landmarkCount:       parsed.landmarkCount             ?? 2,
-      customHirelingCount: parsed.customHirelingCount       ?? null,
       excludedMaps:        new Set(parsed.excludedMaps       ?? []),
       excludedHirelings:   new Set(parsed.excludedHirelings  ?? []),
+      lockedHirelings:     new Set(parsed.lockedHirelings    ?? []),
+      bannedHirelings:     new Set(parsed.bannedHirelings    ?? []),
       excludedCharacters:  new Set(parsed.excludedCharacters ?? []),
       excludedLandmarks:   new Set(parsed.excludedLandmarks  ?? []),
     };
@@ -123,6 +145,7 @@ function saveSettings(state) {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       ownedExpansions:     [...state.ownedExpansions],
+      activeMapExpansions: [...state.activeMapExpansions],
       playerCount:         state.playerCount,
       botCount:            state.botCount,
       balanceMode:         state.balanceMode,
@@ -138,9 +161,10 @@ function saveSettings(state) {
       useHirelings:        state.useHirelings,
       useLandmarks:        state.useLandmarks,
       landmarkCount:       state.landmarkCount,
-      customHirelingCount: state.customHirelingCount,
       excludedMaps:        [...state.excludedMaps],
       excludedHirelings:   [...state.excludedHirelings],
+      lockedHirelings:     [...state.lockedHirelings],
+      bannedHirelings:     [...state.bannedHirelings],
       excludedCharacters:  [...state.excludedCharacters],
       excludedLandmarks:   [...state.excludedLandmarks],
     }));
@@ -153,6 +177,7 @@ function getInitialState() {
 
   const base = {
     ownedExpansions:     new Set(['base']),
+    activeMapExpansions: new Set(['base']),
     playerCount:         4,
     balanceMode:         'balanced',
     requireBalance:      true,
@@ -165,12 +190,13 @@ function getInitialState() {
     allowedExclusions:   new Set(),
     ownedAccessories:    new Set(['standard_deck']),
     avoidUnderdogs:      false,
-    useHirelings:        false,
+    useHirelings:        true,
     useLandmarks:        false,
     landmarkCount:       2,
-    customHirelingCount: null,
     excludedMaps:        new Set(),
     excludedHirelings:   new Set(),
+    lockedHirelings:     new Set(),
+    bannedHirelings:     new Set(),
     excludedCharacters:  new Set(),
     excludedLandmarks:   new Set(),
     selectedFactions:    [],
@@ -199,12 +225,13 @@ export function useAppState() {
   useEffect(() => {
     saveSettings(state);
   }, [
-    state.ownedExpansions, state.playerCount, state.balanceMode,
+    state.ownedExpansions, state.activeMapExpansions, state.playerCount, state.balanceMode,
     state.requireBalance, state.difficulties, state.mapDifficulties,
     state.advancedMode, state.customMinReach, state.customMaxReach,
     state.allowedExclusions, state.ownedAccessories, state.avoidUnderdogs, state.useHirelings,
-    state.useLandmarks, state.landmarkCount, state.customHirelingCount,
+    state.useLandmarks, state.landmarkCount,
     state.botCount, state.excludedMaps, state.excludedHirelings,
+    state.lockedHirelings, state.bannedHirelings,
     state.excludedCharacters, state.excludedLandmarks,
   ]);
 
@@ -271,6 +298,15 @@ export function useAppState() {
     });
   }, []);
 
+  const toggleMapExpansion = useCallback(id => {
+    if (id === 'base') return; // base maps always available
+    setState(s => {
+      const next = new Set(s.activeMapExpansions);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return { ...s, activeMapExpansions: next };
+    });
+  }, []);
+
   const toggleAccessory = useCallback(id => {
     setState(s => {
       const next = new Set(s.ownedAccessories);
@@ -289,10 +325,6 @@ export function useAppState() {
 
   const setLandmarkCount = useCallback(val => {
     setState(s => ({ ...s, landmarkCount: val }));
-  }, []);
-
-  const setCustomHirelingCount = useCallback(val => {
-    setState(s => ({ ...s, customHirelingCount: val }));
   }, []);
 
   // ── Pool exclusions ───────────────────────────────────────────────────────
@@ -387,19 +419,22 @@ export function useAppState() {
         : s.history;
 
       const newFactions = result.factions;
-      const hirelingCount = s.customHirelingCount ?? 3;
-      const newHirelings  = s.useHirelings
-        ? pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, hirelingCount, s.excludedHirelings)
+      const hirelingsEnabled = canUseHirelings(s.ownedAccessories);
+      const lockedHirelingIds = hirelingsEnabled ? [...s.lockedHirelings].filter(id =>
+        HIRELING_SETS.find(h => h.id === id && s.ownedAccessories.has(h.source))
+      ) : [];
+      const newHirelings = hirelingsEnabled
+        ? pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, s.excludedHirelings, s.bannedHirelings, lockedHirelingIds, new Set(newFactions))
         : [];
 
       return {
         ...s,
         selectedFactions:   newFactions,
         lockedFactions:     keepLocked ? s.lockedFactions : new Set(),
-        selectedMap:        pickRandomMap(s.ownedExpansions, s.excludedMaps, s.mapDifficulties),
+        selectedMap:        pickRandomMap(s.activeMapExpansions, s.excludedMaps, s.mapDifficulties),
         selectedDeck:       pickRandomDeck(s.ownedAccessories),
         selectedHirelings:  newHirelings,
-        hirelingStatuses:   computeHirelingStatuses(newHirelings.length, s.playerCount),
+        hirelingStatuses:   computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount),
         selectedLandmarks:  s.useLandmarks
           ? pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories, s.landmarkCount, s.excludedLandmarks)
           : [],
@@ -461,7 +496,7 @@ export function useAppState() {
   const rerollMap = useCallback(() => {
     setState(s => {
       const eligible = MAPS.filter(m =>
-        s.ownedExpansions.has(m.expansion) &&
+        s.activeMapExpansions.has(m.expansion) &&
         !s.excludedMaps.has(m.id) &&
         s.mapDifficulties.has(m.difficulty) &&
         m.id !== s.selectedMap
@@ -483,12 +518,12 @@ export function useAppState() {
 
   const rerollHirelings = useCallback(() => {
     setState(s => {
-      const hirelingCount = s.customHirelingCount ?? 3;
-      const newHirelings = pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, hirelingCount, s.excludedHirelings);
+      const lockedIds = [...s.lockedHirelings].filter(id => s.selectedHirelings.includes(id));
+      const newHirelings = pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, s.excludedHirelings, s.bannedHirelings, lockedIds, new Set(s.selectedFactions));
       return {
         ...s,
         selectedHirelings: newHirelings,
-        hirelingStatuses:  computeHirelingStatuses(newHirelings.length, s.playerCount),
+        hirelingStatuses:  computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount),
       };
     });
   }, []);
@@ -496,17 +531,29 @@ export function useAppState() {
   const rerollSingleHireling = useCallback(hirelingId => {
     setState(s => {
       const others = new Set(s.selectedHirelings.filter(id => id !== hirelingId));
+      const expandedFactions = new Set(s.selectedFactions);
+      for (const id of s.selectedFactions) {
+        const automatesId = FACTION_MAP[id]?.automatesId;
+        if (automatesId) expandedFactions.add(automatesId);
+      }
       const eligible = HIRELING_SETS.filter(h => {
         if (others.has(h.id)) return false;
+        if (h.id === hirelingId) return false;
         if (s.excludedHirelings.has(h.id)) return false;
-        if (h.source === 'marauder') return s.ownedExpansions.has('marauder');
-        return s.ownedAccessories.has(h.source);
+        if (s.bannedHirelings.has(h.id)) return false;
+        if (!s.ownedAccessories.has(h.source)) return false;
+        if (h.associatedFactions.some(id => expandedFactions.has(id))) return false;
+        return true;
       });
-      if (!eligible.length) return s;
+      if (!eligible.length) return { ...s, error: 'No replacement found for that hireling.' };
       const pick = eligible[Math.floor(Math.random() * eligible.length)];
+      const newSelected = s.selectedHirelings.map(id => id === hirelingId ? pick.id : id);
+      const newStatuses = [...s.hirelingStatuses]; // statuses stay in same slots
       return {
         ...s,
-        selectedHirelings: s.selectedHirelings.map(id => id === hirelingId ? pick.id : id),
+        selectedHirelings: newSelected,
+        hirelingStatuses:  newStatuses,
+        lockedHirelings:   (() => { const n = new Set(s.lockedHirelings); n.delete(hirelingId); return n; })(),
       };
     });
   }, []);
@@ -571,6 +618,32 @@ export function useAppState() {
     });
   }, []);
 
+  const toggleLockHireling = useCallback(hirelingId => {
+    setState(s => {
+      const next = new Set(s.lockedHirelings);
+      if (next.has(hirelingId)) next.delete(hirelingId); else next.add(hirelingId);
+      return { ...s, lockedHirelings: next };
+    });
+  }, []);
+
+  const banHireling = useCallback(hirelingId => {
+    setState(s => {
+      const bannedHirelings = new Set(s.bannedHirelings); bannedHirelings.add(hirelingId);
+      const lockedHirelings = new Set(s.lockedHirelings); lockedHirelings.delete(hirelingId);
+      const selectedHirelings = s.selectedHirelings.filter(id => id !== hirelingId);
+      const hirelingStatuses  = s.hirelingStatuses.filter((_, i) => s.selectedHirelings[i] !== hirelingId);
+      return { ...s, bannedHirelings, lockedHirelings, selectedHirelings, hirelingStatuses };
+    });
+  }, []);
+
+  const unbanHireling = useCallback(hirelingId => {
+    setState(s => {
+      const bannedHirelings = new Set(s.bannedHirelings);
+      bannedHirelings.delete(hirelingId);
+      return { ...s, bannedHirelings };
+    });
+  }, []);
+
   // ── Share ─────────────────────────────────────────────────────────────────
 
   const share = useCallback(() => {
@@ -609,13 +682,15 @@ export function useAppState() {
     state,
     actions: {
       toggleExpansion, setPlayerCount, setBotCount, setBalanceMode, setRequireBalance, setAvoidUnderdogs,
-      toggleDifficulty, toggleMapDifficulty, toggleAccessory, setUseHirelings,
-      setUseLandmarks, setLandmarkCount, setCustomHirelingCount,
+      toggleDifficulty, toggleMapDifficulty, toggleMapExpansion, toggleAccessory, setUseHirelings,
+      setUseLandmarks, setLandmarkCount,
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       toggleExcludedMap, toggleExcludedHireling, toggleExcludedCharacter, toggleExcludedLandmark,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
       rerollSingleHireling, rerollLandmarks, rerollVagabondCharacter,
-      undo, toggleLock, banFaction, unbanFaction, share, clearError,
+      undo, toggleLock, banFaction, unbanFaction,
+      toggleLockHireling, banHireling, unbanHireling,
+      share, clearError,
       resetAll: () => { localStorage.removeItem(LS_KEY); window.location.reload(); },
     },
   };

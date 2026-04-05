@@ -17,15 +17,12 @@ function InfoIcon({ tip }) {
 
 export default function SetupPanel({ state, actions }) {
   const {
-    ownedExpansions, playerCount, botCount, balanceMode, requireBalance, avoidUnderdogs,
+    ownedExpansions, activeMapExpansions, playerCount, botCount, balanceMode, requireBalance, avoidUnderdogs,
     difficulties, mapDifficulties, advancedMode, customMinReach, customMaxReach,
-    allowedExclusions, ownedAccessories, useHirelings, useLandmarks, landmarkCount,
-    customHirelingCount,
+    allowedExclusions, ownedAccessories, useLandmarks, landmarkCount,
   } = state;
 
-  const canUseHirelings = HIRELING_SETS.some(h =>
-    h.source === 'marauder' ? ownedExpansions.has('marauder') : ownedAccessories.has(h.source)
-  );
+  const canUseHirelings = HIRELING_SETS.some(h => ownedAccessories.has(h.source));
   const canUseLandmarks = ownedAccessories.has('landmarks_pack');
   const canUseBots = ownedExpansions.has('clockwork') || ownedExpansions.has('clockwork2');
 
@@ -59,20 +56,16 @@ export default function SetupPanel({ state, actions }) {
   );
   const maxBots = 6 - playerCount;
   const threshold = getReachThreshold(balanceMode, playerCount + botCount);
-  const hasAdvancedOverrides = customMinReach !== null || customMaxReach !== null || allowedExclusions.size > 0 || customHirelingCount !== null;
-  const mapsFiltered = !mapDifficulties.has(1) || !mapDifficulties.has(2) || !mapDifficulties.has(3);
-
-  const eligibleHirelingCount = HIRELING_SETS.filter(h => {
-    if (h.source === 'marauder') return ownedExpansions.has('marauder');
-    return ownedAccessories.has(h.source);
-  }).length;
+  const hasAdvancedOverrides = customMinReach !== null || customMaxReach !== null || allowedExclusions.size > 0;
+  const mapsFiltered = !mapDifficulties.has(1) || !mapDifficulties.has(2) || !mapDifficulties.has(3)
+    || !activeMapExpansions.has('underworld') || !activeMapExpansions.has('homeland');
 
   return (
     <aside className="setup-panel">
 
-      {/* Expansions */}
+      {/* Expansions / Factions */}
       <div className="setup-section">
-        <h2 className="setup-heading">Expansions Owned</h2>
+        <h2 className="setup-heading">Factions</h2>
         <div className="expansion-list">
           {EXPANSIONS.map(exp => (
             <label
@@ -265,7 +258,24 @@ export default function SetupPanel({ state, actions }) {
 
         {mapsOpen && (
           <div className="advanced-panel">
-            <div className="advanced-sub-heading">
+            <div className="advanced-sub-heading">Map Boards</div>
+            {[
+              { id: 'base',       label: 'Autumn · Winter',  required: true },
+              { id: 'underworld', label: 'Mountain · Lake',   required: false },
+              { id: 'homeland',   label: 'Marsh · Gorge',     required: false },
+            ].map(({ id, label, required }) => (
+              <label key={id} className={`expansion-check ${activeMapExpansions.has(id) ? 'checked' : ''} ${required ? 'disabled' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={activeMapExpansions.has(id)}
+                  disabled={required}
+                  onChange={() => actions.toggleMapExpansion(id)}
+                />
+                <span className="checkbox-box" />
+                <span className="expansion-name">{label}</span>
+              </label>
+            ))}
+            <div className="advanced-sub-heading" style={{ marginTop: '0.9rem' }}>
               Map Complexity
               <InfoIcon tip="Only maps matching the selected complexity levels will be picked." />
             </div>
@@ -381,11 +391,9 @@ export default function SetupPanel({ state, actions }) {
                   <span className="expansion-name">{a.name}</span>
                 </label>
               ))}
-              <label className={`expansion-check ${useHirelings ? 'checked' : ''}`}>
-                <input type="checkbox" checked={useHirelings} onChange={e => actions.setUseHirelings(e.target.checked)} />
-                <span className="checkbox-box" />
-                <span className="expansion-name">Randomize hirelings for this session</span>
-              </label>
+              {canUseHirelings && (
+                <p className="mode-description">Hirelings are included automatically when any pack is checked.</p>
+              )}
             </div>
 
           </div>
@@ -475,40 +483,6 @@ export default function SetupPanel({ state, actions }) {
               </div>
             </div>
 
-            {useHirelings && (
-              <div className="advanced-row">
-                <label className="advanced-label">
-                  Hireling Count
-                  <InfoIcon tip="Override the default of 3 hirelings. Useful for tighter or more chaotic games." />
-                </label>
-                <div className="reach-inputs">
-                  <input
-                    type="number"
-                    className="reach-input"
-                    placeholder="3"
-                    min="0"
-                    max={eligibleHirelingCount}
-                    value={customHirelingCount ?? ''}
-                    onChange={e => {
-                      const val = e.target.value === '' ? null : Math.min(Number(e.target.value), eligibleHirelingCount);
-                      actions.setCustomHirelingCount(val);
-                    }}
-                  />
-                  {customHirelingCount !== null && (
-                    <button
-                      className="reach-reset"
-                      onClick={() => actions.setCustomHirelingCount(null)}
-                      title="Reset to default"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-                <p className="mode-description" style={{ marginTop: 4 }}>
-                  Default: 3 · {eligibleHirelingCount} set{eligibleHirelingCount !== 1 ? 's' : ''} available · Promoted/demoted scales with player count.
-                </p>
-              </div>
-            )}
           </div>
         )}
       </div>

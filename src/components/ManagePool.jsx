@@ -5,8 +5,8 @@ import { HIRELING_SETS, VAGABOND_CHARACTERS, LANDMARKS } from '../data/accessori
 import FactionIcon from './FactionIcon.jsx';
 
 const HIRELING_SOURCE_COLORS = {
-  marauder:             '#C83228',
-  marauder_hirelings:   '#C83228',
+  marauder_hirelings_base: '#C83228',
+  marauder_hirelings:      '#C83228',
   riverfolk_hirelings:  '#3AACA8',
   underworld_hirelings: '#7B4FA3',
   homeland_hirelings:   '#3A9CB0',
@@ -133,11 +133,11 @@ function FactionsTab({ state, actions }) {
 }
 
 function MapsTab({ state, actions }) {
-  const { ownedExpansions, excludedMaps } = state;
+  const { activeMapExpansions, excludedMaps } = state;
 
   const COMPLEXITY = { 1: '★ Beginner', 2: '★★ Moderate', 3: '★★★ Complex' };
 
-  const available = MAPS.filter(m => ownedExpansions.has(m.expansion));
+  const available = MAPS.filter(m => activeMapExpansions.has(m.expansion));
 
   if (available.length === 0) {
     return <EmptyPoolMessage message="No maps available. Enable expansions in Settings." />;
@@ -164,13 +164,55 @@ function MapsTab({ state, actions }) {
   );
 }
 
-function HirelingsTab({ state, actions }) {
-  const { ownedExpansions, ownedAccessories, excludedHirelings } = state;
+const HIRELING_GROUPS = [
+  { source: 'marauder_hirelings_base', label: 'Marauder Expansion' },
+  { source: 'marauder_hirelings',      label: 'Marauder Hirelings Pack' },
+  { source: 'riverfolk_hirelings',     label: 'Riverfolk Hirelings Pack' },
+  { source: 'underworld_hirelings',    label: 'Underworld Hirelings Pack' },
+  { source: 'homeland_hirelings',      label: 'Homeland Hirelings Pack' },
+];
 
-  const available = HIRELING_SETS.filter(h => {
-    if (h.source === 'marauder') return ownedExpansions.has('marauder');
-    return ownedAccessories.has(h.source);
-  });
+function HirelingPoolCard({ hireling, excluded, banned, onToggle, onUnban }) {
+  const accentColor = HIRELING_SOURCE_COLORS[hireling.source] ?? '#7A5A2A';
+  if (banned) {
+    return (
+      <div className="hireling-pool-card hireling-pool-card--banned">
+        <div className="hireling-pool-thumb-wrap">
+          <img src={hireling.promotedImg} alt={hireling.promoted} className="hireling-pool-thumb" />
+          <div className="hireling-pool-banned-overlay">Banned</div>
+        </div>
+        <div className="hireling-pool-info">
+          <span className="hireling-pool-name">{hireling.promoted}</span>
+          <span className="hireling-pool-sides">{hireling.promoted} / {hireling.demoted}</span>
+          <button className="hireling-pool-unban-btn" onClick={onUnban}>Unban</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <button
+      className={`hireling-pool-card ${excluded ? 'hireling-pool-card--excluded' : ''}`}
+      onClick={onToggle}
+      style={{ '--hireling-accent': accentColor }}
+      title={excluded ? `Include "${hireling.promoted}" in pool` : `Exclude "${hireling.promoted}" from pool`}
+    >
+      <div className="hireling-pool-thumb-wrap">
+        <img src={hireling.promotedImg} alt={hireling.promoted} className="hireling-pool-thumb" />
+        {excluded && <div className="hireling-pool-excluded-overlay">Excluded</div>}
+      </div>
+      <div className="hireling-pool-info">
+        <span className="hireling-pool-name">{hireling.promoted}</span>
+        <span className="hireling-pool-sides">{hireling.promoted} / {hireling.demoted}</span>
+        <span className={`hireling-pool-toggle ${excluded ? 'off' : 'on'}`}>{excluded ? '✕' : '✓'}</span>
+      </div>
+    </button>
+  );
+}
+
+function HirelingsTab({ state, actions }) {
+  const { ownedAccessories, excludedHirelings, bannedHirelings } = state;
+
+  const available = HIRELING_SETS.filter(h => ownedAccessories.has(h.source));
 
   if (available.length === 0) {
     return <EmptyPoolMessage message="No hirelings available. Enable the Marauder Expansion or hireling packs in Settings." />;
@@ -178,21 +220,33 @@ function HirelingsTab({ state, actions }) {
 
   return (
     <div className="pool-tab-content">
-      <p className="pool-tab-hint">Click a hireling set to exclude or include it.</p>
-      <div className="pool-grid">
-        {available.map(h => (
-          <PoolItem
-            key={h.id}
-            name={h.name}
-            icon={<span className="pool-generic-icon">⚔</span>}
-            meta={`${h.promoted} / ${h.demoted}`}
-            description={h.description}
-            accentColor={HIRELING_SOURCE_COLORS[h.source] ?? '#7A5A2A'}
-            excluded={excludedHirelings.has(h.id)}
-            onToggle={() => actions.toggleExcludedHireling(h.id)}
-          />
-        ))}
-      </div>
+      <p className="pool-tab-hint">Click a hireling card to exclude or include it from the draw.</p>
+      {HIRELING_GROUPS.map(group => {
+        const groupHirelings = available.filter(h => h.source === group.source);
+        if (groupHirelings.length === 0) return null;
+        return (
+          <div key={group.source} className="pool-section">
+            <h4
+              className="pool-section-heading"
+              style={{ borderColor: HIRELING_SOURCE_COLORS[group.source] ?? '#7A5A2A' }}
+            >
+              {group.label}
+            </h4>
+            <div className="hireling-pool-grid">
+              {groupHirelings.map(h => (
+                <HirelingPoolCard
+                  key={h.id}
+                  hireling={h}
+                  excluded={excludedHirelings.has(h.id)}
+                  banned={bannedHirelings.has(h.id)}
+                  onToggle={() => actions.toggleExcludedHireling(h.id)}
+                  onUnban={() => actions.unbanHireling(h.id)}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -280,13 +334,13 @@ export default function ManagePool({ state, actions }) {
   const [subTab, setSubTab] = useState('factions');
 
   const {
-    bannedFactions, excludedMaps, excludedHirelings, excludedCharacters, excludedLandmarks,
+    bannedFactions, excludedMaps, excludedHirelings, bannedHirelings, excludedCharacters, excludedLandmarks,
   } = state;
 
   const subTabs = [
     { id: 'factions',   label: 'Factions',   count: bannedFactions.size },
     { id: 'maps',       label: 'Maps',        count: excludedMaps.size },
-    { id: 'hirelings',  label: 'Hirelings',   count: excludedHirelings.size },
+    { id: 'hirelings',  label: 'Hirelings',   count: excludedHirelings.size + bannedHirelings.size },
     { id: 'characters', label: 'Characters',  count: excludedCharacters.size },
     { id: 'landmarks',  label: 'Landmarks',   count: excludedLandmarks.size },
   ];

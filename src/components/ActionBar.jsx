@@ -1,3 +1,5 @@
+import DieIcon from './DieIcon.jsx';
+
 export default function ActionBar({ hasSelection, hasLockedFactions, hasHistory, copied, actions }) {
   return (
     <div className="action-bar" role="toolbar" aria-label="Session actions">
@@ -16,7 +18,7 @@ export default function ActionBar({ hasSelection, hasLockedFactions, hasHistory,
           disabled={!hasSelection}
           title={!hasLockedFactions ? 'Lock a faction card first, then use this to re-roll everything else' : 'Keep locked factions, re-roll the rest'}
         >
-          <span className="btn-icon">🔁</span>
+          <span className="btn-icon"><DieIcon width={16} height={16} /></span>
           <span>Re-roll unlocked</span>
         </button>
 

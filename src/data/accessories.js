@@ -72,36 +72,165 @@ export const LANDMARKS = [
 ];
 
 // ─── Hireling Sets ────────────────────────────────────────────────────────────
-// source: expansion or accessory ID that provides this hireling set.
-// Each set has a promoted side (more powerful) and a demoted side (passive).
-// 3 sets are randomly selected per session when hirelings are enabled.
-// Note: The Marauder expansion itself includes 4 hireling sets.
+// source: expansion or accessory ID that provides this hireling card.
+// Each card has a promoted side (more powerful) and a demoted side (passive).
+// 3 cards are randomly selected per session.
+// promotedImg / demotedImg: paths to local card face images (landscape orientation).
+// Note: The Marauder expansion itself includes 4 hireling cards.
 export const HIRELING_SETS = [
-  // Marauder Expansion (core) — 4 sets, unlocked by owning marauder
-  { id: 'bandit_gangs',  name: 'Bandit Gangs',  promoted: 'Bandit Gangs',   demoted: 'Outcast Bandits',  source: 'marauder', description: 'Roam clearings and force battles. Demoted: occasionally disrupt passing warriors.' },
-  { id: 'flame_bearers', name: 'Flame Bearers', promoted: 'Flame Bearers',  demoted: 'Spark Bearers',    source: 'marauder', description: 'Set clearings ablaze, forcing warrior removal. Demoted: grant a passive movement bonus.' },
-  { id: 'last_dynasty',  name: 'Last Dynasty',  promoted: 'Last Dynasty',   demoted: 'Lost Nobility',    source: 'marauder', description: 'Hold territory and score VP for their controller. Demoted: minor territory bonus.' },
-  { id: 'protector',     name: 'Protector',     promoted: 'Protector',      demoted: 'Sentinel',         source: 'marauder', description: 'Defend clearings from attack. Demoted: reduce incoming damage for controller.' },
+  // ── Marauder Expansion — 4 cards ──────────────────────────────────────────
+  {
+    id: 'forest_patrol',
+    promoted: 'Forest Patrol',
+    demoted:  'Feline Physicians',
+    source:   'marauder_hirelings_base',
+    associatedFactions: ['marquise'],
+    promotedImg: '/icons/hirelings/cards/forest-patrol-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/feline-physicians-demoted.webp',
+  },
+  {
+    id: 'last_dynasty',
+    promoted: 'Last Dynasty',
+    demoted:  'Bluebird Nobles',
+    source:   'marauder_hirelings_base',
+    associatedFactions: ['eyrie'],
+    promotedImg: '/icons/hirelings/cards/last-dynasty-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/bluebird-nobles-demoted.webp',
+  },
+  {
+    id: 'spring_uprising',
+    promoted: 'Spring Uprising',
+    demoted:  'Rabbit Scouts',
+    source:   'marauder_hirelings_base',
+    associatedFactions: ['alliance'],
+    promotedImg: '/icons/hirelings/cards/spring-uprising-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/rabbit-scouts-demoted.webp',
+  },
+  {
+    id: 'the_exile',
+    promoted: 'The Exile',
+    demoted:  'The Brigand',
+    source:   'marauder_hirelings_base',
+    associatedFactions: ['vagabond1', 'vagabond2'], // excluded whenever any Vagabond variant is played
+    promotedImg: '/icons/hirelings/cards/the-exile-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/the-brigand-demoted.webp',
+  },
 
-  // Marauder Hirelings Pack — 3 additional sets
-  { id: 'vault_keepers', name: 'Vault Keepers',  promoted: 'Vault Keepers',   demoted: 'Badger Bodyguards', source: 'marauder_hirelings', description: 'Battle in clearings with vaults. Demoted: controller ignores the first hit in battle.' },
-  { id: 'popular_band',  name: 'Popular Band',   promoted: 'Popular Band',    demoted: 'Local Favorites',   source: 'marauder_hirelings', description: 'Control enemy movement and block passage. Demoted: boost controller\'s card draw.' },
-  { id: 'rat_smugglers', name: 'Rat Smugglers',  promoted: 'Rat Smugglers',   demoted: 'Petty Traders',     source: 'marauder_hirelings', description: 'Battle and move by discarding items. Demoted: grant occasional card discounts.' },
+  // ── Marauder Hirelings Pack — 3 cards ─────────────────────────────────────
+  {
+    id: 'vault_keepers',
+    promoted: 'Vault Keepers',
+    demoted:  'Badger Bodyguards',
+    source:   'marauder_hirelings',
+    associatedFactions: ['keepers'],
+    promotedImg: '/icons/hirelings/cards/vault-keepers-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/badger-bodyguards-demoted.webp',
+  },
+  {
+    id: 'popular_band',
+    promoted: 'Popular Band',
+    demoted:  'Street Band',
+    source:   'marauder_hirelings',
+    associatedFactions: [],
+    promotedImg: '/icons/hirelings/cards/popular-band-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/street-band-demoted.webp',
+  },
+  {
+    id: 'flame_bearers',
+    promoted: 'Flame Bearers',
+    demoted:  'Rat Smugglers',
+    source:   'marauder_hirelings',
+    associatedFactions: ['hundreds'],
+    promotedImg: '/icons/hirelings/cards/flame-bearers-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/rat-smugglers-demoted.webp',
+  },
 
-  // Riverfolk Hirelings Pack — 3 sets
-  { id: 'flotilla',       name: 'Riverfolk Flotilla',  promoted: 'Riverfolk Flotilla', demoted: 'River Scouts',      source: 'riverfolk_hirelings', description: 'Bombard river clearings from the water. Demoted: grant movement along rivers.' },
-  { id: 'highway_bandits',name: 'Highway Bandits',     promoted: 'Highway Bandits',    demoted: 'Road Watchers',     source: 'riverfolk_hirelings', description: 'Attack players moving between clearings. Demoted: tax movement through key paths.' },
-  { id: 'sun_prophets',   name: 'Warm Sun Prophets',   promoted: 'Warm Sun Prophets',  demoted: 'Sun Disciples',     source: 'riverfolk_hirelings', description: 'Drive warriors to attack each other unprompted. Demoted: boost controller\'s crafting.' },
+  // ── Riverfolk Hirelings Pack — 3 cards ────────────────────────────────────
+  {
+    id: 'flotilla',
+    promoted: 'Riverfolk Flotilla',
+    demoted:  'Otter Divers',
+    source:   'riverfolk_hirelings',
+    associatedFactions: ['riverfolk'],
+    promotedImg: '/icons/hirelings/cards/riverfolk-flotilla-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/otter-divers-demoted.webp',
+  },
+  {
+    id: 'highway_bandits',
+    promoted: 'Highway Bandits',
+    demoted:  'Bandit Gangs',
+    source:   'riverfolk_hirelings',
+    associatedFactions: [],
+    promotedImg: '/icons/hirelings/cards/highway-bandits-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/bandit-gangs-demoted.webp',
+  },
+  {
+    id: 'sun_prophets',
+    promoted: 'Warm Sun Prophets',
+    demoted:  'Lizard Envoys',
+    source:   'riverfolk_hirelings',
+    associatedFactions: ['lizard'],
+    promotedImg: '/icons/hirelings/cards/warm-sun-prophets-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/lizard-envoys-demoted.webp',
+  },
 
-  // Underworld Hirelings Pack — 3 sets
-  { id: 'sunward_exp',    name: 'Sunward Expedition',  promoted: 'Sunward Expedition', demoted: 'Mole Artisans',     source: 'underworld_hirelings', description: 'Move and battle without footholds. Demoted: reveal crafted cards instead of discarding.' },
-  { id: 'corvid_spies',   name: 'Corvid Spies',        promoted: 'Corvid Spies',       demoted: 'Raven Sentinels',   source: 'underworld_hirelings', description: 'Steal cards and allies from opponents. Demoted: defend against card theft.' },
-  { id: 'furious_prot',   name: 'Furious Protector',   promoted: 'Furious Protector',  demoted: 'Stoic Protector',   source: 'underworld_hirelings', description: 'Aggressive combat utility. Demoted: defensive bulk for controller.' },
+  // ── Underworld Hirelings Pack — 3 cards ───────────────────────────────────
+  {
+    id: 'sunward_exp',
+    promoted: 'Sunward Expedition',
+    demoted:  'Mole Artisans',
+    source:   'underworld_hirelings',
+    associatedFactions: ['duchy'],
+    promotedImg: '/icons/hirelings/cards/sunward-expedition-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/mole-artisans-demoted.webp',
+  },
+  {
+    id: 'corvid_spies',
+    promoted: 'Corvid Spies',
+    demoted:  'Raven Sentries',
+    source:   'underworld_hirelings',
+    associatedFactions: ['corvid'],
+    promotedImg: '/icons/hirelings/cards/corvid-spies-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/raven-sentries-demoted.webp',
+  },
+  {
+    id: 'furious_prot',
+    promoted: 'Furious Protector',
+    demoted:  'Stoic Protector',
+    source:   'underworld_hirelings',
+    associatedFactions: [],
+    promotedImg: '/icons/hirelings/cards/furious-protector-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/stoic-protector-demoted.webp',
+  },
 
-  // Homeland Hirelings Pack — 3 sets (names provisional, verify on release)
-  { id: 'frog_tinkers',    name: 'Frog Tinkers',       promoted: 'Frog Tinkers',       demoted: 'River Traders',     source: 'homeland_hirelings', description: 'Provide crafting support along waterways.' },
-  { id: 'bat_messengers',  name: 'Bat Messengers',     promoted: 'Bat Messengers',     demoted: 'Night Couriers',    source: 'homeland_hirelings', description: 'Carry messages and items across the board rapidly.' },
-  { id: 'sun_advocates',   name: 'Sunny Advocates',    promoted: 'Sunny Advocates',    demoted: 'Struggling Farmers',source: 'homeland_hirelings', description: 'Rally support from struggling woodland denizens.' },
+  // ── Homeland Hirelings Pack — 3 cards ─────────────────────────────────────
+  {
+    id: 'river_roamers',
+    promoted: 'River Roamers',
+    demoted:  'Frog Tinkers',
+    source:   'homeland_hirelings',
+    associatedFactions: ['lilypad'],
+    promotedImg: '/icons/hirelings/cards/river-roamers-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/frog-tinkers-demoted.webp',
+  },
+  {
+    id: 'sunny_advocates',
+    promoted: 'Sunny Advocates',
+    demoted:  'Bat Messengers',
+    source:   'homeland_hirelings',
+    associatedFactions: ['twilight'],
+    promotedImg: '/icons/hirelings/cards/sunny-advocates-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/bat-messengers-demoted.webp',
+  },
+  {
+    id: 'prosperous_farmers',
+    promoted: 'Prosperous Farmers',
+    demoted:  'Struggling Farmers',
+    source:   'homeland_hirelings',
+    associatedFactions: ['knaves'],
+    promotedImg: '/icons/hirelings/cards/prosperous-farmers-promoted.webp',
+    demotedImg:  '/icons/hirelings/cards/struggling-farmers-demoted.webp',
+  },
 ];
 
 // ─── Accessories (owned toggles shown in settings) ────────────────────────────
@@ -111,6 +240,7 @@ export const ACCESSORIES = [
   { id: 'squires_deck',         name: 'Squires & Disciples Deck', category: 'deck',    requiresExpansion: 'homeland' },
   { id: 'vagabond_pack',        name: 'Vagabond Pack',            category: 'vagabond', requiresExpansion: null },
   { id: 'landmarks_pack',       name: 'Landmarks Pack',           category: 'landmark', requiresExpansion: null },
+  { id: 'marauder_hirelings_base', name: 'Marauder Expansion',      category: 'hireling', requiresExpansion: null },
   { id: 'marauder_hirelings',   name: 'Marauder Hirelings Pack',  category: 'hireling', requiresExpansion: null },
   { id: 'riverfolk_hirelings',  name: 'Riverfolk Hirelings Pack', category: 'hireling', requiresExpansion: null },
   { id: 'underworld_hirelings', name: 'Underworld Hirelings Pack',category: 'hireling', requiresExpansion: null },
