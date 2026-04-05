@@ -56,19 +56,38 @@ function canUseHirelings(ownedAccessories) {
 
 // Returns array of 'promoted'|'demoted' parallel to selectedHirelings
 // Rule: demotedCount = playerCount - 2, clamped to [0, count]
-// Which slots are demoted is randomly assigned each session
-function computeHirelingStatuses(count, playerCount) {
+// Locked slots keep their current status; remaining slots are randomly assigned
+function computeHirelingStatuses(count, playerCount, lockedStatuses = []) {
   const demotedCount = Math.max(0, Math.min(playerCount - 2, count));
-  const indices = Array.from({ length: count }, (_, i) => i);
-  const shuffled = [...indices].sort(() => Math.random() - 0.5);
-  const demotedSet = new Set(shuffled.slice(0, demotedCount));
-  return indices.map(i => demotedSet.has(i) ? 'demoted' : 'promoted');
+  const result = new Array(count).fill(null);
+  let lockedDemoted = 0;
+
+  // Preserve locked slots
+  for (let i = 0; i < count; i++) {
+    if (lockedStatuses[i]) {
+      result[i] = lockedStatuses[i];
+      if (lockedStatuses[i] === 'demoted') lockedDemoted++;
+    }
+  }
+
+  // Distribute remaining demoted/promoted among unlocked slots
+  const unlocked = [];
+  for (let i = 0; i < count; i++) {
+    if (!result[i]) unlocked.push(i);
+  }
+  const remainingDemoted = Math.max(0, demotedCount - lockedDemoted);
+  const shuffled = [...unlocked].sort(() => Math.random() - 0.5);
+  const demoteSet = new Set(shuffled.slice(0, remainingDemoted));
+  for (const i of unlocked) {
+    result[i] = demoteSet.has(i) ? 'demoted' : 'promoted';
+  }
+  return result;
 }
 
 function pickRandomLandmarks(ownedExpansions, ownedAccessories, count = 2, excludedLandmarks = new Set()) {
   const eligible = LANDMARKS.filter(l => {
     if (excludedLandmarks.has(l.id)) return false;
-    if (l.source === 'underworld') return ownedExpansions.has('underworld');
+    if (l.source === 'underworld' || l.source === 'homeland') return ownedExpansions.has(l.source);
     return ownedAccessories.has(l.source);
   });
   if (!eligible.length) return [];
@@ -434,7 +453,11 @@ export function useAppState() {
         selectedMap:        pickRandomMap(s.activeMapExpansions, s.excludedMaps, s.mapDifficulties),
         selectedDeck:       pickRandomDeck(s.ownedAccessories),
         selectedHirelings:  newHirelings,
-        hirelingStatuses:   computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount),
+        hirelingStatuses:   computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount,
+          newHirelings.map(id => {
+            const prevIdx = s.selectedHirelings.indexOf(id);
+            return prevIdx !== -1 && s.lockedHirelings.has(id) ? s.hirelingStatuses[prevIdx] : null;
+          })),
         selectedLandmarks:  s.useLandmarks
           ? pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories, s.landmarkCount, s.excludedLandmarks)
           : [],
@@ -523,7 +546,11 @@ export function useAppState() {
       return {
         ...s,
         selectedHirelings: newHirelings,
-        hirelingStatuses:  computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount),
+        hirelingStatuses:  computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount,
+          newHirelings.map(id => {
+            const prevIdx = s.selectedHirelings.indexOf(id);
+            return prevIdx !== -1 && s.lockedHirelings.has(id) ? s.hirelingStatuses[prevIdx] : null;
+          })),
       };
     });
   }, []);

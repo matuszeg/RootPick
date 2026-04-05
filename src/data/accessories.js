@@ -39,12 +39,20 @@ export const VAGABOND_CHARACTERS = [
 // ─── Landmarks ────────────────────────────────────────────────────────────────
 // source: expansion or accessory ID that provides this landmark.
 export const LANDMARKS = [
+  // ── Underworld Expansion ────────────────────────────────────────────────────
   {
     id: 'tower',
     name: 'The Tower',
     source: 'underworld',
-    description: 'Placed in the central clearing (the Pass). Whoever rules it scores 1 VP each round.',
+    description: 'Whoever rules this clearing scores 1 VP at the start of their Birdsong.',
   },
+  {
+    id: 'ferry',
+    name: 'The Ferry',
+    source: 'underworld',
+    description: 'A piece in this clearing may move to any clearing on the map during its move.',
+  },
+  // ── Landmarks Pack ──────────────────────────────────────────────────────────
   {
     id: 'market',
     name: 'Black Market',
@@ -61,13 +69,32 @@ export const LANDMARKS = [
     id: 'forge',
     name: 'Legendary Forge',
     source: 'landmarks_pack',
-    description: 'Players crafting here score 1 bonus VP.',
+    description: 'Players crafting in this clearing score 1 bonus VP.',
   },
   {
     id: 'city',
     name: 'Lost City',
     source: 'landmarks_pack',
     description: 'This clearing is a wild suit — it counts as any suit for all purposes.',
+  },
+  // ── Homeland Expansion ──────────────────────────────────────────────────────
+  {
+    id: 'mousehold',
+    name: 'Mousehold',
+    source: 'homeland',
+    description: 'This mouse clearing has one extra building slot.',
+  },
+  {
+    id: 'foxburrow',
+    name: 'Foxburrow',
+    source: 'homeland',
+    description: 'This fox clearing has one extra building slot.',
+  },
+  {
+    id: 'rabbittown',
+    name: 'Rabbittown',
+    source: 'homeland',
+    description: 'This rabbit clearing has one extra building slot.',
   },
 ];
 

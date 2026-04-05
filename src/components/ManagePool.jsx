@@ -295,11 +295,12 @@ function LandmarksTab({ state, actions }) {
 
   const SOURCE_LABEL = {
     underworld: 'Underworld Expansion',
+    homeland: 'Homeland Expansion',
     landmarks_pack: 'Landmarks Pack',
   };
 
   const available = LANDMARKS.filter(l => {
-    if (l.source === 'underworld') return ownedExpansions.has('underworld');
+    if (l.source === 'underworld' || l.source === 'homeland') return ownedExpansions.has(l.source);
     return ownedAccessories.has(l.source);
   });
 

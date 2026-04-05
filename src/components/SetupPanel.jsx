@@ -348,7 +348,7 @@ export default function SetupPanel({ state, actions }) {
             </div>
 
             {/* Landmarks */}
-            <div className={`accessories-group ${!canUseLandmarks ? 'group-locked' : ''}`}>
+            <div className="accessories-group">
               <div className="accessories-group-label">Landmarks</div>
               {availableAccessories.filter(a => a.category === 'landmark').map(a => (
                 <label key={a.id} className={`expansion-check ${ownedAccessories.has(a.id) ? 'checked' : ''}`}>
@@ -357,7 +357,7 @@ export default function SetupPanel({ state, actions }) {
                   <span className="expansion-name">{a.name}</span>
                 </label>
               ))}
-              <div className="landmark-count-control">
+              <div className={`landmark-count-control ${!canUseLandmarks ? 'group-locked' : ''}`}>
                 <span className="landmark-count-control-label">Landmarks in play</span>
                 <div className="landmark-count-btns">
                   <button
