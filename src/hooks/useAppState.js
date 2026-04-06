@@ -4,7 +4,7 @@ import { decodeFromUrl } from '../utils/urlState.js';
 import { FACTION_MAP } from '../data/factions.js';
 import { MAPS } from '../data/maps.js';
 import {
-  DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS,
+  DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS, getHirelingConflicts,
 } from '../data/accessories.js';
 
 function pickRandomMap(activeMapExpansions, excludedMaps, mapDifficulties) {
@@ -27,20 +27,17 @@ function pickRandomHirelings(ownedExpansions, ownedAccessories, excludedHireling
   const COUNT = 3;
   const lockedSet = new Set(lockedHirelingIds);
 
-  // Build expanded faction set: direct IDs + human faction IDs automated by any selected bot
-  const expandedFactions = new Set(selectedFactionIds);
-  for (const id of selectedFactionIds) {
-    const automatesId = FACTION_MAP[id]?.automatesId;
-    if (automatesId) expandedFactions.add(automatesId);
-  }
+  const availableForPicking = HIRELING_SETS.filter(h => ownedAccessories.has(h.source));
+  const conflictedIds = new Set(
+    getHirelingConflicts(availableForPicking, selectedFactionIds).map(c => c.hireling.id)
+  );
 
   const eligible = HIRELING_SETS.filter(h => {
     if (lockedSet.has(h.id)) return false;
     if (excludedHirelings.has(h.id)) return false;
     if (bannedHirelings.has(h.id)) return false;
     if (!ownedAccessories.has(h.source)) return false;
-    // Exclude hirelings whose associated faction is in the current game
-    if (h.associatedFactions.some(id => expandedFactions.has(id))) return false;
+    if (conflictedIds.has(h.id)) return false;
     return true;
   });
 
