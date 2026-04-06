@@ -1,4 +1,4 @@
-import { ACCESSORIES, HIRELING_SETS } from '../data/accessories.js';
+import { ACCESSORIES, HIRELING_SETS, getHirelingConflicts } from '../data/accessories.js';
 import { CheckIcon, XIcon } from './Icons.jsx';
 import HirelingCard from './HirelingCard.jsx';
 import DieIcon from './DieIcon.jsx';
@@ -62,6 +62,8 @@ export default function HirelingsTab({ state, actions, subTab, onSubTabChange, o
   const canUseHirelings = HIRELING_SETS.some(h => ownedAccessories.has(h.source));
   const availableAccessories = ACCESSORIES.filter(a => a.category === 'hireling');
   const availableHirelings = HIRELING_SETS.filter(h => ownedAccessories.has(h.source));
+  const hirelingConflicts = getHirelingConflicts(availableHirelings, state.selectedFactions);
+  const allHirelingsConflicted = availableHirelings.length > 0 && hirelingConflicts.length === availableHirelings.length;
 
   return (
     <div className="tab-panel">
@@ -91,34 +93,45 @@ export default function HirelingsTab({ state, actions, subTab, onSubTabChange, o
 
       {subTab === 'results' && (
         <div className="sub-tab-content">
+          {canUseHirelings && (
+            <button className="reroll-all-btn" onClick={actions.rerollHirelings}>
+              <DieIcon /> Re-roll all hirelings
+            </button>
+          )}
           {selectedHirelings.length > 0 ? (
-            <>
-              <button className="reroll-all-btn" onClick={actions.rerollHirelings}>
-                <DieIcon /> Re-roll all hirelings
-              </button>
-              <div className="hirelings-grid">
-                {selectedHirelings.map((hid, i) => (
-                  <HirelingCard
-                    key={hid}
-                    hirelingId={hid}
-                    index={i}
-                    status={hirelingStatuses[i] ?? null}
-                    locked={lockedHirelings.has(hid)}
-                    onReroll={() => actions.rerollSingleHireling(hid)}
-                    onLock={() => actions.toggleLockHireling(hid)}
-                    onBan={() => actions.banHireling(hid)}
-                    onImageClick={onImageClick}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="hirelings-grid">
+              {selectedHirelings.map((hid, i) => (
+                <HirelingCard
+                  key={hid}
+                  hirelingId={hid}
+                  index={i}
+                  status={hirelingStatuses[i] ?? null}
+                  locked={lockedHirelings.has(hid)}
+                  onReroll={() => actions.rerollSingleHireling(hid)}
+                  onLock={() => actions.toggleLockHireling(hid)}
+                  onBan={() => actions.banHireling(hid)}
+                  onImageClick={onImageClick}
+                />
+              ))}
+            </div>
           ) : (
             <div className="tab-empty-state">
               {canUseHirelings ? (
-                <>
-                  <p>No hirelings picked yet.</p>
-                  <p className="tab-empty-sub">Hit Randomize above to get started.</p>
-                </>
+                allHirelingsConflicted ? (
+                  <>
+                    <p>All hirelings in your pool are associated with factions in this game.</p>
+                    <ul className="hireling-conflict-list">
+                      {hirelingConflicts.map(({ hireling, factionName }) => (
+                        <li key={hireling.id}>{hireling.promoted} — {factionName} in play</li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    <p>No hirelings picked yet.</p>
+                    <p className="tab-empty-sub">Hit Re-roll above or Randomize to get started.</p>
+                  </>
+                )
               ) : (
                 <>
                   <p>No hireling packs enabled.</p>
