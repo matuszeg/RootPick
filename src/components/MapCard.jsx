@@ -1,5 +1,6 @@
 import { MAP_MAP, MAP_COLORS } from '../data/maps.js';
 import DieIcon from './DieIcon.jsx';
+import { StarIcon } from './Icons.jsx';
 
 const DIFFICULTY_LABELS = { 1: 'Beginner-friendly', 2: 'Intermediate', 3: 'Advanced' };
 
@@ -7,7 +8,9 @@ function Stars({ count }) {
   return (
     <span className="stars" aria-label={`Difficulty: ${count} of 3`}>
       {Array.from({ length: 3 }).map((_, i) => (
-        <span key={i} className={i < count ? 'star filled' : 'star empty'}>★</span>
+        <span key={i} className={i < count ? 'star filled' : 'star empty'}>
+          <StarIcon width={11} height={11} filled={i < count} />
+        </span>
       ))}
     </span>
   );

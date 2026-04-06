@@ -1,6 +1,7 @@
 import { FACTION_MAP } from '../data/factions.js';
 import { getReachThreshold } from '../utils/randomizer.js';
 import { getWinRate } from '../data/winRates.js';
+import { SwordIcon, LeafIcon } from './Icons.jsx';
 
 function getBalanceSignal(selectedFactions, playerCount) {
   // Only use human (non-bot) factions for balance signal
@@ -69,9 +70,9 @@ export default function ReachSummary({ selectedFactions, playerCount, balanceMod
         <span className="reach-status">{valid ? '✅' : '❌'}</span>
       </div>
       <div className="type-breakdown">
-        <span className="type-count militant">⚔ Militants: {militants}</span>
+        <span className="type-count militant"><SwordIcon width={12} height={12} /> Militants: {militants}</span>
         <span className="type-sep">·</span>
-        <span className="type-count insurgent">🌿 Insurgents: {insurgents}</span>
+        <span className="type-count insurgent"><LeafIcon width={12} height={12} /> Insurgents: {insurgents}</span>
       </div>
       {balance && (
         <div className={`balance-signal balance-signal--${balance.level}`} title={balance.tip}>

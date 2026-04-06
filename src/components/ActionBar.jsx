@@ -1,4 +1,5 @@
 import DieIcon from './DieIcon.jsx';
+import { UndoIcon, ShareIcon, CheckIcon, TrashIcon } from './Icons.jsx';
 
 export default function ActionBar({ hasSelection, hasHistory, copied, actions }) {
   return (
@@ -18,7 +19,7 @@ export default function ActionBar({ hasSelection, hasHistory, copied, actions })
           disabled={!hasHistory}
           title="Undo last randomize"
         >
-          <span className="btn-icon">↩️</span>
+          <span className="btn-icon"><UndoIcon /></span>
           <span>Undo</span>
         </button>
 
@@ -28,16 +29,17 @@ export default function ActionBar({ hasSelection, hasHistory, copied, actions })
           disabled={!hasSelection}
           title="Copy shareable link to clipboard"
         >
-          <span className="btn-icon">{copied ? '✓' : '🔗'}</span>
+          <span className="btn-icon">{copied ? <CheckIcon /> : <ShareIcon />}</span>
           <span>{copied ? 'Copied!' : 'Share'}</span>
         </button>
 
         <button
-          className="reset-link"
+          className="action-btn secondary reset-btn"
           onClick={actions.resetAll}
           title="Clear all settings and return to defaults"
         >
-          ↺ Reset all settings
+          <span className="btn-icon"><TrashIcon /></span>
+          <span>Reset</span>
         </button>
       </div>
     </div>

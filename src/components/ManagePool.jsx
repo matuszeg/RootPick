@@ -3,6 +3,17 @@ import { FACTIONS, FACTION_MAP } from '../data/factions.js';
 import { MAPS, MAP_COLORS } from '../data/maps.js';
 import { HIRELING_SETS, VAGABOND_CHARACTERS, LANDMARKS } from '../data/accessories.js';
 import FactionIcon from './FactionIcon.jsx';
+import { MapIcon, LandmarkIcon, XIcon, CheckIcon, StarIcon } from './Icons.jsx';
+
+function StarsInline({ count }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <StarIcon key={i} width={10} height={10} filled />
+      ))}
+    </>
+  );
+}
 
 const HIRELING_SOURCE_COLORS = {
   marauder_hirelings_base: '#C83228',
@@ -39,7 +50,7 @@ function PoolItem({ name, icon, meta, description, excluded, onToggle, accentCol
         {description && <span className="pool-item-desc">{description}</span>}
       </span>
       <span className={`pool-item-toggle ${excluded ? 'off' : 'on'}`}>
-        {excluded ? '✕' : '✓'}
+        {excluded ? <XIcon width={12} height={12} /> : <CheckIcon width={12} height={12} />}
       </span>
     </button>
   );
@@ -81,7 +92,7 @@ function FactionsTab({ state, actions }) {
                 key={f.id}
                 name={f.name}
                 icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
-                meta={`Reach ${f.reach} · ${'★'.repeat(f.difficulty)}`}
+                meta={<>Reach {f.reach} · <StarsInline count={f.difficulty} /></>}
                 accentColor={f.color}
                 excluded={bannedFactions.has(f.id)}
                 onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
@@ -100,7 +111,7 @@ function FactionsTab({ state, actions }) {
                 key={f.id}
                 name={f.name}
                 icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
-                meta={`Reach ${f.reach} · ${'★'.repeat(f.difficulty)}`}
+                meta={<>Reach {f.reach} · <StarsInline count={f.difficulty} /></>}
                 accentColor={f.color}
                 excluded={bannedFactions.has(f.id)}
                 onToggle={() => bannedFactions.has(f.id) ? actions.unbanFaction(f.id) : actions.banFaction(f.id)}
@@ -135,7 +146,11 @@ function FactionsTab({ state, actions }) {
 function MapsTab({ state, actions }) {
   const { activeMapExpansions, excludedMaps } = state;
 
-  const COMPLEXITY = { 1: '★ Beginner', 2: '★★ Moderate', 3: '★★★ Complex' };
+  const COMPLEXITY = {
+    1: <><StarsInline count={1} /> Beginner</>,
+    2: <><StarsInline count={2} /> Moderate</>,
+    3: <><StarsInline count={3} /> Complex</>,
+  };
 
   const available = MAPS.filter(m => activeMapExpansions.has(m.expansion));
 
@@ -151,7 +166,7 @@ function MapsTab({ state, actions }) {
           <PoolItem
             key={m.id}
             name={m.name}
-            icon={<span className="pool-map-icon">🗺</span>}
+            icon={<span className="pool-map-icon"><MapIcon width={18} height={18} /></span>}
             meta={COMPLEXITY[m.difficulty]}
             description={m.description}
             accentColor={(MAP_COLORS[m.id] ?? {}).primary}
@@ -203,7 +218,7 @@ function HirelingPoolCard({ hireling, excluded, banned, onToggle, onUnban }) {
       <div className="hireling-pool-info">
         <span className="hireling-pool-name">{hireling.promoted}</span>
         <span className="hireling-pool-sides">{hireling.promoted} / {hireling.demoted}</span>
-        <span className={`hireling-pool-toggle ${excluded ? 'off' : 'on'}`}>{excluded ? '✕' : '✓'}</span>
+        <span className={`hireling-pool-toggle ${excluded ? 'off' : 'on'}`}>{excluded ? <XIcon width={12} height={12} /> : <CheckIcon width={12} height={12} />}</span>
       </div>
     </button>
   );
@@ -252,17 +267,17 @@ function HirelingsTab({ state, actions }) {
 }
 
 function CharactersTab({ state, actions }) {
-  const { ownedExpansions, ownedAccessories, excludedCharacters } = state;
+  const { ownedAccessories, excludedCharacters } = state;
 
   const SOURCE_LABEL = {
     base: 'Base Game',
-    riverfolk: 'Riverfolk',
+    riverfolk_characters: 'Riverfolk',
     vagabond_pack: 'Vagabond Pack',
+    homeland_characters: 'Homeland',
   };
 
   const available = VAGABOND_CHARACTERS.filter(c => {
     if (c.source === 'base') return true;
-    if (['riverfolk', 'underworld', 'marauder', 'homeland'].includes(c.source)) return ownedExpansions.has(c.source);
     return ownedAccessories.has(c.source);
   });
 
@@ -278,7 +293,7 @@ function CharactersTab({ state, actions }) {
           <PoolItem
             key={c.id}
             name={c.name}
-            icon={<span className="pool-generic-icon">🎒</span>}
+            icon={<img src={c.faceImg} alt={c.name} className="pool-character-face" />}
             meta={SOURCE_LABEL[c.source] ?? c.source}
             accentColor={CHARACTER_COLOR}
             excluded={excludedCharacters.has(c.id)}
@@ -291,18 +306,15 @@ function CharactersTab({ state, actions }) {
 }
 
 function LandmarksTab({ state, actions }) {
-  const { ownedExpansions, ownedAccessories, excludedLandmarks } = state;
+  const { ownedAccessories, excludedLandmarks } = state;
 
   const SOURCE_LABEL = {
-    underworld: 'Underworld Expansion',
-    homeland: 'Homeland Expansion',
+    underworld_landmarks: 'Underworld Expansion',
+    homeland_landmarks: 'Homeland Expansion',
     landmarks_pack: 'Landmarks Pack',
   };
 
-  const available = LANDMARKS.filter(l => {
-    if (l.source === 'underworld' || l.source === 'homeland') return ownedExpansions.has(l.source);
-    return ownedAccessories.has(l.source);
-  });
+  const available = LANDMARKS.filter(l => ownedAccessories.has(l.source));
 
   if (available.length === 0) {
     return <EmptyPoolMessage message="No landmarks available. Enable the Underworld Expansion or Landmarks Pack in Settings." />;
@@ -316,7 +328,7 @@ function LandmarksTab({ state, actions }) {
           <PoolItem
             key={l.id}
             name={l.name}
-            icon={<span className="pool-generic-icon">🏛</span>}
+            icon={<span className="pool-generic-icon"><LandmarkIcon width={18} height={18} /></span>}
             meta={SOURCE_LABEL[l.source] ?? l.source}
             description={l.description}
             accentColor={LANDMARK_COLOR}

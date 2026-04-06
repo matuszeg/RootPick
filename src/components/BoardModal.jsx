@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { XIcon } from './Icons.jsx';
 
-export default function BoardModal({ images, factionName, onClose }) {
+export default function BoardModal({ images, title, onClose, sideLabels = ['Front', 'Back'] }) {
   const [showingFront, setShowingFront] = useState(true);
   const hasBack = images?.back != null;
   const activeSrc = showingFront ? images?.front : images?.back;
@@ -28,7 +29,7 @@ export default function BoardModal({ images, factionName, onClose }) {
       <div className="board-modal" onClick={e => e.stopPropagation()}>
         <img
           src={activeSrc}
-          alt={`${factionName} board — ${showingFront ? 'front' : 'back'}`}
+          alt={`${title} — ${showingFront ? sideLabels[0] : sideLabels[1]}`}
           className="board-modal-img"
           draggable={false}
         />
@@ -39,18 +40,18 @@ export default function BoardModal({ images, factionName, onClose }) {
                 className={`board-modal-side-btn ${showingFront ? 'active' : ''}`}
                 onClick={() => setShowingFront(true)}
               >
-                Front
+                {sideLabels[0]}
               </button>
               <button
                 className={`board-modal-side-btn ${!showingFront ? 'active' : ''}`}
                 onClick={() => setShowingFront(false)}
               >
-                Back
+                {sideLabels[1]}
               </button>
             </div>
           )}
           <button className="board-modal-close" onClick={onClose} aria-label="Close">
-            ✕
+            <XIcon width={16} height={16} />
           </button>
         </div>
       </div>

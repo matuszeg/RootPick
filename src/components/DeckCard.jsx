@@ -1,4 +1,5 @@
 import { DECK_MAP } from '../data/accessories.js';
+import { SwapIcon } from './Icons.jsx';
 
 const DECK_COLORS = {
   standard: { primary: '#5A7A3A', secondary: '#2A4A1A' },
@@ -53,7 +54,7 @@ export default function DeckCard({ deckId, onReroll, canReroll }) {
         </div>
         {canReroll && (
           <button className="deck-reroll-btn" onClick={onReroll} title="Re-roll deck">
-            🔄 Re-roll
+            <SwapIcon width={13} height={13} /> Re-roll
           </button>
         )}
       </div>

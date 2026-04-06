@@ -1,6 +1,7 @@
 import { HIRELING_MAP } from '../data/accessories.js';
 import DieIcon from './DieIcon.jsx';
 import LockIcon from './LockIcon.jsx';
+import { XIcon } from './Icons.jsx';
 
 const SOURCE_LABELS = {
   marauder_hirelings_base: 'Marauder Expansion',
@@ -10,7 +11,7 @@ const SOURCE_LABELS = {
   homeland_hirelings:   'Homeland Pack',
 };
 
-export default function HirelingCard({ hirelingId, index, status, locked, onReroll, onLock, onBan }) {
+export default function HirelingCard({ hirelingId, index, status, locked, onReroll, onLock, onBan, onImageClick }) {
   const hireling = HIRELING_MAP[hirelingId];
   if (!hireling) return null;
 
@@ -26,7 +27,14 @@ export default function HirelingCard({ hirelingId, index, status, locked, onRero
       style={{ '--anim-delay': `${index * 60}ms` }}
     >
       {/* Card image */}
-      <div className="hireling-flip-wrapper">
+      <div
+        className="hireling-flip-wrapper"
+        onClick={() => onImageClick?.({
+          front: hireling.promotedImg,
+          back:  hireling.demotedImg,
+        }, hireling.promoted)}
+        style={{ cursor: onImageClick ? 'pointer' : undefined }}
+      >
         <img
           src={activeImg}
           alt={activeName}
@@ -68,7 +76,7 @@ export default function HirelingCard({ hirelingId, index, status, locked, onRero
             title="Ban this hireling from the pool"
             aria-label="Ban hireling"
           >
-            ✕
+            <XIcon width={12} height={12} />
           </button>
         </div>
       </div>

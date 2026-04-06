@@ -11,6 +11,7 @@ import ActionBar from './components/ActionBar.jsx';
 import ManagePool from './components/ManagePool.jsx';
 import BoardModal from './components/BoardModal.jsx';
 import DieIcon from './components/DieIcon.jsx';
+import { TreeIcon, TargetIcon } from './components/Icons.jsx';
 import { useState } from 'react';
 import { FACTIONS, FACTION_MAP } from './data/factions.js';
 import { MAPS, MAP_MAP } from './data/maps.js';
@@ -20,7 +21,7 @@ import { getReachThreshold } from './utils/randomizer.js';
 function EmptyState() {
   return (
     <div className="empty-state">
-      <div className="empty-icon">🌲</div>
+      <div className="empty-icon"><TreeIcon width={48} height={48} /></div>
       <p className="empty-text">No factions picked yet.</p>
       <p className="empty-sub">Hit the Randomize button above to assemble your war council.</p>
     </div>
@@ -33,7 +34,7 @@ export default function App() {
   const [setupOpen, setSetupOpen] = useState(true);
   const [viewMode, setViewMode] = useState('pick'); // 'pick' | 'manage'
   const [resultTab, setResultTab] = useState('factions');
-  const [boardModal, setBoardModal] = useState(null); // { images, factionName }
+  const [boardModal, setBoardModal] = useState(null); // { images, title, sideLabels? }
 
   const {
     selectedFactions,
@@ -161,7 +162,7 @@ export default function App() {
             onClick={() => setViewMode('manage')}
             title={totalExcluded > 0 ? excludedTooltip : undefined}
           >
-            <span className="tab-icon">🎯</span>
+            <span className="tab-icon"><TargetIcon width={14} height={14} /></span>
             {' '}Manage Pool{totalExcluded > 0 ? ` (${totalExcluded} excluded)` : ''}
           </button>
         </div>
@@ -240,7 +241,7 @@ export default function App() {
                           vagabondCharacter={vagabondCharacters[id] ?? null}
                           onRerollCharacter={() => actions.rerollVagabondCharacter(id)}
                           playerCount={playerCount + botCount}
-                          onBoardClick={(images, name) => setBoardModal({ images, factionName: name })}
+                          onBoardClick={(images, name) => setBoardModal({ images, title: name })}
                         />
                       ))}
                     </div>
@@ -286,6 +287,7 @@ export default function App() {
                           onReroll={() => actions.rerollSingleHireling(hid)}
                           onLock={() => actions.toggleLockHireling(hid)}
                           onBan={() => actions.banHireling(hid)}
+                          onImageClick={(images, name) => setBoardModal({ images, title: name, sideLabels: ['Promoted', 'Demoted'] })}
                         />
                       ))}
                     </div>
@@ -295,10 +297,20 @@ export default function App() {
                 {/* Landmarks tab */}
                 {resultTab === 'landmarks' && selectedLandmarks.length > 0 && (
                   <div className="result-tab-content">
-                    <LandmarkCard
-                      landmarkIds={selectedLandmarks}
-                      onReroll={actions.rerollLandmarks}
-                    />
+                    <button className="reroll-all-btn" onClick={actions.rerollLandmarks}>
+                      <DieIcon /> Re-roll all landmarks
+                    </button>
+                    <div className="landmarks-grid">
+                      {selectedLandmarks.map((lid, i) => (
+                        <LandmarkCard
+                          key={lid}
+                          landmarkId={lid}
+                          index={i}
+                          onReroll={() => actions.rerollSingleLandmark(lid)}
+                          onImageClick={(images, name) => setBoardModal({ images, title: name })}
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </>
@@ -322,7 +334,8 @@ export default function App() {
       {boardModal && (
         <BoardModal
           images={boardModal.images}
-          factionName={boardModal.factionName}
+          title={boardModal.title}
+          sideLabels={boardModal.sideLabels}
           onClose={() => setBoardModal(null)}
         />
       )}

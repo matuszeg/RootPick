@@ -26,14 +26,22 @@ export const DECKS = [
 // Riverfolk expansion characters are sourced from 'riverfolk'.
 // Verify exact character availability against your rulebook if needed.
 export const VAGABOND_CHARACTERS = [
-  { id: 'ranger',     name: 'Ranger',     source: 'base' },
-  { id: 'scoundrel',  name: 'Scoundrel',  source: 'base' },
-  { id: 'tinker',     name: 'Tinker',     source: 'riverfolk' },
-  { id: 'thief',      name: 'Thief',      source: 'riverfolk' },
-  { id: 'vagrant',    name: 'Vagrant',    source: 'riverfolk' },
-  { id: 'ronin',      name: 'Ronin',      source: 'vagabond_pack' },
-  { id: 'adventurer', name: 'Adventurer', source: 'vagabond_pack' },
-  { id: 'harrier',    name: 'Harrier',    source: 'vagabond_pack' },
+  // ── Base Game — 3 characters ────────────────────────────────────────────
+  { id: 'ranger',     name: 'Ranger',     source: 'base',          cardImg: '/icons/vagabond/cards/ranger.webp',     faceImg: '/icons/vagabond/faces/ranger.webp' },
+  { id: 'thief',      name: 'Thief',      source: 'base',          cardImg: '/icons/vagabond/cards/thief.webp',      faceImg: '/icons/vagabond/faces/thief.webp' },
+  { id: 'tinker',     name: 'Tinker',     source: 'base',          cardImg: '/icons/vagabond/cards/tinker.webp',     faceImg: '/icons/vagabond/faces/tinker.webp' },
+  // ── Riverfolk Expansion — 3 characters ──────────────────────────────────
+  { id: 'vagrant',    name: 'Vagrant',    source: 'riverfolk_characters',  cardImg: '/icons/vagabond/cards/vagrant.webp',    faceImg: '/icons/vagabond/faces/vagrant.webp' },
+  { id: 'arbiter',    name: 'Arbiter',    source: 'riverfolk_characters',  cardImg: '/icons/vagabond/cards/arbiter.webp',    faceImg: '/icons/vagabond/faces/arbiter.webp' },
+  { id: 'scoundrel',  name: 'Scoundrel',  source: 'riverfolk_characters',  cardImg: '/icons/vagabond/cards/scoundrel.webp',  faceImg: '/icons/vagabond/faces/scoundrel.webp' },
+  // ── Vagabond Pack — 3 characters ────────────────────────────────────────
+  { id: 'ronin',      name: 'Ronin',      source: 'vagabond_pack', cardImg: '/icons/vagabond/cards/ronin.webp',      faceImg: '/icons/vagabond/faces/ronin.webp' },
+  { id: 'adventurer', name: 'Adventurer', source: 'vagabond_pack', cardImg: '/icons/vagabond/cards/adventurer.webp', faceImg: '/icons/vagabond/faces/adventurer.webp' },
+  { id: 'harrier',    name: 'Harrier',    source: 'vagabond_pack', cardImg: '/icons/vagabond/cards/harrier.webp',    faceImg: '/icons/vagabond/faces/harrier.webp' },
+  // ── Homeland Expansion — 3 characters ───────────────────────────────────
+  { id: 'cheat',      name: 'Cheat',      source: 'homeland_characters',   cardImg: '/icons/vagabond/cards/cheat.webp',      faceImg: '/icons/vagabond/faces/cheat.webp' },
+  { id: 'gladiator',  name: 'Gladiator',  source: 'homeland_characters',   cardImg: '/icons/vagabond/cards/gladiator.webp',  faceImg: '/icons/vagabond/faces/gladiator.webp' },
+  { id: 'jailor',     name: 'Jailor',     source: 'homeland_characters',   cardImg: '/icons/vagabond/cards/jailor.webp',     faceImg: '/icons/vagabond/faces/jailor.webp' },
 ];
 
 // ─── Landmarks ────────────────────────────────────────────────────────────────
@@ -43,14 +51,18 @@ export const LANDMARKS = [
   {
     id: 'tower',
     name: 'The Tower',
-    source: 'underworld',
+    source: 'underworld_landmarks',
     description: 'Whoever rules this clearing scores 1 VP at the start of their Birdsong.',
+    frontImg: '/icons/landmarks/cards/tower-front.webp',
+    backImg:  '/icons/landmarks/cards/tower-back.webp',
   },
   {
     id: 'ferry',
     name: 'The Ferry',
-    source: 'underworld',
+    source: 'underworld_landmarks',
     description: 'A piece in this clearing may move to any clearing on the map during its move.',
+    frontImg: '/icons/landmarks/cards/ferry-front.webp',
+    backImg:  '/icons/landmarks/cards/ferry-back.webp',
   },
   // ── Landmarks Pack ──────────────────────────────────────────────────────────
   {
@@ -58,43 +70,57 @@ export const LANDMARKS = [
     name: 'Black Market',
     source: 'landmarks_pack',
     description: 'Players in this clearing may swap a card from their hand with a card from the discard.',
+    frontImg: '/icons/landmarks/cards/market-front.webp',
+    backImg:  '/icons/landmarks/cards/market-back.webp',
   },
   {
     id: 'treetop',
     name: 'Elder Treetop',
     source: 'landmarks_pack',
     description: 'This clearing has one extra building slot.',
+    frontImg: '/icons/landmarks/cards/treetop-front.webp',
+    backImg:  '/icons/landmarks/cards/treetop-back.webp',
   },
   {
     id: 'forge',
     name: 'Legendary Forge',
     source: 'landmarks_pack',
     description: 'Players crafting in this clearing score 1 bonus VP.',
+    frontImg: '/icons/landmarks/cards/forge-front.webp',
+    backImg:  '/icons/landmarks/cards/forge-back.webp',
   },
   {
     id: 'city',
     name: 'Lost City',
     source: 'landmarks_pack',
     description: 'This clearing is a wild suit — it counts as any suit for all purposes.',
+    frontImg: '/icons/landmarks/cards/city-front.webp',
+    backImg:  '/icons/landmarks/cards/city-back.webp',
   },
   // ── Homeland Expansion ──────────────────────────────────────────────────────
   {
     id: 'mousehold',
     name: 'Mousehold',
-    source: 'homeland',
+    source: 'homeland_landmarks',
     description: 'This mouse clearing has one extra building slot.',
+    frontImg: '/icons/landmarks/cards/mousehold-front.webp',
+    backImg:  '/icons/landmarks/cards/mousehold-back.webp',
   },
   {
     id: 'foxburrow',
     name: 'Foxburrow',
-    source: 'homeland',
+    source: 'homeland_landmarks',
     description: 'This fox clearing has one extra building slot.',
+    frontImg: '/icons/landmarks/cards/foxburrow-front.webp',
+    backImg:  '/icons/landmarks/cards/foxburrow-back.webp',
   },
   {
     id: 'rabbittown',
     name: 'Rabbittown',
-    source: 'homeland',
+    source: 'homeland_landmarks',
     description: 'This rabbit clearing has one extra building slot.',
+    frontImg: '/icons/landmarks/cards/rabbittown-front.webp',
+    backImg:  '/icons/landmarks/cards/rabbittown-back.webp',
   },
 ];
 
@@ -264,14 +290,18 @@ export const HIRELING_SETS = [
 export const ACCESSORIES = [
   { id: 'standard_deck',        name: 'Standard Deck',           category: 'deck',     requiresExpansion: null },
   { id: 'exiles_deck',          name: 'Exiles & Partisans Deck', category: 'deck',     requiresExpansion: null },
-  { id: 'squires_deck',         name: 'Squires & Disciples Deck', category: 'deck',    requiresExpansion: 'homeland' },
-  { id: 'vagabond_pack',        name: 'Vagabond Pack',            category: 'vagabond', requiresExpansion: null },
+  { id: 'squires_deck',         name: 'Squires & Disciples Deck', category: 'deck',    requiresExpansion: null },
+  { id: 'riverfolk_characters',  name: 'Riverfolk Characters',     category: 'vagabond', requiresExpansion: null },
+  { id: 'homeland_characters',   name: 'Homeland Characters',      category: 'vagabond', requiresExpansion: null },
+  { id: 'vagabond_pack',         name: 'Vagabond Pack',            category: 'vagabond', requiresExpansion: null },
+  { id: 'underworld_landmarks',  name: 'Underworld Landmarks',     category: 'landmark', requiresExpansion: null },
+  { id: 'homeland_landmarks',   name: 'Homeland Landmarks',       category: 'landmark', requiresExpansion: null },
   { id: 'landmarks_pack',       name: 'Landmarks Pack',           category: 'landmark', requiresExpansion: null },
   { id: 'marauder_hirelings_base', name: 'Marauder Expansion',      category: 'hireling', requiresExpansion: null },
   { id: 'marauder_hirelings',   name: 'Marauder Hirelings Pack',  category: 'hireling', requiresExpansion: null },
   { id: 'riverfolk_hirelings',  name: 'Riverfolk Hirelings Pack', category: 'hireling', requiresExpansion: null },
   { id: 'underworld_hirelings', name: 'Underworld Hirelings Pack',category: 'hireling', requiresExpansion: null },
-  { id: 'homeland_hirelings',   name: 'Homeland Hirelings Pack',  category: 'hireling', requiresExpansion: 'homeland' },
+  { id: 'homeland_hirelings',   name: 'Homeland Hirelings Pack',  category: 'hireling', requiresExpansion: null },
 ];
 
 export const DECK_MAP      = Object.fromEntries(DECKS.map(d => [d.id, d]));

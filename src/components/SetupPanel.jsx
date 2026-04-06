@@ -2,6 +2,17 @@ import { useState, useEffect, useRef } from 'react';
 import { EXPANSIONS } from '../data/factions.js';
 import { ACCESSORIES, HIRELING_SETS } from '../data/accessories.js';
 import { getReachThreshold } from '../utils/randomizer.js';
+import { MapIcon, CheckIcon, StarIcon, PackIcon, BotIcon, FlameIcon } from './Icons.jsx';
+
+function StarsInline({ count }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <StarIcon key={i} width={10} height={10} filled />
+      ))}
+    </>
+  );
+}
 
 // All mutually-excluding pairs in the game
 const EXCLUSION_PAIRS = [
@@ -23,7 +34,7 @@ export default function SetupPanel({ state, actions }) {
   } = state;
 
   const canUseHirelings = HIRELING_SETS.some(h => ownedAccessories.has(h.source));
-  const canUseLandmarks = ownedAccessories.has('landmarks_pack');
+  const canUseLandmarks = ownedAccessories.has('landmarks_pack') || ownedExpansions.has('underworld') || ownedExpansions.has('homeland');
   const canUseBots = ownedExpansions.has('clockwork') || ownedExpansions.has('clockwork2');
 
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -127,7 +138,7 @@ export default function SetupPanel({ state, actions }) {
           <label className={`balance-option chaos ${balanceMode === 'chaos' ? 'active' : ''}`}>
             <input type="radio" name="balanceMode" checked={balanceMode === 'chaos'} onChange={() => actions.setBalanceMode('chaos')} />
             <div className="balance-option-content">
-              <span className="balance-option-name">Chaos Mode 🔥</span>
+              <span className="balance-option-name">Chaos Mode <FlameIcon width={13} height={13} /></span>
               <span className="balance-option-desc">No reach minimum. Truly anything goes. Experienced players only.</span>
             </div>
           </label>
@@ -183,9 +194,9 @@ export default function SetupPanel({ state, actions }) {
         <p className="setup-heading-sub">Include in pool</p>
         <div className="difficulty-pills">
           {[
-            { level: 1, label: '★ Beginner' },
-            { level: 2, label: '★★ Intermediate' },
-            { level: 3, label: '★★★ Expert' },
+            { level: 1, label: 'Beginner' },
+            { level: 2, label: 'Intermediate' },
+            { level: 3, label: 'Expert' },
           ].map(({ level, label }) => (
             <button
               key={level}
@@ -193,7 +204,7 @@ export default function SetupPanel({ state, actions }) {
               onClick={() => actions.toggleDifficulty(level)}
               aria-pressed={difficulties.has(level)}
             >
-              {difficulties.has(level) ? `✓ ${label}` : label}
+              {difficulties.has(level) && <CheckIcon width={12} height={12} />} <StarsInline count={level} /> {label}
             </button>
           ))}
         </div>
@@ -207,7 +218,7 @@ export default function SetupPanel({ state, actions }) {
           aria-expanded={botsOpen}
         >
           <span>
-            <span className={`bot-icon${!canUseBots ? ' bot-icon--offline' : ''}${botAnim !== 'idle' ? ` bot-icon--${botAnim}` : ''}`}>🤖</span>
+            <span className={`bot-icon${!canUseBots ? ' bot-icon--offline' : ''}${botAnim !== 'idle' ? ` bot-icon--${botAnim}` : ''}`}><BotIcon width={14} height={14} /></span>
             {' '}Bots
             {botCount > 0 && <span className="override-badge">{botCount} bot{botCount !== 1 ? 's' : ''}</span>}
           </span>
@@ -250,7 +261,7 @@ export default function SetupPanel({ state, actions }) {
           aria-expanded={mapsOpen}
         >
           <span>
-            🗺 Maps
+            <MapIcon width={14} height={14} /> Maps
             {mapsFiltered && <span className="override-badge">filtered</span>}
           </span>
           <span className={`chevron ${mapsOpen ? 'up' : ''}`}>▾</span>
@@ -282,9 +293,9 @@ export default function SetupPanel({ state, actions }) {
             <p className="setup-heading-sub" style={{ marginTop: 0, marginBottom: '0.5rem' }}>Include in pool</p>
             <div className="difficulty-pills">
               {[
-                { level: 1, label: '★ Beginner' },
-                { level: 2, label: '★★ Moderate' },
-                { level: 3, label: '★★★ Complex' },
+                { level: 1, label: 'Beginner' },
+                { level: 2, label: 'Moderate' },
+                { level: 3, label: 'Complex' },
               ].map(({ level, label }) => (
                 <button
                   key={level}
@@ -292,7 +303,7 @@ export default function SetupPanel({ state, actions }) {
                   onClick={() => actions.toggleMapDifficulty(level)}
                   aria-pressed={mapDifficulties.has(level)}
                 >
-                  {mapDifficulties.has(level) ? `✓ ${label}` : label}
+                  {mapDifficulties.has(level) && <CheckIcon width={12} height={12} />} <StarsInline count={level} /> {label}
                 </button>
               ))}
             </div>
@@ -311,7 +322,7 @@ export default function SetupPanel({ state, actions }) {
           aria-expanded={accessoriesOpen}
         >
           <span>
-            🎒 Add-ons &amp; Accessories
+            <PackIcon width={14} height={14} /> Add-ons &amp; Accessories
             {ownedAccessories.size > 1 && (
               <span className="override-badge">{ownedAccessories.size - 1} owned</span>
             )}
@@ -344,7 +355,7 @@ export default function SetupPanel({ state, actions }) {
                   <span className="expansion-name">{a.name}</span>
                 </label>
               ))}
-              <p className="mode-description">Adds Ronin, Adventurer, and Harrier character cards.</p>
+              <p className="mode-description">Character cards assigned to Vagabond factions when randomized.</p>
             </div>
 
             {/* Landmarks */}

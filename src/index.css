@@ -979,108 +979,108 @@ a { color: inherit; }
   line-height: 1.5;
 }
 
-/* ─── Landmark card ───────────────────────────────────────────────────── */
+/* ─── Landmark cards ─────────────────────────────────────────────────── */
+.landmarks-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
 .landmark-card {
   background: var(--bg-card);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   overflow: hidden;
-  border-left: 5px solid #6A8A4A;
-  animation: cardIn 0.3s ease both;
+  animation: cardIn 0.35s ease both;
+  animation-delay: var(--anim-delay, 0ms);
+  border: 2px solid var(--border);
+  transition: border-color 0.2s;
+  width: fit-content;
+  max-width: 100%;
 }
 
-.landmark-card-header {
-  background: linear-gradient(135deg, #2A3A1A 0%, #5A7A3A 100%);
-  padding: 0.65rem 1rem;
+.landmark-img-wrapper {
+  position: relative;
+  height: 360px;
+}
+
+.landmark-card-img {
+  display: block;
+  height: 100%;
+  width: auto;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+@media (max-width: 600px) {
+  .landmark-img-wrapper { height: auto; }
+  .landmark-card-img { width: 100%; height: auto; }
+  .landmark-card { width: 100%; }
+}
+
+.landmark-action-bar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-}
-
-.landmark-card-label {
-  font-family: var(--font-display);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.6);
-}
-
-.landmark-count {
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.75);
-  font-style: italic;
-}
-
-.landmark-reroll-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-family: var(--font-display);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: var(--radius-sm);
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.landmark-reroll-btn:hover { background: rgba(0,0,0,0.35); }
-
-.landmark-list {
-  padding: 0.5rem 0;
-}
-
-.landmark-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
-  padding: 0.55rem 1rem;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-.landmark-item:last-child { border-bottom: none; }
-
-.landmark-icon {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  color: #5A7A3A;
-  margin-top: 0.1rem;
-}
-.landmark-icon svg { width: 100%; height: 100%; }
-
-.landmark-item-content { flex: 1; }
-.landmark-item-header {
-  display: flex;
-  align-items: baseline;
+  padding: 0.45rem 0.6rem;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
   gap: 0.5rem;
-  margin-bottom: 0.15rem;
 }
 
-.landmark-item-name {
+.landmark-action-bar-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.05rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.landmark-active-name {
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.landmark-source {
+.landmark-source-label {
   font-size: 0.62rem;
+  font-family: var(--font-ui);
   color: var(--ink-muted);
   font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
-.landmark-item-desc {
-  font-size: 0.75rem;
+.landmark-action-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.landmark-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   color: var(--ink-muted);
-  line-height: 1.4;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.landmark-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--ink);
 }
 
 /* ─── Result sections (collapsible) ──────────────────────────────────── */
@@ -1640,20 +1640,22 @@ a { color: inherit; }
   border-radius: 4px;
   border-left: 2px solid rgba(200, 144, 42, 0.4);
 }
-.map-note::before {
-  content: '🗺 ';
-}
 
 /* ─── Faction cards grid ──────────────────────────────────────────────── */
 .cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.85rem;
+  justify-content: center;
   max-width: 1080px;
   margin: 0 auto;
 }
+.cards-grid > * {
+  flex: 1 1 260px;
+  max-width: 360px;
+}
 @media (max-width: 600px) {
-  .cards-grid { grid-template-columns: 1fr; }
+  .cards-grid > * { max-width: none; }
 }
 
 /* ─── Faction card ────────────────────────────────────────────────────── */
@@ -1875,12 +1877,36 @@ a { color: inherit; }
 .fc-vagabond-row {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s;
   margin-top: 0.4rem;
   padding: 0.25rem 0.45rem;
   background: rgba(140,123,106,0.1);
   border-radius: 4px;
   border-left: 2px solid rgba(140,123,106,0.4);
+}
+.fc-vagabond-row:hover {
+  background: rgba(140,123,106,0.08);
+}
+.fc-vagabond-row:hover .fc-vagabond-face {
+  border-color: var(--gold);
+}
+.fc-vagabond-face {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(140,123,106,0.3);
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+}
+.fc-vagabond-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  flex: 1;
+  min-width: 0;
 }
 .fc-vagabond-label {
   font-family: var(--font-display);
@@ -1889,14 +1915,18 @@ a { color: inherit; }
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-muted);
-  flex-shrink: 0;
 }
 .fc-vagabond-name {
   font-family: var(--font-body);
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--ink-mid);
-  flex: 1;
+}
+.fc-vagabond-source {
+  font-size: 0.6rem;
+  font-family: var(--font-ui);
+  color: var(--ink-muted);
+  font-style: italic;
 }
 .fc-vagabond-reroll {
   background: transparent;
@@ -2081,26 +2111,11 @@ a { color: inherit; }
 }
 .board-modal-close:hover { background: rgba(255,255,255,0.25); }
 
-/* ─── Reset link ──────────────────────────────────────────────────────── */
-.reset-link {
-  all: unset;
-  cursor: pointer;
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  text-align: center;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border);
-  font-family: var(--font-display);
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #9a8a70;
-  transition: color 0.15s;
-}
-.reset-link:hover {
+/* ─── Reset button danger hover ──────────────────────────────────────── */
+.reset-btn:hover:not(:disabled) {
+  border-color: var(--danger);
   color: var(--danger);
+  background: rgba(200, 50, 50, 0.06);
 }
 
 /* ─── Empty state ─────────────────────────────────────────────────────── */
@@ -2330,6 +2345,13 @@ a { color: inherit; }
 .pool-generic-icon {
   font-size: 1rem;
   color: var(--pool-accent, var(--gold));
+}
+.pool-character-face {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--pool-accent, var(--gold));
 }
 
 .pool-item-body {

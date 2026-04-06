@@ -84,10 +84,9 @@ function computeHirelingStatuses(count, playerCount, lockedStatuses = []) {
   return result;
 }
 
-function pickRandomLandmarks(ownedExpansions, ownedAccessories, count = 2, excludedLandmarks = new Set()) {
+function pickRandomLandmarks(ownedAccessories, count = 2, excludedLandmarks = new Set()) {
   const eligible = LANDMARKS.filter(l => {
     if (excludedLandmarks.has(l.id)) return false;
-    if (l.source === 'underworld' || l.source === 'homeland') return ownedExpansions.has(l.source);
     return ownedAccessories.has(l.source);
   });
   if (!eligible.length) return [];
@@ -95,14 +94,13 @@ function pickRandomLandmarks(ownedExpansions, ownedAccessories, count = 2, exclu
   return shuffled.slice(0, Math.min(count, eligible.length)).map(l => l.id);
 }
 
-function pickVagabondCharacters(factionIds, ownedExpansions, ownedAccessories, excludedCharacters = new Set()) {
+function pickVagabondCharacters(factionIds, ownedAccessories, excludedCharacters = new Set()) {
   const vagabondIds = factionIds.filter(id => FACTION_MAP[id]?.vagabondVariant);
   if (!vagabondIds.length) return {};
 
   const availableChars = VAGABOND_CHARACTERS.filter(c => {
     if (excludedCharacters.has(c.id)) return false;
     if (c.source === 'base') return true;
-    if (['riverfolk', 'underworld', 'marauder', 'homeland'].includes(c.source)) return ownedExpansions.has(c.source);
     return ownedAccessories.has(c.source);
   });
 
@@ -130,8 +128,14 @@ function loadSettings() {
     // Ensure standard_deck is always present (backwards compat)
     const accessories = new Set(parsed.ownedAccessories ?? []);
     if (!accessories.has('standard_deck')) accessories.add('standard_deck');
+    // Migration: auto-enable expansion accessories for users who have those expansions
+    const expansions = new Set(parsed.ownedExpansions ?? ['base']);
+    if (expansions.has('underworld') && !accessories.has('underworld_landmarks')) accessories.add('underworld_landmarks');
+    if (expansions.has('homeland') && !accessories.has('homeland_landmarks')) accessories.add('homeland_landmarks');
+    if (expansions.has('homeland') && !accessories.has('homeland_characters')) accessories.add('homeland_characters');
+    if (expansions.has('riverfolk') && !accessories.has('riverfolk_characters')) accessories.add('riverfolk_characters');
     return {
-      ownedExpansions:     new Set(parsed.ownedExpansions   ?? ['base']),
+      ownedExpansions:     expansions,
       activeMapExpansions: new Set(parsed.activeMapExpansions ?? (parsed.ownedExpansions ?? ['base'])),
       playerCount:         parsed.playerCount               ?? 4,
       botCount:            parsed.botCount                  ?? 0,
@@ -459,9 +463,9 @@ export function useAppState() {
             return prevIdx !== -1 && s.lockedHirelings.has(id) ? s.hirelingStatuses[prevIdx] : null;
           })),
         selectedLandmarks:  s.useLandmarks
-          ? pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories, s.landmarkCount, s.excludedLandmarks)
+          ? pickRandomLandmarks(s.ownedAccessories, s.landmarkCount, s.excludedLandmarks)
           : [],
-        vagabondCharacters: pickVagabondCharacters(newFactions, s.ownedExpansions, s.ownedAccessories, s.excludedCharacters),
+        vagabondCharacters: pickVagabondCharacters(newFactions, s.ownedAccessories, s.excludedCharacters),
         history:            newHistory,
         error:              null,
       };
@@ -494,7 +498,7 @@ export function useAppState() {
       const newChars = { ...s.vagabondCharacters };
       if (FACTION_MAP[factionId]?.vagabondVariant) delete newChars[factionId];
       if (FACTION_MAP[newFactionId]?.vagabondVariant && !newChars[newFactionId]) {
-        const extra = pickVagabondCharacters([newFactionId], s.ownedExpansions, s.ownedAccessories, s.excludedCharacters);
+        const extra = pickVagabondCharacters([newFactionId], s.ownedAccessories, s.excludedCharacters);
         const used = new Set(Object.values(newChars));
         const pick = Object.values(extra)[0];
         if (pick && !used.has(pick)) newChars[newFactionId] = pick;
@@ -588,8 +592,22 @@ export function useAppState() {
   const rerollLandmarks = useCallback(() => {
     setState(s => ({
       ...s,
-      selectedLandmarks: pickRandomLandmarks(s.ownedExpansions, s.ownedAccessories, s.landmarkCount, s.excludedLandmarks),
+      selectedLandmarks: pickRandomLandmarks(s.ownedAccessories, s.landmarkCount, s.excludedLandmarks),
     }));
+  }, []);
+
+  const rerollSingleLandmark = useCallback(landmarkId => {
+    setState(s => {
+      const others = s.selectedLandmarks.filter(id => id !== landmarkId);
+      const exclude = new Set([...s.excludedLandmarks, ...others]);
+      const eligible = LANDMARKS.filter(l => !exclude.has(l.id) && s.ownedAccessories.has(l.source));
+      if (!eligible.length) return s;
+      const pick = eligible[Math.floor(Math.random() * eligible.length)];
+      const idx = s.selectedLandmarks.indexOf(landmarkId);
+      const next = [...s.selectedLandmarks];
+      next[idx] = pick.id;
+      return { ...s, selectedLandmarks: next };
+    });
   }, []);
 
   const rerollVagabondCharacter = useCallback(factionId => {
@@ -601,7 +619,6 @@ export function useAppState() {
         if (c.id === s.vagabondCharacters[factionId]) return false;
         if (s.excludedCharacters.has(c.id)) return false;
         if (c.source === 'base') return true;
-        if (['riverfolk', 'underworld', 'marauder', 'homeland'].includes(c.source)) return s.ownedExpansions.has(c.source);
         return s.ownedAccessories.has(c.source);
       });
       if (!available.length) return s;
@@ -714,7 +731,7 @@ export function useAppState() {
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       toggleExcludedMap, toggleExcludedHireling, toggleExcludedCharacter, toggleExcludedLandmark,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
-      rerollSingleHireling, rerollLandmarks, rerollVagabondCharacter,
+      rerollSingleHireling, rerollLandmarks, rerollSingleLandmark, rerollVagabondCharacter,
       undo, toggleLock, banFaction, unbanFaction,
       toggleLockHireling, banHireling, unbanHireling,
       share, clearError,

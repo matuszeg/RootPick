@@ -5,6 +5,7 @@ import { getWinRate } from '../data/winRates.js';
 import { getBoardImages, getHeadImage } from '../data/factionImages.js';
 import DieIcon from './DieIcon.jsx';
 import LockIcon from './LockIcon.jsx';
+import { XIcon, StarIcon } from './Icons.jsx';
 
 const EXPANSION_LABELS = {
   base: 'Base',
@@ -20,7 +21,9 @@ function Stars({ count }) {
   return (
     <span className="fc-stars" aria-label={`Difficulty: ${count} of 3`}>
       {Array.from({ length: 3 }).map((_, i) => (
-        <span key={i} className={i < count ? 'fc-star filled' : 'fc-star empty'}>★</span>
+        <span key={i} className={i < count ? 'fc-star filled' : 'fc-star empty'}>
+          <StarIcon width={11} height={11} filled={i < count} />
+        </span>
       ))}
     </span>
   );
@@ -164,22 +167,37 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
             )}
           </div>
         )}
-        {vagabondCharacter && CHARACTER_MAP[vagabondCharacter] && (
-          <div className="fc-vagabond-row">
-            <span className="fc-vagabond-label">Character</span>
-            <span className="fc-vagabond-name">{CHARACTER_MAP[vagabondCharacter].name}</span>
-            {onRerollCharacter && (
-              <button
-                className="fc-vagabond-reroll"
-                onClick={onRerollCharacter}
-                title="Re-roll character"
-                aria-label="Re-roll vagabond character"
-              >
-                <DieIcon width={13} height={13} />
-              </button>
-            )}
-          </div>
-        )}
+        {vagabondCharacter && CHARACTER_MAP[vagabondCharacter] && (() => {
+          const char = CHARACTER_MAP[vagabondCharacter];
+          const SOURCE_LABEL = { base: 'Base Game', riverfolk_characters: 'Riverfolk', vagabond_pack: 'Vagabond Pack', homeland_characters: 'Homeland' };
+          return (
+            <div
+              className="fc-vagabond-row"
+              onClick={() => onBoardClick?.({ front: char.cardImg, back: null }, char.name)}
+              title="View character card"
+            >
+              <img
+                src={char.faceImg}
+                alt={char.name}
+                className="fc-vagabond-face"
+              />
+              <div className="fc-vagabond-info">
+                <span className="fc-vagabond-name">{char.name}</span>
+                <span className="fc-vagabond-source">{SOURCE_LABEL[char.source] ?? char.source}</span>
+              </div>
+              {onRerollCharacter && (
+                <button
+                  className="fc-vagabond-reroll"
+                  onClick={e => { e.stopPropagation(); onRerollCharacter(); }}
+                  title="Re-roll character"
+                  aria-label="Re-roll vagabond character"
+                >
+                  <DieIcon width={13} height={13} />
+                </button>
+              )}
+            </div>
+          );
+        })()}
         {mapNote && <p className="fc-map-note">{mapNote}</p>}
         {browseMode && faction.excludes.length > 0 && (
           <p className="fc-conflict">
@@ -217,7 +235,7 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
             aria-label="Ban faction"
             disabled={locked}
           >
-            ✕
+            <XIcon width={12} height={12} />
           </button>
         </div>
       )}
