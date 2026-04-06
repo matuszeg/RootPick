@@ -84,29 +84,29 @@ export default function LandmarksTab({ state, actions, subTab, onSubTabChange, o
 
       {subTab === 'results' && (
         <div className="sub-tab-content">
+          {canUseLandmarks && useLandmarks && (
+            <button className="reroll-all-btn" onClick={actions.rerollLandmarks}>
+              <DieIcon /> Re-roll all landmarks
+            </button>
+          )}
           {selectedLandmarks.length > 0 ? (
-            <>
-              <button className="reroll-all-btn" onClick={actions.rerollLandmarks}>
-                <DieIcon /> Re-roll all landmarks
-              </button>
-              <div className="landmarks-grid">
-                {selectedLandmarks.map((lid, i) => (
-                  <LandmarkCard
-                    key={lid}
-                    landmarkId={lid}
-                    index={i}
-                    onReroll={() => actions.rerollSingleLandmark(lid)}
-                    onImageClick={onImageClick}
-                  />
-                ))}
-              </div>
-            </>
+            <div className="landmarks-grid">
+              {selectedLandmarks.map((lid, i) => (
+                <LandmarkCard
+                  key={lid}
+                  landmarkId={lid}
+                  index={i}
+                  onReroll={() => actions.rerollSingleLandmark(lid)}
+                  onImageClick={onImageClick}
+                />
+              ))}
+            </div>
           ) : (
             <div className="tab-empty-state">
               {canUseLandmarks && useLandmarks ? (
                 <>
                   <p>No landmarks picked yet.</p>
-                  <p className="tab-empty-sub">Hit Randomize above to get started.</p>
+                  <p className="tab-empty-sub">Hit Re-roll above or Randomize to get started.</p>
                 </>
               ) : !canUseLandmarks ? (
                 <>

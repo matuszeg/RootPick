@@ -42,11 +42,10 @@ function PoolItem({ name, icon, meta, description, excluded, onToggle, accentCol
 export default function MapCardsTab({ state, actions, subTab, onSubTabChange }) {
   const { activeMapExpansions, mapDifficulties, selectedMap, selectedDeck, ownedAccessories, excludedMaps } = state;
 
-  const canRerollMap = MAPS.filter(m =>
-    activeMapExpansions.has(m.expansion) &&
-    !excludedMaps.has(m.id) &&
-    mapDifficulties.has(m.difficulty)
-  ).length > 1;
+  // Count maps currently in the pool (active expansion + not excluded)
+  const activeMaps = MAPS.filter(m => activeMapExpansions.has(m.expansion) && !excludedMaps.has(m.id));
+
+  const canRerollMap = activeMaps.filter(m => mapDifficulties.has(m.difficulty)).length > 1;
 
   const canRerollDeck = DECKS.filter(d => d.accessory === null || ownedAccessories.has(d.accessory)).length > 1;
 
@@ -65,17 +64,47 @@ export default function MapCardsTab({ state, actions, subTab, onSubTabChange }) 
       <div className="tab-filters">
         <div className="filter-group">
           <h3 className="filter-heading">Map Boards</h3>
-          {[
-            { id: 'base',       label: 'Autumn · Winter',  required: true },
-            { id: 'underworld', label: 'Mountain · Lake',  required: false },
-            { id: 'homeland',   label: 'Marsh · Gorge',    required: false },
-          ].map(({ id, label, required }) => (
-            <label key={id} className={`expansion-check ${activeMapExpansions.has(id) ? 'checked' : ''} ${required ? 'disabled' : ''}`}>
-              <input type="checkbox" checked={activeMapExpansions.has(id)} disabled={required} onChange={() => actions.toggleMapExpansion(id)} />
-              <span className="checkbox-box" />
-              <span className="expansion-name">{label}</span>
-            </label>
-          ))}
+          {MAPS.map(m => {
+            const expansionActive = activeMapExpansions.has(m.expansion);
+            const checked = expansionActive && !excludedMaps.has(m.id);
+            const isBase = m.expansion === 'base';
+            // Can't uncheck the last active map
+            const isLastActive = checked && activeMaps.length === 1;
+            return (
+              <label key={m.id} className={`expansion-check ${checked ? 'checked' : ''} ${isLastActive ? 'disabled' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  disabled={isLastActive}
+                  onChange={() => {
+                    if (!expansionActive) {
+                      actions.toggleMapExpansion(m.expansion);
+                    } else if (checked) {
+                      // Unchecking: exclude this map. If sibling is also excluded, disable the expansion.
+                      const sibling = MAPS.find(s => s.expansion === m.expansion && s.id !== m.id);
+                      if (!isBase && sibling && excludedMaps.has(sibling.id)) {
+                        actions.toggleMapExpansion(m.expansion);
+                        // Also un-exclude both so they're clean if re-enabled
+                        if (excludedMaps.has(m.id)) actions.toggleExcludedMap(m.id);
+                        if (excludedMaps.has(sibling.id)) actions.toggleExcludedMap(sibling.id);
+                        // Re-roll if selected map was in this expansion
+                        if (selectedMap === m.id || selectedMap === sibling.id) actions.rerollMap();
+                      } else {
+                        actions.toggleExcludedMap(m.id);
+                        // Re-roll if we just excluded the currently selected map
+                        if (m.id === selectedMap) actions.rerollMap();
+                      }
+                    } else {
+                      // Re-including: un-exclude this map
+                      actions.toggleExcludedMap(m.id);
+                    }
+                  }}
+                />
+                <span className="checkbox-box" />
+                <span className="expansion-name">{m.name}</span>
+              </label>
+            );
+          })}
         </div>
 
         <div className="filter-group">

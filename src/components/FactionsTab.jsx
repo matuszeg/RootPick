@@ -363,11 +363,9 @@ export default function FactionsTab({ state, actions, subTab, onSubTabChange, on
           {selectedFactions.length > 0 ? (
             <>
               <ReachSummary selectedFactions={selectedFactions} playerCount={playerCount} balanceMode={balanceMode} />
-              {lockedFactions.size > 0 && (
-                <button className="reroll-all-btn" onClick={() => actions.randomize(true)}>
-                  <DieIcon /> Re-roll unlocked
-                </button>
-              )}
+              <button className="reroll-all-btn" onClick={() => actions.randomize(true)}>
+                <DieIcon /> {lockedFactions.size > 0 ? 'Re-roll unlocked factions' : 'Re-roll all factions'}
+              </button>
               <div className="cards-grid">
                 {selectedFactions.map((id, i) => (
                   <FactionCard
