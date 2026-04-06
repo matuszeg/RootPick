@@ -1,3 +1,5 @@
+import { FACTION_MAP } from './factions.js';
+
 // ─── Decks ────────────────────────────────────────────────────────────────────
 export const DECKS = [
   {
@@ -308,3 +310,23 @@ export const DECK_MAP      = Object.fromEntries(DECKS.map(d => [d.id, d]));
 export const HIRELING_MAP  = Object.fromEntries(HIRELING_SETS.map(h => [h.id, h]));
 export const LANDMARK_MAP  = Object.fromEntries(LANDMARKS.map(l => [l.id, l]));
 export const CHARACTER_MAP = Object.fromEntries(VAGABOND_CHARACTERS.map(c => [c.id, c]));
+
+// Returns [{ hireling, factionName }] for each hireling in availableHirelings
+// that is excluded due to a faction conflict with the current game.
+// Handles bot factions by expanding them to the human faction they automate.
+// selectedFactionIds may be an Array or Set of faction ID strings.
+export function getHirelingConflicts(availableHirelings, selectedFactionIds) {
+  const expandedFactions = new Set(selectedFactionIds);
+  for (const id of selectedFactionIds) {
+    const automatesId = FACTION_MAP[id]?.automatesId;
+    if (automatesId) expandedFactions.add(automatesId);
+  }
+
+  return availableHirelings
+    .map(h => {
+      const matchedId = h.associatedFactions.find(id => expandedFactions.has(id));
+      if (!matchedId) return null;
+      return { hireling: h, factionName: FACTION_MAP[matchedId]?.name ?? matchedId };
+    })
+    .filter(Boolean);
+}
