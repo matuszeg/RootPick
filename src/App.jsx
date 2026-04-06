@@ -1,98 +1,49 @@
 import { useAppState } from './hooks/useAppState.js';
 import { useTheme } from './hooks/useTheme.js';
-import SetupPanel from './components/SetupPanel.jsx';
-import FactionCard from './components/FactionCard.jsx';
-import MapCard from './components/MapCard.jsx';
-import DeckCard from './components/DeckCard.jsx';
-import HirelingCard from './components/HirelingCard.jsx';
-import LandmarkCard from './components/LandmarkCard.jsx';
-import ReachSummary from './components/ReachSummary.jsx';
-import ActionBar from './components/ActionBar.jsx';
-import ManagePool from './components/ManagePool.jsx';
+import PersistentBar from './components/PersistentBar.jsx';
+import CategoryTabs from './components/CategoryTabs.jsx';
+import FactionsTab from './components/FactionsTab.jsx';
+import MapCardsTab from './components/MapCardsTab.jsx';
+import HirelingsTab from './components/HirelingsTab.jsx';
+import LandmarksTab from './components/LandmarksTab.jsx';
 import BoardModal from './components/BoardModal.jsx';
-import DieIcon from './components/DieIcon.jsx';
-import { TreeIcon, TargetIcon } from './components/Icons.jsx';
 import { useState } from 'react';
-import { FACTIONS, FACTION_MAP } from './data/factions.js';
-import { MAPS, MAP_MAP } from './data/maps.js';
-import { DECKS } from './data/accessories.js';
-import { getReachThreshold } from './utils/randomizer.js';
-
-function EmptyState() {
-  return (
-    <div className="empty-state">
-      <div className="empty-icon"><TreeIcon width={48} height={48} /></div>
-      <p className="empty-text">No factions picked yet.</p>
-      <p className="empty-sub">Hit the Randomize button above to assemble your war council.</p>
-    </div>
-  );
-}
+import { HIRELING_SETS } from './data/accessories.js';
 
 export default function App() {
   const { state, actions } = useAppState();
   const { theme, toggleTheme } = useTheme();
-  const [setupOpen, setSetupOpen] = useState(true);
-  const [viewMode, setViewMode] = useState('pick'); // 'pick' | 'manage'
-  const [resultTab, setResultTab] = useState('factions');
-  const [boardModal, setBoardModal] = useState(null); // { images, title, sideLabels? }
+  const [activeCategory, setActiveCategory] = useState('factions');
+  const [subTabs, setSubTabs] = useState({
+    factions: 'results',
+    map: 'results',
+    hirelings: 'results',
+    landmarks: 'results',
+  });
+  const [boardModal, setBoardModal] = useState(null);
 
   const {
     selectedFactions,
-    lockedFactions,
-    bannedFactions,
-    selectedMap,
-    selectedDeck,
-    selectedHirelings,
-    hirelingStatuses,
-    lockedHirelings,
-    bannedHirelings,
-    selectedLandmarks,
-    vagabondCharacters,
-    playerCount,
-    botCount,
-    balanceMode,
-    ownedExpansions,
     ownedAccessories,
-    excludedMaps,
-    excludedHirelings,
-    excludedCharacters,
-    excludedLandmarks,
     error,
     copied,
     history,
   } = state;
 
-  const mapData = selectedMap ? MAP_MAP[selectedMap] : null;
-  const canRerollMap = MAPS.filter(m =>
-    ownedExpansions.has(m.expansion) &&
-    !excludedMaps.has(m.id) &&
-    state.mapDifficulties.has(m.difficulty)
-  ).length > 1;
-  const canRerollDeck = DECKS.filter(d => d.accessory === null || ownedAccessories.has(d.accessory)).length > 1;
-
-  function canRerollFaction(factionId) {
-    const isBot = FACTION_MAP[factionId]?.isBot ?? false;
-    const excluded = new Set([...bannedFactions, ...selectedFactions]);
-    return FACTIONS.some(f => {
-      if (!!f.isBot !== isBot) return false;
-      if (excluded.has(f.id)) return false;
-      if (!ownedExpansions.has(f.expansion)) return false;
-      if (f.requiresExpansion && !ownedExpansions.has(f.requiresExpansion)) return false;
-      if (!isBot && !state.difficulties.has(f.difficulty)) return false;
-      return true;
-    });
+  function setSubTab(category, tab) {
+    setSubTabs(prev => ({ ...prev, [category]: tab }));
   }
 
-  // Compute total excluded count for tab indicator
-  const excludedCounts = [
-    { label: 'factions',   count: bannedFactions.size },
-    { label: 'maps',       count: excludedMaps.size },
-    { label: 'hirelings',  count: excludedHirelings.size },
-    { label: 'characters', count: excludedCharacters.size },
-    { label: 'landmarks',  count: excludedLandmarks.size },
-  ].filter(x => x.count > 0);
-  const totalExcluded = excludedCounts.reduce((sum, x) => sum + x.count, 0);
-  const excludedTooltip = excludedCounts.map(x => `${x.count} ${x.label}`).join(' · ');
+  // Determine which tabs are disabled (greyed out)
+  const canUseHirelings = HIRELING_SETS.some(h => ownedAccessories.has(h.source));
+  const canUseLandmarks = (ownedAccessories.has('landmarks_pack') || ownedAccessories.has('underworld_landmarks') || ownedAccessories.has('homeland_landmarks')) && state.useLandmarks;
+  const disabledTabs = new Set();
+  if (!canUseHirelings) disabledTabs.add('hirelings');
+  if (!canUseLandmarks) disabledTabs.add('landmarks');
+
+  function handleBoardClick(images, name, sideLabels) {
+    setBoardModal({ images, title: name, sideLabels });
+  }
 
   return (
     <div className="app">
@@ -131,195 +82,64 @@ export default function App() {
       </header>
 
       <main className="app-main">
-        {/* Setup panel toggle (mobile) */}
-        <button
-          className="setup-toggle"
-          onClick={() => setSetupOpen(o => !o)}
-          aria-expanded={setupOpen}
-        >
-          <span>⚙ Settings</span>
-          <span className={`chevron ${setupOpen ? 'up' : ''}`}>▾</span>
-        </button>
+        <PersistentBar
+          state={state}
+          actions={actions}
+          copied={copied}
+          hasSelection={selectedFactions.length > 0}
+          hasHistory={history.length > 0}
+        />
 
-        <div className={`setup-drawer ${setupOpen ? 'open' : ''}`}>
-          <SetupPanel state={state} actions={actions} />
-        </div>
+        {error && (
+          <div className="error-banner" role="alert">
+            <span>{error}</span>
+            <button className="error-dismiss" onClick={actions.clearError} aria-label="Dismiss">×</button>
+          </div>
+        )}
 
-        {/* View mode tabs */}
-        <div className="view-tabs" role="tablist">
-          <button
-            className={`view-tab ${viewMode === 'pick' ? 'active' : ''}`}
-            role="tab"
-            aria-selected={viewMode === 'pick'}
-            onClick={() => setViewMode('pick')}
-          >
-            <span className="tab-icon"><DieIcon width={14} height={14} /></span> Game Setup
-          </button>
-          <button
-            className={`view-tab ${viewMode === 'manage' ? 'active' : ''}`}
-            role="tab"
-            aria-selected={viewMode === 'manage'}
-            onClick={() => setViewMode('manage')}
-            title={totalExcluded > 0 ? excludedTooltip : undefined}
-          >
-            <span className="tab-icon"><TargetIcon width={14} height={14} /></span>
-            {' '}Manage Pool{totalExcluded > 0 ? ` (${totalExcluded} excluded)` : ''}
-          </button>
-        </div>
+        <CategoryTabs
+          activeTab={activeCategory}
+          onTabChange={setActiveCategory}
+          disabledTabs={disabledTabs}
+        />
 
-        {viewMode === 'pick' ? (
-          <>
-            <ActionBar
-              hasSelection={selectedFactions.length > 0}
-              hasHistory={history.length > 0}
-              copied={copied}
-              actions={actions}
-            />
+        {activeCategory === 'factions' && (
+          <FactionsTab
+            state={state}
+            actions={actions}
+            subTab={subTabs.factions}
+            onSubTabChange={tab => setSubTab('factions', tab)}
+            onBoardClick={(images, name) => handleBoardClick(images, name)}
+          />
+        )}
 
-            {error && (
-              <div className="error-banner" role="alert">
-                <span>{error}</span>
-                <button
-                  className="error-dismiss"
-                  onClick={actions.clearError}
-                  aria-label="Dismiss"
-                >
-                  ×
-                </button>
-              </div>
-            )}
+        {activeCategory === 'map' && (
+          <MapCardsTab
+            state={state}
+            actions={actions}
+            subTab={subTabs.map}
+            onSubTabChange={tab => setSubTab('map', tab)}
+          />
+        )}
 
-            {selectedFactions.length > 0 ? (
-              <>
-                <ReachSummary
-                  selectedFactions={selectedFactions}
-                  playerCount={playerCount}
-                  balanceMode={balanceMode}
-                />
+        {activeCategory === 'hirelings' && (
+          <HirelingsTab
+            state={state}
+            actions={actions}
+            subTab={subTabs.hirelings}
+            onSubTabChange={tab => setSubTab('hirelings', tab)}
+            onImageClick={(images, name) => handleBoardClick(images, name, ['Promoted', 'Demoted'])}
+          />
+        )}
 
-                {/* Result sub-tabs */}
-                <nav className="result-tabs" role="tablist" aria-label="Result categories">
-                  {[
-                    { id: 'factions', label: 'Factions', count: selectedFactions.length, show: true },
-                    { id: 'map',      label: 'Map & Deck', count: null, show: !!(selectedMap || selectedDeck) },
-                    { id: 'hirelings', label: 'Hirelings', count: selectedHirelings.length, show: selectedHirelings.length > 0 },
-                    { id: 'landmarks', label: 'Landmarks', count: selectedLandmarks.length, show: selectedLandmarks.length > 0 },
-                  ].filter(t => t.show).map(tab => (
-                    <button
-                      key={tab.id}
-                      className={`result-tab ${resultTab === tab.id ? 'active' : ''}`}
-                      role="tab"
-                      aria-selected={resultTab === tab.id}
-                      onClick={() => setResultTab(tab.id)}
-                    >
-                      {tab.label}
-                      {tab.count != null && <span className="result-tab-count">{tab.count}</span>}
-                    </button>
-                  ))}
-                </nav>
-
-                {/* Factions tab */}
-                {resultTab === 'factions' && (
-                  <div className="result-tab-content">
-                    {lockedFactions.size > 0 && (
-                      <button className="reroll-all-btn" onClick={() => actions.randomize(true)}>
-                        <DieIcon /> Re-roll unlocked
-                      </button>
-                    )}
-                    <div className="cards-grid">
-                      {selectedFactions.map((id, i) => (
-                        <FactionCard
-                          key={`${id}-${i}`}
-                          factionId={id}
-                          locked={lockedFactions.has(id)}
-                          animIndex={i}
-                          onLock={() => actions.toggleLock(id)}
-                          onReroll={() => actions.rerollSingle(id)}
-                          canReroll={canRerollFaction(id)}
-                          onBan={() => actions.banFaction(id)}
-                          mapNote={mapData?.factionNotes?.[id] ?? null}
-                          vagabondCharacter={vagabondCharacters[id] ?? null}
-                          onRerollCharacter={() => actions.rerollVagabondCharacter(id)}
-                          playerCount={playerCount + botCount}
-                          onBoardClick={(images, name) => setBoardModal({ images, title: name })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Map & Deck tab */}
-                {resultTab === 'map' && (
-                  <div className="result-tab-content">
-                    <div className="session-row">
-                      {selectedMap && (
-                        <MapCard
-                          mapId={selectedMap}
-                          onReroll={actions.rerollMap}
-                          canReroll={canRerollMap}
-                        />
-                      )}
-                      {selectedDeck && (
-                        <DeckCard
-                          deckId={selectedDeck}
-                          onReroll={actions.rerollDeck}
-                          canReroll={canRerollDeck}
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hirelings tab */}
-                {resultTab === 'hirelings' && selectedHirelings.length > 0 && (
-                  <div className="result-tab-content">
-                    <button className="reroll-all-btn" onClick={actions.rerollHirelings}>
-                      <DieIcon /> Re-roll all hirelings
-                    </button>
-                    <div className="hirelings-grid">
-                      {selectedHirelings.map((hid, i) => (
-                        <HirelingCard
-                          key={hid}
-                          hirelingId={hid}
-                          index={i}
-                          status={hirelingStatuses[i] ?? null}
-                          locked={lockedHirelings.has(hid)}
-                          onReroll={() => actions.rerollSingleHireling(hid)}
-                          onLock={() => actions.toggleLockHireling(hid)}
-                          onBan={() => actions.banHireling(hid)}
-                          onImageClick={(images, name) => setBoardModal({ images, title: name, sideLabels: ['Promoted', 'Demoted'] })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Landmarks tab */}
-                {resultTab === 'landmarks' && selectedLandmarks.length > 0 && (
-                  <div className="result-tab-content">
-                    <button className="reroll-all-btn" onClick={actions.rerollLandmarks}>
-                      <DieIcon /> Re-roll all landmarks
-                    </button>
-                    <div className="landmarks-grid">
-                      {selectedLandmarks.map((lid, i) => (
-                        <LandmarkCard
-                          key={lid}
-                          landmarkId={lid}
-                          index={i}
-                          onReroll={() => actions.rerollSingleLandmark(lid)}
-                          onImageClick={(images, name) => setBoardModal({ images, title: name })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              !error && <EmptyState />
-            )}
-          </>
-        ) : (
-          <ManagePool state={state} actions={actions} />
+        {activeCategory === 'landmarks' && (
+          <LandmarksTab
+            state={state}
+            actions={actions}
+            subTab={subTabs.landmarks}
+            onSubTabChange={tab => setSubTab('landmarks', tab)}
+            onImageClick={(images, name) => handleBoardClick(images, name)}
+          />
         )}
       </main>
 
