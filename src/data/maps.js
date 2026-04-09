@@ -5,6 +5,7 @@ export const MAPS = [
     board: "Autumn / Winter",
     expansion: "base",
     difficulty: 1,
+    img: '/icons/maps/autumn.webp',
     description: "The classic woodland. Fixed clearing suits, balanced connectivity. The ideal starting point.",
     specialRules: null,
     factionNotes: {},
@@ -15,6 +16,7 @@ export const MAPS = [
     board: "Autumn / Winter",
     expansion: "base",
     difficulty: 2,
+    img: '/icons/maps/winter.webp',
     description: "Same layout as Autumn but clearing suits are randomized at setup — no two games play alike.",
     specialRules: "Shuffle 12 suit markers face-down, place one per clearing, then reveal.",
     factionNotes: {
@@ -28,6 +30,7 @@ export const MAPS = [
     board: "Mountain / Lake",
     expansion: "underworld",
     difficulty: 2,
+    img: '/icons/maps/mountain.webp',
     description: "Tunnels and a central Pass. Whoever rules the Pass scores 1 VP per round — expect a fight.",
     specialRules: "The Pass scores 1 VP per round for its ruler. Blocked tunnels can be dug open for 1 VP.",
     factionNotes: {
@@ -42,6 +45,7 @@ export const MAPS = [
     board: "Mountain / Lake",
     expansion: "underworld",
     difficulty: 3,
+    img: '/icons/maps/lake.webp',
     description: "A central lake divides the map. The Ferry lets pieces teleport between coastal clearings — completely changes movement.",
     specialRules: "Ferry moves between any two coastal clearings once per turn. Coastal forests are adjacent to each other.",
     factionNotes: {
@@ -58,6 +62,7 @@ export const MAPS = [
     board: "Marsh / Gorge",
     expansion: "homeland",
     difficulty: 2,
+    img: '/icons/maps/marsh.webp',
     description: "A larger, scalable map (12–15 clearings) with a landmark system. Built for bigger player counts.",
     specialRules: "Modular setup: 12 or 15 clearings depending on player count. Landmarks add building slots and special effects.",
     factionNotes: {
@@ -71,6 +76,7 @@ export const MAPS = [
     board: "Marsh / Gorge",
     expansion: "homeland",
     difficulty: 2,
+    img: '/icons/maps/gorge.webp',
     description: "No new rules, but deep geographic chokepoints funnel all conflict into a few critical passages.",
     specialRules: null,
     factionNotes: {

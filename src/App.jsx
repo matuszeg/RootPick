@@ -119,6 +119,7 @@ export default function App() {
             actions={actions}
             subTab={subTabs.map}
             onSubTabChange={tab => setSubTab('map', tab)}
+            onBoardClick={(images, name) => handleBoardClick(images, name)}
           />
         )}
 

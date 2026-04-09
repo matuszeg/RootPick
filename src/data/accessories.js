@@ -6,18 +6,21 @@ export const DECKS = [
     id: 'standard',
     name: 'Standard Deck',
     accessory: 'standard_deck',
+    img: '/icons/decks/standard.webp',
     description: 'The classic Root deck. Familiar crafting paths and persistent effects.',
   },
   {
     id: 'exiles',
     name: 'Exiles & Partisans',
     accessory: 'exiles_deck',
+    img: '/icons/decks/exiles.webp',
     description: '20 new abilities, many thematically tied to specific factions. Shakes up crafting strategies significantly.',
   },
   {
     id: 'squires',
     name: 'Squires & Disciples',
     accessory: 'squires_deck',
+    img: '/icons/decks/squires.webp',
     description: 'Hand-composition abilities inspired by Marauder and Homeland factions. New game-ending condition interactions.',
   },
 ];

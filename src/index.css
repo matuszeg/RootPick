@@ -1027,30 +1027,51 @@ a { color: inherit; }
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   overflow: hidden;
-  border-left: 5px solid var(--deck-color, var(--gold));
   animation: cardIn 0.3s ease both;
   display: flex;
   flex-direction: column;
+  border: 2px solid var(--border);
 }
 
-.deck-card-header {
-  background: linear-gradient(135deg, var(--deck-color-dark, #2A1A2A) 0%, var(--deck-color, var(--gold)) 100%);
-  padding: 0.75rem 1rem;
+.deck-card-img-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.25rem 1rem;
+  background: linear-gradient(160deg, var(--deck-color-dark, #2A1A2A) 0%, color-mix(in srgb, var(--deck-color, var(--gold)) 60%, #000) 100%);
+  cursor: pointer;
+}
+
+.deck-card-img {
+  height: 220px;
+  width: auto;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.55);
+  transition: transform 0.25s ease;
+}
+
+.deck-card-img-wrap:hover .deck-card-img {
+  transform: scale(1.04);
+}
+
+.deck-card-bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
   gap: 0.75rem;
 }
 
-.deck-card-icon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  color: rgba(255,255,255,0.9);
-  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
+.deck-card-bar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
 }
-.deck-card-icon svg { width: 100%; height: 100%; }
-
-.deck-card-title-block { flex: 1; }
 
 .deck-card-label {
   font-family: var(--font-display);
@@ -1058,17 +1079,22 @@ a { color: inherit; }
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.6);
-  margin-bottom: 0.1rem;
+  color: var(--ink-muted);
 }
 
 .deck-card-name {
   font-family: var(--font-body);
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #fff;
-  line-height: 1.1;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.deck-card-desc {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  line-height: 1.4;
 }
 
 .deck-reroll-btn {
@@ -1077,29 +1103,20 @@ a { color: inherit; }
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.25);
+  color: var(--ink-mid);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.25rem 0.5rem;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
-.deck-reroll-btn:hover { background: rgba(0,0,0,0.35); }
-
-.deck-card-body {
-  padding: 0.65rem 1rem 0.75rem;
-  flex: 1;
-}
-
-.deck-description {
-  font-family: var(--font-ui);
-  font-size: 0.82rem;
-  color: var(--ink-mid);
-  line-height: 1.5;
-}
+.deck-reroll-btn:hover { background: var(--bg-alt); border-color: var(--ink-muted); }
 
 /* ─── Landmark cards ─────────────────────────────────────────────────── */
 .landmarks-grid {
@@ -1575,6 +1592,56 @@ a { color: inherit; }
   animation: cardIn 0.3s ease both;
 }
 
+.map-card-img-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  cursor: pointer;
+  max-height: 220px;
+}
+
+.map-card-img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.map-card-img-wrap:hover .map-card-img {
+  transform: scale(1.03);
+}
+
+.map-card-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.map-card-img-wrap:hover .map-card-img-overlay {
+  background: rgba(0,0,0,0.25);
+}
+
+.map-card-zoom-hint {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+}
+
+.map-card-img-wrap:hover .map-card-zoom-hint {
+  opacity: 1;
+}
+
 .map-card-header {
   background: linear-gradient(135deg, var(--map-color-dark, #3A2A1A) 0%, var(--map-color, var(--gold)) 100%);
   padding: 0.85rem 1rem;
@@ -1583,15 +1650,6 @@ a { color: inherit; }
   gap: 0.85rem;
   border-bottom: 1px solid color-mix(in srgb, var(--map-color, var(--gold)) 40%, transparent);
 }
-
-.map-card-icon {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  color: rgba(255,255,255,0.9);
-  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
-}
-.map-card-icon svg { width: 100%; height: 100%; }
 
 .map-card-title-block {
   flex: 1;

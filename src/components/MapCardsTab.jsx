@@ -39,7 +39,7 @@ function PoolItem({ name, icon, meta, description, excluded, onToggle, accentCol
   );
 }
 
-export default function MapCardsTab({ state, actions, subTab, onSubTabChange }) {
+export default function MapCardsTab({ state, actions, subTab, onSubTabChange, onBoardClick }) {
   const { activeMapExpansions, mapDifficulties, selectedMap, selectedDeck, ownedAccessories, excludedMaps } = state;
 
   // Count maps currently in the pool (active expansion + not excluded)
@@ -79,6 +79,11 @@ export default function MapCardsTab({ state, actions, subTab, onSubTabChange }) 
                   onChange={() => {
                     if (!expansionActive) {
                       actions.toggleMapExpansion(m.expansion);
+                      // Only enable this specific map, not the sibling
+                      const sibling = MAPS.find(s => s.expansion === m.expansion && s.id !== m.id);
+                      if (sibling && !isBase && !excludedMaps.has(sibling.id)) {
+                        actions.toggleExcludedMap(sibling.id);
+                      }
                     } else if (checked) {
                       // Unchecking: exclude this map. If sibling is also excluded, disable the expansion.
                       const sibling = MAPS.find(s => s.expansion === m.expansion && s.id !== m.id);
@@ -153,10 +158,10 @@ export default function MapCardsTab({ state, actions, subTab, onSubTabChange }) 
           {selectedMap || selectedDeck ? (
             <div className="session-row">
               {selectedMap && (
-                <MapCard mapId={selectedMap} onReroll={actions.rerollMap} canReroll={canRerollMap} />
+                <MapCard mapId={selectedMap} onReroll={actions.rerollMap} canReroll={canRerollMap} onBoardClick={onBoardClick} />
               )}
               {selectedDeck && (
-                <DeckCard deckId={selectedDeck} onReroll={actions.rerollDeck} canReroll={canRerollDeck} />
+                <DeckCard deckId={selectedDeck} onReroll={actions.rerollDeck} canReroll={canRerollDeck} onBoardClick={onBoardClick} />
               )}
             </div>
           ) : (
