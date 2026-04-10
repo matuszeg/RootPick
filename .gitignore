@@ -5,3 +5,5 @@ dist/
 .claude/
 refs/
 docs/superpowers/
+.playwright-mcp/
+/*.png
