@@ -16,7 +16,6 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState('factions');
   const [subTabs, setSubTabs] = useState({
     factions: 'results',
-    map: 'results',
     hirelings: 'results',
     landmarks: 'results',
   });
@@ -117,8 +116,6 @@ export default function App() {
           <MapCardsTab
             state={state}
             actions={actions}
-            subTab={subTabs.map}
-            onSubTabChange={tab => setSubTab('map', tab)}
             onBoardClick={(images, name) => handleBoardClick(images, name)}
           />
         )}
