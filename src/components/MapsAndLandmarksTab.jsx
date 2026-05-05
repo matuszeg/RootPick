@@ -166,6 +166,34 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
             ))}
           </div>
         </div>
+
+        <div className="filter-group">
+          <h3 className="filter-heading">Advanced</h3>
+          <label className={`expansion-check ${state.forceSuitRandomizationOnAutumn ? 'checked' : ''}`}>
+            <input
+              type="checkbox"
+              checked={state.forceSuitRandomizationOnAutumn}
+              onChange={e => actions.setForceSuitRandomizationOnAutumn(e.target.checked)}
+            />
+            <span className="checkbox-box" />
+            <span className="expansion-name">
+              Randomize Autumn clearing suits
+              <span className="exclusion-desc"> — Autumn has printed suits; turn this on to randomize them too.</span>
+            </span>
+          </label>
+          <label className={`expansion-check ${state.allowNativeLandmarkOverride ? 'checked' : ''}`}>
+            <input
+              type="checkbox"
+              checked={state.allowNativeLandmarkOverride}
+              onChange={e => actions.setAllowNativeLandmarkOverride(e.target.checked)}
+            />
+            <span className="checkbox-box" />
+            <span className="expansion-name">
+              Allow native landmarks in random pool
+              <span className="exclusion-desc"> — Lets Tower roll on Mountain and Ferry roll on Lake.</span>
+            </span>
+          </label>
+        </div>
       </div>
 
       <div className="sub-tabs" role="tablist">
