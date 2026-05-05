@@ -1,35 +1,37 @@
 /* ─── Tokens — Dark mode (default) ────────────────────────────────────── */
 :root {
-  /* Surfaces */
-  --bg:            #18120a;
-  --bg-alt:        #241a10;
-  --bg-card:       #2e2218;
-  --bg-card-hover: #3a2c1e;
+  /* Surfaces — neutral dark gray with a whisper of warmth */
+  --bg:            #15130f;
+  --bg-alt:        #1c1a16;
+  --bg-card:       #232120;
+  --bg-card-hover: #2c2a28;
 
-  /* Text — designed for dark surfaces */
-  --ink:           #f0e6d0;
-  --ink-mid:       #c8a870;
-  --ink-muted:     #9a8464;
+  /* Text — neutral off-white, not cream */
+  --ink:           #e8e6e2;
+  --ink-mid:       #b0aca6;
+  --ink-muted:     #807c76;
 
-  /* Accent */
-  --gold:          #d4a843;
-  --gold-bright:   #e8c05a;
-  --gold-dim:      rgba(212, 168, 67, 0.2);
+  /* Accent — desaturated gold so it actually reads as accent */
+  --gold:          #c89a4a;
+  --gold-bright:   #d9b06a;
+  --gold-dim:      rgba(200, 154, 74, 0.18);
+  --gold-fill:     #c89a4a;
+  --gold-fill-on:  #15130f;
 
   /* Semantic */
-  --militant:      #e06848;
-  --militant-bg:   rgba(200, 80, 50, 0.18);
-  --insurgent:     #5aaa72;
-  --insurgent-bg:  rgba(60, 150, 90, 0.18);
-  --reach-ok:      #5aaa72;
-  --reach-fail:    #e06848;
-  --danger:        #d04830;
+  --militant:      #c4664a;
+  --militant-bg:   rgba(196, 102, 74, 0.16);
+  --insurgent:     #5e9e74;
+  --insurgent-bg:  rgba(94, 158, 116, 0.16);
+  --reach-ok:      #5e9e74;
+  --reach-fail:    #c4664a;
+  --danger:        #c44a32;
 
-  /* Structure */
-  --border:        rgba(212, 168, 67, 0.18);
-  --border-strong: rgba(212, 168, 67, 0.38);
-  --shadow:        0 4px 24px rgba(0,0,0,0.6);
-  --shadow-card:   0 2px 12px rgba(0,0,0,0.4);
+  /* Structure — neutral borders, gold reserved for active */
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --shadow:        0 4px 24px rgba(0,0,0,0.5);
+  --shadow-card:   0 2px 12px rgba(0,0,0,0.35);
 
   /* Shape */
   --radius:        10px;
@@ -44,36 +46,38 @@
 
 /* ─── Light mode overrides ────────────────────────────────────────────── */
 [data-theme="light"] {
-  /* Surfaces */
-  --bg:            #f5f0e6;
-  --bg-alt:        #ede4d2;
-  --bg-card:       #fdfaf4;
-  --bg-card-hover: #f5edd8;
+  /* Surfaces — soft neutral with a hint of warmth */
+  --bg:            #f4f2ee;
+  --bg-alt:        #ebe8e2;
+  --bg-card:       #ffffff;
+  --bg-card-hover: #f6f4ef;
 
-  /* Text — designed for light surfaces */
-  --ink:           #1c140a;
-  --ink-mid:       #4a3520;
-  --ink-muted:     #7a6548;
+  /* Text — near-black, neutral */
+  --ink:           #1a1916;
+  --ink-mid:       #555049;
+  --ink-muted:     #857f76;
 
-  /* Accent */
-  --gold:          #8a5e1a;
-  --gold-bright:   #b07828;
-  --gold-dim:      rgba(138, 94, 26, 0.15);
+  /* Accent — gold stays warm but reads cleanly on neutral surface */
+  --gold:          #9a6b1f;
+  --gold-bright:   #b7822c;
+  --gold-dim:      rgba(154, 107, 31, 0.12);
+  --gold-fill:     #e8b958;
+  --gold-fill-on:  #2a1f0c;
 
   /* Semantic */
-  --militant:      #8b2e14;
-  --militant-bg:   #fde8e2;
-  --insurgent:     #2a5c3a;
-  --insurgent-bg:  #dff0e6;
-  --reach-ok:      #2a5c3a;
-  --reach-fail:    #8b2e14;
-  --danger:        #a03218;
+  --militant:      #a13620;
+  --militant-bg:   #fbe9e3;
+  --insurgent:     #2f6a44;
+  --insurgent-bg:  #e3f0e8;
+  --reach-ok:      #2f6a44;
+  --reach-fail:    #a13620;
+  --danger:        #a8341a;
 
-  /* Structure */
-  --border:        rgba(100, 70, 20, 0.2);
-  --border-strong: rgba(100, 70, 20, 0.42);
-  --shadow:        0 4px 24px rgba(0,0,0,0.1);
-  --shadow-card:   0 2px 12px rgba(0,0,0,0.07);
+  /* Structure — neutral borders */
+  --border:        rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --shadow:        0 4px 24px rgba(0,0,0,0.08);
+  --shadow-card:   0 2px 10px rgba(0,0,0,0.05);
 }
 
 /* ─── Reset ───────────────────────────────────────────────────────────── */
@@ -89,7 +93,7 @@ body {
   font-family: var(--font-ui);
   min-height: 100dvh;
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% -10%, #2a1a0a 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% -10%, #232120 0%, transparent 70%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   transition: background-color 0.25s ease, color 0.25s ease;
 }
@@ -487,8 +491,8 @@ a { color: inherit; }
   transition: background 0.15s, border-color 0.15s;
 }
 .expansion-check.checked .checkbox-box {
-  background: var(--gold);
-  border-color: var(--gold);
+  background: var(--gold-fill);
+  border-color: var(--gold-fill);
 }
 .expansion-check.checked .checkbox-box::after {
   content: '';
@@ -522,9 +526,9 @@ a { color: inherit; }
 }
 .player-btn:hover { border-color: var(--gold); color: var(--gold); }
 .player-btn.active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--ink);
+  background: var(--gold-fill);
+  border-color: var(--gold-fill);
+  color: var(--gold-fill-on);
 }
 
 .reach-label {
@@ -747,8 +751,8 @@ a { color: inherit; }
   opacity: 0.35;
 }
 .diff-pill.active {
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--gold-fill);
+  color: var(--gold-fill-on);
   opacity: 1;
   font-weight: 600;
 }
@@ -887,8 +891,8 @@ a { color: inherit; }
 .action-btn:disabled { opacity: 0.35; cursor: default; }
 
 .action-btn.primary {
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--gold-fill);
+  color: var(--gold-fill-on);
   width: 100%;
   justify-content: center;
   font-size: 1rem;
@@ -1577,9 +1581,9 @@ a { color: inherit; }
 }
 .landmark-count-btn:hover { border-color: var(--gold); color: var(--gold); }
 .landmark-count-btn.active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--ink);
+  background: var(--gold-fill);
+  border-color: var(--gold-fill);
+  color: var(--gold-fill-on);
 }
 
 /* ─── Map card ────────────────────────────────────────────────────────── */
