@@ -158,3 +158,11 @@ export const MAP_COLORS = {
   marsh:    { primary: '#6A9A30', secondary: '#2A5A18' },
   gorge:    { primary: '#B05A20', secondary: '#602010' },
 };
+
+// 12 clearing markers from the Root base game (4 each of fox/rabbit/mouse).
+// Drawn without replacement to assign suits to a map's 12 clearings.
+export const CLEARING_SUIT_POOL = Object.freeze([
+  'fox', 'fox', 'fox', 'fox',
+  'rabbit', 'rabbit', 'rabbit', 'rabbit',
+  'mouse', 'mouse', 'mouse', 'mouse',
+]);
