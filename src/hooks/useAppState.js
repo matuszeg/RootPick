@@ -2,10 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { generateCombination } from '../utils/randomizer.js';
 import { decodeFromUrl } from '../utils/urlState.js';
 import { FACTION_MAP } from '../data/factions.js';
-import { MAPS } from '../data/maps.js';
+import { MAPS, MAP_MAP } from '../data/maps.js';
 import {
   DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS, getHirelingConflicts,
 } from '../data/accessories.js';
+import { buildMapSetup, getEligibleLandmarks } from '../utils/mapRandomizer.js';
 
 function pickRandomMap(activeMapExpansions, excludedMaps, mapDifficulties) {
   const eligible = MAPS.filter(m =>
@@ -81,11 +82,17 @@ function computeHirelingStatuses(count, playerCount, lockedStatuses = []) {
   return result;
 }
 
-function pickRandomLandmarks(ownedAccessories, count = 2, excludedLandmarks = new Set()) {
-  const eligible = LANDMARKS.filter(l => {
-    if (excludedLandmarks.has(l.id)) return false;
-    return ownedAccessories.has(l.source);
-  });
+function pickRandomLandmarks({
+  mapId, playerCount, ownedAccessories, count = 2, excludedLandmarks = new Set(),
+  allowNativeOverride = false,
+}) {
+  const map = mapId ? MAP_MAP[mapId] : null;
+  const eligible = map
+    ? getEligibleLandmarks({
+        map, playerCount, ownedAccessories, excludedLandmarks,
+        allowNativeOverride, allLandmarks: LANDMARKS,
+      })
+    : LANDMARKS.filter(l => !excludedLandmarks.has(l.id) && ownedAccessories.has(l.source) && l.source !== 'homeland_landmarks');
   if (!eligible.length) return [];
   const shuffled = [...eligible].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, eligible.length)).map(l => l.id);
@@ -467,7 +474,29 @@ export function useAppState() {
         ...s,
         selectedFactions:   newFactions,
         lockedFactions:     keepLocked ? s.lockedFactions : new Set(),
-        selectedMap:        pickRandomMap(s.activeMapExpansions, s.excludedMaps, s.mapDifficulties),
+        ...(() => {
+          const newMapId = pickRandomMap(s.activeMapExpansions, s.excludedMaps, s.mapDifficulties);
+          const totalPlayers = s.playerCount + s.botCount;
+          return {
+            selectedMap: newMapId,
+            mapSetup: newMapId ? buildMapSetup({
+              mapId: newMapId,
+              playerCount: totalPlayers,
+              ownedAccessories: s.ownedAccessories,
+              forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+            }) : null,
+            selectedLandmarks: s.useLandmarks
+              ? pickRandomLandmarks({
+                  mapId: newMapId,
+                  playerCount: totalPlayers,
+                  ownedAccessories: s.ownedAccessories,
+                  count: s.landmarkCount,
+                  excludedLandmarks: s.excludedLandmarks,
+                  allowNativeOverride: s.allowNativeLandmarkOverride,
+                })
+              : [],
+          };
+        })(),
         selectedDeck:       pickRandomDeck(s.ownedAccessories),
         selectedHirelings:  newHirelings,
         hirelingStatuses:   computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount,
@@ -475,9 +504,6 @@ export function useAppState() {
             const prevIdx = s.selectedHirelings.indexOf(id);
             return prevIdx !== -1 && s.lockedHirelings.has(id) ? s.hirelingStatuses[prevIdx] : null;
           })),
-        selectedLandmarks:  s.useLandmarks
-          ? pickRandomLandmarks(s.ownedAccessories, s.landmarkCount, s.excludedLandmarks)
-          : [],
         vagabondCharacters: pickVagabondCharacters(newFactions, s.ownedAccessories, s.excludedCharacters),
         history:            newHistory,
         error:              null,
@@ -542,7 +568,28 @@ export function useAppState() {
         m.id !== s.selectedMap
       );
       if (!eligible.length) return s;
-      return { ...s, selectedMap: eligible[Math.floor(Math.random() * eligible.length)].id };
+      const newMapId = eligible[Math.floor(Math.random() * eligible.length)].id;
+      const totalPlayers = s.playerCount + s.botCount;
+      return {
+        ...s,
+        selectedMap: newMapId,
+        mapSetup: buildMapSetup({
+          mapId: newMapId,
+          playerCount: totalPlayers,
+          ownedAccessories: s.ownedAccessories,
+          forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+        }),
+        selectedLandmarks: s.useLandmarks
+          ? pickRandomLandmarks({
+              mapId: newMapId,
+              playerCount: totalPlayers,
+              ownedAccessories: s.ownedAccessories,
+              count: s.landmarkCount,
+              excludedLandmarks: s.excludedLandmarks,
+              allowNativeOverride: s.allowNativeLandmarkOverride,
+            })
+          : [],
+      };
     });
   }, []);
 
@@ -605,7 +652,14 @@ export function useAppState() {
   const rerollLandmarks = useCallback(() => {
     setState(s => ({
       ...s,
-      selectedLandmarks: pickRandomLandmarks(s.ownedAccessories, s.landmarkCount, s.excludedLandmarks),
+      selectedLandmarks: pickRandomLandmarks({
+        mapId: s.selectedMap,
+        playerCount: s.playerCount + s.botCount,
+        ownedAccessories: s.ownedAccessories,
+        count: s.landmarkCount,
+        excludedLandmarks: s.excludedLandmarks,
+        allowNativeOverride: s.allowNativeLandmarkOverride,
+      }),
     }));
   }, []);
 
@@ -613,7 +667,17 @@ export function useAppState() {
     setState(s => {
       const others = s.selectedLandmarks.filter(id => id !== landmarkId);
       const exclude = new Set([...s.excludedLandmarks, ...others]);
-      const eligible = LANDMARKS.filter(l => !exclude.has(l.id) && s.ownedAccessories.has(l.source));
+      const map = s.selectedMap ? MAP_MAP[s.selectedMap] : null;
+      const eligible = map
+        ? getEligibleLandmarks({
+            map,
+            playerCount: s.playerCount + s.botCount,
+            ownedAccessories: s.ownedAccessories,
+            excludedLandmarks: exclude,
+            allowNativeOverride: s.allowNativeLandmarkOverride,
+            allLandmarks: LANDMARKS,
+          })
+        : LANDMARKS.filter(l => !exclude.has(l.id) && s.ownedAccessories.has(l.source) && l.source !== 'homeland_landmarks');
       if (!eligible.length) return s;
       const pick = eligible[Math.floor(Math.random() * eligible.length)];
       const idx = s.selectedLandmarks.indexOf(landmarkId);
