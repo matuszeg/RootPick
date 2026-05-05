@@ -39,7 +39,7 @@
 
   /* Typography */
   --font-display:      'Cinzel', 'Georgia', serif;
-  --font-display-deco: 'Cinzel Decorative', 'Georgia', serif;
+  --font-display-deco: 'DM Serif Display', 'Georgia', serif;
   --font-body:         'Lora', 'Georgia', serif;
   --font-ui:           'Source Serif 4', 'Georgia', serif;
 }
@@ -117,9 +117,9 @@ a { color: inherit; }
 
 .wordmark {
   font-family: var(--font-display-deco);
-  font-size: clamp(2rem, 8vw, 3rem);
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: clamp(2.5rem, 9vw, 3.75rem);
+  font-weight: 400;
+  letter-spacing: -0.005em;
   line-height: 1;
 }
 .wordmark-root {
