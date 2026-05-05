@@ -146,6 +146,7 @@ export default function App() {
           <a href="https://rootpick.app" className="footer-link">rootpick.app</a>
           {' '}·{' '}Fan-made tool. Not affiliated with or endorsed by Leder Games.
           {' '}·{' '}<a href="https://github.com/matuszeg/RootPick/" className="footer-link" target="_blank" rel="noopener noreferrer">Open source on GitHub</a>
+          {' '}·{' '}<a href="https://github.com/matuszeg/RootPick/issues/new?labels=feedback" className="footer-link" target="_blank" rel="noopener noreferrer">Send feedback</a>
         </p>
       </footer>
 
