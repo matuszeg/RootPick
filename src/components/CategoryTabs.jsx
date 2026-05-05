@@ -2,10 +2,10 @@ import DieIcon from './DieIcon.jsx';
 import { MapIcon, LandmarkIcon, PackIcon } from './Icons.jsx';
 
 const TABS = [
-  { id: 'factions',  label: 'Factions',      icon: DieIcon },
-  { id: 'map',       label: 'Map & Cards',   icon: MapIcon },
-  { id: 'hirelings', label: 'Hirelings',     icon: PackIcon },
-  { id: 'landmarks', label: 'Landmarks',     icon: LandmarkIcon },
+  { id: 'factions',         label: 'Factions',           icon: DieIcon },
+  { id: 'maps_landmarks',   label: 'Maps & Landmarks',   icon: MapIcon },
+  { id: 'cards',            label: 'Cards',              icon: LandmarkIcon },
+  { id: 'hirelings',        label: 'Hirelings',          icon: PackIcon },
 ];
 
 export default function CategoryTabs({ activeTab, onTabChange, disabledTabs }) {
