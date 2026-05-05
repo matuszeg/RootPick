@@ -71,19 +71,30 @@ export default function MapSetupCard({ state, actions, onImageClick }) {
               </button>
             )}
           </div>
-          <ul className="clearing-suit-list">
-            {Object.entries(mapSetup.clearingSuits)
-              .map(([id, suit]) => [Number(id), suit])
-              .sort((a, b) => a[0] - b[0])
-              .map(([id, suit]) => (
-                <li key={id} className="clearing-suit-row">
-                  <span className="clearing-id">Clearing {id}</span>
-                  <span className="clearing-suit" style={{ color: SUIT_COLOR[suit] }}>
-                    {SUIT_LABEL[suit] ?? suit}
-                  </span>
-                </li>
-              ))}
-          </ul>
+          <div className="clearing-suit-grouped">
+            {['fox', 'rabbit', 'mouse'].map(suit => {
+              const ids = Object.entries(mapSetup.clearingSuits)
+                .filter(([, s]) => s === suit)
+                .map(([id]) => Number(id))
+                .sort((a, b) => a - b);
+              return (
+                <div key={suit} className="clearing-suit-group" style={{ borderColor: SUIT_COLOR[suit] }}>
+                  <div className="clearing-suit-group-head" style={{ color: SUIT_COLOR[suit] }}>
+                    {SUIT_LABEL[suit]} <span className="clearing-suit-count">({ids.length})</span>
+                  </div>
+                  <div className="clearing-suit-chips">
+                    {ids.length === 0 ? (
+                      <span className="clearing-suit-empty">—</span>
+                    ) : (
+                      ids.map(id => (
+                        <span key={id} className="clearing-chip">{id}</span>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
       )}
 
