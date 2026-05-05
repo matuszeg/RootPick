@@ -212,32 +212,34 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
                 <div className="map-results-col map-results-col--setup">
                   <MapSetupCard state={state} actions={actions} onImageClick={onImageClick} />
                 </div>
+                {canUseLandmarks && useLandmarks && (
+                  <div className="map-results-col map-results-col--landmarks">
+                    <div className="landmarks-pane">
+                      <div className="landmarks-pane-head">
+                        <h3 className="landmarks-pane-title">Random Landmarks</h3>
+                        <button className="reroll-btn" onClick={actions.rerollLandmarks} title="Re-roll all random landmarks">
+                          <DieIcon /> Re-roll
+                        </button>
+                      </div>
+                      {selectedLandmarks.length > 0 ? (
+                        <div className="landmarks-grid landmarks-grid--stacked">
+                          {selectedLandmarks.map((lid, i) => (
+                            <LandmarkCard
+                              key={lid}
+                              landmarkId={lid}
+                              index={i}
+                              onReroll={() => actions.rerollSingleLandmark(lid)}
+                              onImageClick={onImageClick}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="landmarks-pane-empty">No random landmarks picked yet.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-              {canUseLandmarks && useLandmarks && (
-                <>
-                  <button className="reroll-all-btn" onClick={actions.rerollLandmarks}>
-                    <DieIcon /> Re-roll all random landmarks
-                  </button>
-                  {selectedLandmarks.length > 0 ? (
-                    <div className="landmarks-grid">
-                      {selectedLandmarks.map((lid, i) => (
-                        <LandmarkCard
-                          key={lid}
-                          landmarkId={lid}
-                          index={i}
-                          onReroll={() => actions.rerollSingleLandmark(lid)}
-                          onImageClick={onImageClick}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="tab-empty-state">
-                      <p>No random landmarks picked yet.</p>
-                      <p className="tab-empty-sub">Hit Re-roll above or Randomize to get started.</p>
-                    </div>
-                  )}
-                </>
-              )}
             </>
           ) : (
             <div className="tab-empty-state">

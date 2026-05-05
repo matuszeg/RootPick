@@ -1,6 +1,5 @@
 import { MAP_MAP } from '../data/maps.js';
 import { LANDMARK_MAP } from '../data/accessories.js';
-import LandmarkCard from './LandmarkCard.jsx';
 import DieIcon from './DieIcon.jsx';
 
 const SUIT_LABEL = {
@@ -37,24 +36,35 @@ export default function MapSetupCard({ state, actions, onImageClick }) {
       {nativeLandmarkIds.length > 0 && (
         <section className="map-setup-section">
           <h4>Native Landmarks</h4>
-          <div className="landmarks-grid">
+          <ul className="native-landmark-list">
             {nativeLandmarkIds.map(id => {
               const lm = LANDMARK_MAP[id];
               if (!lm) return null;
               const warning = excludedLandmarks.has(id)
-                ? `${lm.name} is built into the ${map.name} map and is shown here — your Manage Pool exclusion only affects random draws on other maps.`
+                ? `Built into ${map.name}; your pool exclusion only affects other maps.`
                 : null;
               return (
-                <LandmarkCard
-                  key={id}
-                  landmarkId={id}
-                  variant="native"
-                  warning={warning}
-                  onImageClick={onImageClick}
-                />
+                <li key={id} className="native-landmark-row">
+                  <button
+                    type="button"
+                    className="native-landmark-thumb"
+                    onClick={() => onImageClick?.({ front: lm.frontImg, back: lm.backImg }, lm.name)}
+                    title={`View ${lm.name}`}
+                  >
+                    <img src={lm.frontImg} alt="" draggable={false} />
+                  </button>
+                  <div className="native-landmark-body">
+                    <div className="native-landmark-name">
+                      {lm.name}
+                      <span className="landmark-tag"> (built-in)</span>
+                    </div>
+                    <div className="native-landmark-desc">{lm.description}</div>
+                    {warning && <div className="native-landmark-warning">{warning}</div>}
+                  </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </section>
       )}
 
