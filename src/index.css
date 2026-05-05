@@ -182,11 +182,22 @@ a { color: inherit; }
   gap: 1rem;
 }
 
+@media (min-width: 720px) {
+  .persistent-bar {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    gap: 3rem;
+  }
+}
+
 .pbar-settings {
   display: flex;
   gap: 2rem;
   align-items: flex-start;
   flex-wrap: wrap;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .pbar-players,
@@ -221,6 +232,27 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+@media (min-width: 720px) {
+  .pbar-actions {
+    flex: 0 0 260px;
+    align-self: stretch;
+    justify-content: center;
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--border);
+  }
+  .pbar-actions .action-btn.primary {
+    width: 100%;
+  }
+  .pbar-actions .action-bar-secondary {
+    justify-content: space-between;
+  }
+  .pbar-actions .action-bar-secondary .action-btn.secondary {
+    flex: 1;
+    justify-content: center;
+    padding: 0.45rem 0.5rem;
+  }
 }
 
 /* ─── Category tabs ──────────────────────────────────────────────────── */
@@ -878,12 +910,12 @@ a { color: inherit; }
 .action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   padding: 0.6rem 1rem;
   border-radius: var(--radius-sm);
   font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   transition: all 0.15s;
   white-space: nowrap;
@@ -895,8 +927,9 @@ a { color: inherit; }
   color: var(--gold-fill-on);
   width: 100%;
   justify-content: center;
-  font-size: 1rem;
-  padding: 0.85rem 1.25rem;
+  font-size: 1.05rem;
+  padding: 1rem 1.25rem;
+  letter-spacing: 0.06em;
 }
 .action-btn.primary:hover:not(:disabled) {
   background: var(--gold-bright);

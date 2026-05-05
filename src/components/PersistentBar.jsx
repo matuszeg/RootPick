@@ -85,7 +85,7 @@ export default function PersistentBar({ state, actions, copied, hasSelection, ha
           className="action-btn primary randomize-btn"
           onClick={() => actions.randomize(false)}
         >
-          <span className="btn-icon"><DieIcon width={16} height={16} /></span>
+          <span className="btn-icon"><DieIcon width={18} height={18} /></span>
           <span>Randomize</span>
         </button>
 
