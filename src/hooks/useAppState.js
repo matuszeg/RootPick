@@ -6,7 +6,7 @@ import { MAPS, MAP_MAP } from '../data/maps.js';
 import {
   DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS, getHirelingConflicts,
 } from '../data/accessories.js';
-import { buildMapSetup, getEligibleLandmarks } from '../utils/mapRandomizer.js';
+import { buildMapSetup, getEligibleLandmarks, randomizeClearingSuits, randomizeFloodMarkers } from '../utils/mapRandomizer.js';
 
 function pickRandomMap(activeMapExpansions, excludedMaps, mapDifficulties) {
   const eligible = MAPS.filter(m =>
@@ -593,6 +593,39 @@ export function useAppState() {
     });
   }, []);
 
+  const rerollClearingSuits = useCallback(() => {
+    setState(s => {
+      if (!s.selectedMap || !s.mapSetup) return s;
+      const map = MAP_MAP[s.selectedMap];
+      if (!map) return s;
+      if (map.hasPrintedSuits && !s.forceSuitRandomizationOnAutumn) return s;
+      return {
+        ...s,
+        mapSetup: {
+          ...s.mapSetup,
+          clearingSuits: randomizeClearingSuits(map, {
+            forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+          }),
+        },
+      };
+    });
+  }, []);
+
+  const rerollFloodMarkers = useCallback(() => {
+    setState(s => {
+      if (!s.selectedMap || !s.mapSetup) return s;
+      const map = MAP_MAP[s.selectedMap];
+      if (!map || !map.hasFloodMarkers) return s;
+      const totalPlayers = s.playerCount + s.botCount;
+      const next = randomizeFloodMarkers(map, totalPlayers);
+      if (!next) return s;
+      return {
+        ...s,
+        mapSetup: { ...s.mapSetup, floodMarkers: next },
+      };
+    });
+  }, []);
+
   const rerollDeck = useCallback(() => {
     setState(s => {
       const eligible = DECKS.filter(d =>
@@ -809,6 +842,7 @@ export function useAppState() {
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       toggleExcludedMap, toggleExcludedHireling, toggleExcludedCharacter, toggleExcludedLandmark,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
+      rerollClearingSuits, rerollFloodMarkers,
       rerollSingleHireling, rerollLandmarks, rerollSingleLandmark, rerollVagabondCharacter,
       undo, toggleLock, banFaction, unbanFaction,
       toggleLockHireling, banHireling, unbanHireling,
