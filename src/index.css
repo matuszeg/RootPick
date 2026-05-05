@@ -2563,3 +2563,73 @@ a { color: inherit; }
 .landmark-card.native {
   border-style: dashed;
 }
+
+.map-setup-card {
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--card-bg, #f8f3e6);
+  margin-top: 16px;
+}
+.map-setup-header {
+  margin: 0 0 12px;
+  font-size: 1.1em;
+}
+.map-setup-section {
+  margin-bottom: 16px;
+}
+.map-setup-section h4 {
+  margin: 0 0 8px;
+  font-size: 0.95em;
+}
+.map-setup-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.clearing-suit-list,
+.flood-marker-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 4px 12px;
+}
+.clearing-suit-row,
+.flood-marker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+.clearing-id {
+  min-width: 80px;
+  color: var(--muted, #888);
+}
+.clearing-suit {
+  font-weight: 600;
+}
+.flood-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+.reroll-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85em;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.reroll-btn:hover {
+  background: var(--hover, rgba(0,0,0,0.04));
+}
