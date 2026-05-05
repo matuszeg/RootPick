@@ -2415,16 +2415,16 @@ a { color: inherit; }
   gap: 0.65rem;
   padding: 0.5rem 0.65rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
   border-left: 3px solid var(--pool-accent, var(--gold));
-  background: #261b0e;
+  background: var(--bg-card);
   cursor: pointer;
   text-align: left;
   width: 100%;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  box-shadow: var(--shadow-card);
   transition: opacity 0.15s, border-color 0.15s, background 0.15s;
 }
-.pool-item:hover { background: #261b0e; }
+.pool-item:hover { background: var(--bg-card-hover); }
 .pool-item.excluded {
   opacity: 0.4;
   border-left-style: dashed;
@@ -2444,6 +2444,7 @@ a { color: inherit; }
 }
 .faction-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .faction-icon svg { width: 100%; height: 100%; }
+.faction-icon img { width: 100%; height: 100%; object-fit: contain; }
 .faction-icon-fallback { font-size: 1rem; line-height: 1; }
 .pool-faction-icon { width: 1.4rem; height: 1.4rem; color: var(--pool-accent, var(--gold)); }
 .pool-map-icon,
@@ -2470,7 +2471,7 @@ a { color: inherit; }
   font-family: var(--font-display);
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--bg-card);
+  color: var(--ink);
   line-height: 1.2;
 }
 .pool-item-meta {

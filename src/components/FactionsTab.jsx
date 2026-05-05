@@ -121,7 +121,7 @@ function FactionPool({ state, actions }) {
               <PoolItem
                 key={f.id}
                 name={f.name}
-                icon={<FactionIcon factionId={f.automatesId} className="pool-faction-icon" />}
+                icon={<FactionIcon factionId={f.id} className="pool-faction-icon" />}
                 meta={`Reach ${f.reach} · ${f.type === 'militant' ? 'Militant' : 'Insurgent'}`}
                 accentColor={FACTION_MAP[f.automatesId].color}
                 excluded={bannedFactions.has(f.id)}
