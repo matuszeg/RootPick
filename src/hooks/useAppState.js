@@ -149,6 +149,8 @@ function loadSettings() {
       useHirelings:        parsed.useHirelings              ?? true,
       useLandmarks:        parsed.useLandmarks              ?? false,
       landmarkCount:       parsed.landmarkCount             ?? 2,
+      forceSuitRandomizationOnAutumn: parsed.forceSuitRandomizationOnAutumn ?? false,
+      allowNativeLandmarkOverride:    parsed.allowNativeLandmarkOverride    ?? false,
       excludedMaps:        new Set(parsed.excludedMaps       ?? []),
       excludedHirelings:   new Set(parsed.excludedHirelings  ?? []),
       lockedHirelings:     new Set(parsed.lockedHirelings    ?? []),
@@ -181,6 +183,8 @@ function saveSettings(state) {
       useHirelings:        state.useHirelings,
       useLandmarks:        state.useLandmarks,
       landmarkCount:       state.landmarkCount,
+      forceSuitRandomizationOnAutumn: state.forceSuitRandomizationOnAutumn,
+      allowNativeLandmarkOverride:    state.allowNativeLandmarkOverride,
       excludedMaps:        [...state.excludedMaps],
       excludedHirelings:   [...state.excludedHirelings],
       lockedHirelings:     [...state.lockedHirelings],
@@ -213,6 +217,8 @@ function getInitialState() {
     useHirelings:        true,
     useLandmarks:        false,
     landmarkCount:       2,
+    forceSuitRandomizationOnAutumn: false,
+    allowNativeLandmarkOverride:    false,
     excludedMaps:        new Set(),
     excludedHirelings:   new Set(),
     lockedHirelings:     new Set(),
@@ -227,6 +233,7 @@ function getInitialState() {
     selectedHirelings:   [],
     hirelingStatuses:    [],
     selectedLandmarks:   [],
+    mapSetup:            null,
     vagabondCharacters:  {},
     history:             [],
     error:               null,
@@ -250,6 +257,7 @@ export function useAppState() {
     state.advancedMode, state.customMinReach, state.customMaxReach,
     state.allowedExclusions, state.ownedAccessories, state.avoidUnderdogs, state.useHirelings,
     state.useLandmarks, state.landmarkCount,
+    state.forceSuitRandomizationOnAutumn, state.allowNativeLandmarkOverride,
     state.botCount, state.excludedMaps, state.excludedHirelings,
     state.lockedHirelings, state.bannedHirelings,
     state.excludedCharacters, state.excludedLandmarks,
@@ -345,6 +353,14 @@ export function useAppState() {
 
   const setLandmarkCount = useCallback(val => {
     setState(s => ({ ...s, landmarkCount: val }));
+  }, []);
+
+  const setForceSuitRandomizationOnAutumn = useCallback(val => {
+    setState(s => ({ ...s, forceSuitRandomizationOnAutumn: val }));
+  }, []);
+
+  const setAllowNativeLandmarkOverride = useCallback(val => {
+    setState(s => ({ ...s, allowNativeLandmarkOverride: val }));
   }, []);
 
   // ── Pool exclusions ───────────────────────────────────────────────────────
@@ -725,6 +741,7 @@ export function useAppState() {
       toggleExpansion, setPlayerCount, setBotCount, setBalanceMode, setRequireBalance, setAvoidUnderdogs,
       toggleDifficulty, toggleMapDifficulty, toggleMapExpansion, toggleAccessory, setUseHirelings,
       setUseLandmarks, setLandmarkCount,
+      setForceSuitRandomizationOnAutumn, setAllowNativeLandmarkOverride,
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       toggleExcludedMap, toggleExcludedHireling, toggleExcludedCharacter, toggleExcludedLandmark,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
