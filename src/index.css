@@ -2548,3 +2548,18 @@ a { color: inherit; }
     grid-template-columns: 1fr;
   }
 }
+
+.landmark-tag {
+  font-size: 0.75em;
+  color: var(--muted, #888);
+  font-weight: normal;
+  margin-left: 0.3em;
+}
+.landmark-warning {
+  font-size: 0.8em;
+  color: var(--warn, #b58a00);
+  margin: 6px 10px 8px;
+}
+.landmark-card.native {
+  border-style: dashed;
+}
