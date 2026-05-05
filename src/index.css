@@ -2442,6 +2442,19 @@ a { color: inherit; }
   align-items: center;
   justify-content: center;
 }
+.pool-item-icon.wide {
+  width: 56px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-alt);
+}
+.pool-item-icon.wide img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 .faction-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .faction-icon svg { width: 100%; height: 100%; }
 .faction-icon img { width: 100%; height: 100%; object-fit: contain; }

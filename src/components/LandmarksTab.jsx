@@ -1,11 +1,11 @@
 import { ACCESSORIES, LANDMARKS } from '../data/accessories.js';
-import { CheckIcon, LandmarkIcon, XIcon } from './Icons.jsx';
+import { CheckIcon, XIcon } from './Icons.jsx';
 import LandmarkCard from './LandmarkCard.jsx';
 import DieIcon from './DieIcon.jsx';
 
 const LANDMARK_COLOR = '#5A7A3A';
 
-function PoolItem({ name, icon, meta, description, excluded, onToggle, accentColor }) {
+function PoolItem({ name, icon, iconWide, meta, description, excluded, onToggle, accentColor }) {
   return (
     <button
       className={`pool-item ${excluded ? 'excluded' : ''}`}
@@ -13,7 +13,7 @@ function PoolItem({ name, icon, meta, description, excluded, onToggle, accentCol
       title={excluded ? `Click to include "${name}" in pool` : `Click to exclude "${name}" from pool`}
       style={{ '--pool-accent': accentColor ?? 'var(--gold)' }}
     >
-      <span className="pool-item-icon">{icon}</span>
+      <span className={`pool-item-icon ${iconWide ? 'wide' : ''}`}>{icon}</span>
       <span className="pool-item-body">
         <span className="pool-item-name">{name}</span>
         {meta && <span className="pool-item-meta">{meta}</span>}
@@ -136,7 +136,8 @@ export default function LandmarksTab({ state, actions, subTab, onSubTabChange, o
                   <PoolItem
                     key={l.id}
                     name={l.name}
-                    icon={<span className="pool-generic-icon"><LandmarkIcon width={18} height={18} /></span>}
+                    icon={<img src={l.frontImg} alt="" draggable={false} />}
+                    iconWide
                     meta={SOURCE_LABEL[l.source] ?? l.source}
                     description={l.description}
                     accentColor={LANDMARK_COLOR}
