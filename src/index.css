@@ -2601,6 +2601,13 @@ a { color: inherit; }
     flex-direction: row;
     flex-wrap: nowrap;
   }
+  /* Size the map image so MapCard total height (image + header + body)
+     matches LandmarkCard total height (360px image + action bar).
+     Tweak this value if the cards drift apart. */
+  .visual-row-map .map-card-img-wrap {
+    max-height: 300px;
+    height: 300px;
+  }
 }
 
 /* Random landmarks side pane */
