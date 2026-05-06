@@ -2653,26 +2653,68 @@ a { color: inherit; }
   font-style: italic;
 }
 .landmarks-pane { flex: 1 1 auto; }
-.landmarks-grid--stacked {
+
+/* Compact landmark rows (used in the side pane for random landmarks) */
+.landmark-mini-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+.landmark-mini-row {
+  display: flex;
   gap: 10px;
-  flex: 1 1 auto;
-  min-height: 0;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 6px;
+  background: var(--bg-card, #f8f3e6);
 }
-.landmarks-grid--stacked > .landmark-card {
-  width: 100%;
+.landmark-mini-thumb {
   flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-/* Image keeps full aspect ratio (no cropping); width fills the side pane. */
-.landmarks-grid--stacked > .landmark-card .landmark-img-wrapper {
-  height: auto;
-}
-.landmarks-grid--stacked > .landmark-card .landmark-card-img {
+.landmark-mini-thumb img {
   width: 100%;
-  height: auto;
-  display: block;
-  border-radius: var(--radius) var(--radius) 0 0;
+  height: 100%;
+  object-fit: cover;
+}
+.landmark-mini-body { min-width: 0; flex: 1 1 auto; }
+.landmark-mini-name { font-weight: 600; font-size: 0.95em; }
+.landmark-mini-desc {
+  font-size: 0.8em;
+  opacity: 0.85;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.landmark-mini-reroll {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 4px;
+  cursor: pointer;
+  color: inherit;
+}
+.landmark-mini-reroll:hover {
+  background: var(--bg-alt, rgba(0,0,0,0.04));
 }
 
 /* Compact native-landmark rows inside MapSetupCard */

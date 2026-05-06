@@ -3,7 +3,7 @@ import { ACCESSORIES, LANDMARKS } from '../data/accessories.js';
 import { CheckIcon, StarIcon, XIcon } from './Icons.jsx';
 import MapCard from './MapCard.jsx';
 import MapSetupCard from './MapSetupCard.jsx';
-import LandmarkCard from './LandmarkCard.jsx';
+import { LANDMARK_MAP } from '../data/accessories.js';
 import DieIcon from './DieIcon.jsx';
 
 const HOMELAND_NATIVE_IDS = new Set(['mousehold', 'foxburrow', 'rabbittown']);
@@ -221,17 +221,37 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
                         </button>
                       </div>
                       {selectedLandmarks.length > 0 ? (
-                        <div className="landmarks-grid landmarks-grid--stacked">
-                          {selectedLandmarks.map((lid, i) => (
-                            <LandmarkCard
-                              key={lid}
-                              landmarkId={lid}
-                              index={i}
-                              onReroll={() => actions.rerollSingleLandmark(lid)}
-                              onImageClick={onImageClick}
-                            />
-                          ))}
-                        </div>
+                        <ul className="landmark-mini-list">
+                          {selectedLandmarks.map(lid => {
+                            const lm = LANDMARK_MAP[lid];
+                            if (!lm) return null;
+                            return (
+                              <li key={lid} className="landmark-mini-row">
+                                <button
+                                  type="button"
+                                  className="landmark-mini-thumb"
+                                  onClick={() => onImageClick?.({ front: lm.frontImg, back: lm.backImg }, lm.name)}
+                                  title={`View ${lm.name}`}
+                                >
+                                  <img src={lm.frontImg} alt="" draggable={false} />
+                                </button>
+                                <div className="landmark-mini-body">
+                                  <div className="landmark-mini-name">{lm.name}</div>
+                                  <div className="landmark-mini-desc">{lm.description}</div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="landmark-mini-reroll"
+                                  onClick={() => actions.rerollSingleLandmark(lid)}
+                                  title="Re-roll this landmark"
+                                  aria-label={`Re-roll ${lm.name}`}
+                                >
+                                  <DieIcon />
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
                       ) : (
                         <p className="landmarks-pane-empty">No random landmarks picked yet.</p>
                       )}
