@@ -2593,13 +2593,52 @@ a { color: inherit; }
 @media (min-width: 900px) {
   .visual-row {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
   }
-  .visual-row-map       { flex: 1 1 auto; }
+  .visual-row-map       { flex: 1 1 auto; display: flex; }
   .visual-row-landmarks { flex: 0 0 auto; }
   .visual-row-landmarks .landmarks-grid {
     flex-direction: row;
     flex-wrap: nowrap;
+    align-items: stretch;
+    height: 100%;
+  }
+
+  /* Map card and Landmark cards stretch to match each other's height. */
+  .visual-row-map > .map-card,
+  .visual-row-landmarks .landmark-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  /* Map image fills the available height (the landmark card's height drives the row). */
+  .visual-row-map .map-card-img-wrap {
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+  }
+  .visual-row-map .map-card-img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+  /* Landmark image wrapper grows; image stays uncropped via contain. */
+  .visual-row-landmarks .landmark-card .landmark-img-wrapper {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.04);
+  }
+  .visual-row-landmarks .landmark-card .landmark-card-img {
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
   }
 }
 
