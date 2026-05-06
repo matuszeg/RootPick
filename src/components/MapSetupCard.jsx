@@ -32,6 +32,7 @@ export default function MapSetupCard({ state, actions, onImageClick }) {
   return (
     <div className="map-setup-card">
       <h3 className="map-setup-header">Map Setup</h3>
+      <div className="map-setup-strip">
 
       {nativeLandmarkIds.length > 0 && (
         <section className="map-setup-section">
@@ -127,6 +128,7 @@ export default function MapSetupCard({ state, actions, onImageClick }) {
           </ul>
         </section>
       )}
+      </div>
     </div>
   );
 }
