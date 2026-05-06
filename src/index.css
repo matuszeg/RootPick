@@ -2601,6 +2601,11 @@ a { color: inherit; }
     flex-direction: row;
     flex-wrap: nowrap;
   }
+  /* Match map image height to landmark image height for visual rhythm. */
+  .visual-row-map .map-card-img-wrap {
+    max-height: 360px;
+    height: 360px;
+  }
 }
 
 /* Random landmarks side pane */
