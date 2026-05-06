@@ -6,7 +6,28 @@ import { MAPS, MAP_MAP } from '../data/maps.js';
 import {
   DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS, getHirelingConflicts,
 } from '../data/accessories.js';
-import { buildMapSetup, getEligibleLandmarks, randomizeClearingSuits, randomizeFloodMarkers } from '../utils/mapRandomizer.js';
+import { buildMapSetup, getEligibleLandmarks, getNativeLandmarks, randomizeClearingSuits, randomizeFloodMarkers } from '../utils/mapRandomizer.js';
+
+// Recompute the player-count-dependent parts of mapSetup (native landmarks
+// and Marsh flood markers) without re-randomizing clearing suits.
+function recomputeMapSetupForPlayers(s, totalPlayers) {
+  if (!s.selectedMap || !s.mapSetup) return s.mapSetup;
+  const map = MAP_MAP[s.selectedMap];
+  if (!map) return s.mapSetup;
+  const newNatives = getNativeLandmarks(map, totalPlayers).map(l => l.id);
+  let newFloods = s.mapSetup.floodMarkers;
+  const floodsApplicable = map.hasFloodMarkers && totalPlayers <= 4;
+  if (floodsApplicable && !newFloods) {
+    newFloods = randomizeFloodMarkers(map, totalPlayers);
+  } else if (!floodsApplicable) {
+    newFloods = null;
+  }
+  return {
+    ...s.mapSetup,
+    nativeLandmarkIds: newNatives,
+    floodMarkers: newFloods,
+  };
+}
 
 function pickRandomMap(activeMapExpansions, excludedMaps, mapDifficulties) {
   const eligible = MAPS.filter(m =>
@@ -281,18 +302,28 @@ export function useAppState() {
   }, []);
 
   const setPlayerCount = useCallback(n => {
-    setState(s => ({
-      ...s,
-      playerCount: n,
-      botCount: Math.min(s.botCount, 6 - n),
-      selectedFactions: [],
-      lockedFactions: new Set(),
-      error: null,
-    }));
+    setState(s => {
+      const newBotCount = Math.min(s.botCount, 6 - n);
+      const next = {
+        ...s,
+        playerCount: n,
+        botCount: newBotCount,
+        selectedFactions: [],
+        lockedFactions: new Set(),
+        error: null,
+      };
+      next.mapSetup = recomputeMapSetupForPlayers(next, n + newBotCount);
+      return next;
+    });
   }, []);
 
   const setBotCount = useCallback(n => {
-    setState(s => ({ ...s, botCount: Math.max(0, Math.min(n, 6 - s.playerCount)), selectedFactions: [], lockedFactions: new Set(), error: null }));
+    setState(s => {
+      const newBotCount = Math.max(0, Math.min(n, 6 - s.playerCount));
+      const next = { ...s, botCount: newBotCount, selectedFactions: [], lockedFactions: new Set(), error: null };
+      next.mapSetup = recomputeMapSetupForPlayers(next, s.playerCount + newBotCount);
+      return next;
+    });
   }, []);
 
   const setBalanceMode = useCallback(mode => {
