@@ -24,15 +24,6 @@ export default function MapCard({ mapId, onReroll, canReroll, onBoardClick }) {
 
   return (
     <div className="map-card" style={{ '--map-color': colors.primary, '--map-color-dark': colors.secondary }}>
-      {map.img && (
-        <div className="map-card-img-wrap" onClick={() => onBoardClick?.({ front: map.img, back: null }, map.name)}>
-          <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
-          <div className="map-card-img-overlay">
-            <span className="map-card-zoom-hint">Click to enlarge</span>
-          </div>
-        </div>
-      )}
-
       <div className="map-card-header">
         <div className="map-card-title-block">
           <div className="map-card-label">Map</div>
@@ -54,6 +45,15 @@ export default function MapCard({ mapId, onReroll, canReroll, onBoardClick }) {
           )}
         </div>
       </div>
+
+      {map.img && (
+        <div className="map-card-img-wrap" onClick={() => onBoardClick?.({ front: map.img, back: null }, map.name)}>
+          <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
+          <div className="map-card-img-overlay">
+            <span className="map-card-zoom-hint">Click to enlarge</span>
+          </div>
+        </div>
+      )}
 
       <div className="map-card-body">
         <p className="map-description">{map.description}</p>
