@@ -2744,6 +2744,11 @@ a { color: inherit; }
   font-weight: 600;
   font-size: 0.95em;
 }
+.native-landmark-placement {
+  font-weight: 500;
+  color: var(--ink-muted, #888);
+  font-variant-numeric: tabular-nums;
+}
 .native-landmark-desc {
   font-size: 0.82em;
   opacity: 0.85;

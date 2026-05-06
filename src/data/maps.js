@@ -122,6 +122,9 @@ export const MAPS = [
     clearingCount: 12,
     clearings: Array.from({ length: 12 }, (_, i) => ({ id: i + 1 })),
     floodEligibleClearings: [13, 14, 15],
+    // Marsh has 15 clearings total: 12 suited (1-12) + 3 unsuited (13-15) that
+    // host floods (1-4p) or the three native landmarks (5+p).
+    nativeLandmarkSlots: [13, 14, 15],
   },
   {
     id: "gorge",

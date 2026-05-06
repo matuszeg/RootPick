@@ -36,11 +36,19 @@ export default function MapSetupCard({ state, actions, onImageClick }) {
 
       {nativeLandmarkIds.length > 0 && (
         <section className="map-setup-section">
-          <h4>Native Landmarks</h4>
+          <div className="map-setup-section-head">
+            <h4>Native Landmarks</h4>
+            {mapSetup.nativeLandmarkPlacements && (
+              <button className="reroll-btn" onClick={actions.rerollNativeLandmarkPlacements} title="Re-roll which clearing each landmark goes in">
+                <DieIcon /> Re-roll placements
+              </button>
+            )}
+          </div>
           <ul className="native-landmark-list">
             {nativeLandmarkIds.map(id => {
               const lm = LANDMARK_MAP[id];
               if (!lm) return null;
+              const placement = mapSetup.nativeLandmarkPlacements?.[id];
               const warning = excludedLandmarks.has(id)
                 ? `Built into ${map.name}; your pool exclusion only affects other maps.`
                 : null;
@@ -57,6 +65,7 @@ export default function MapSetupCard({ state, actions, onImageClick }) {
                   <div className="native-landmark-body">
                     <div className="native-landmark-name">
                       {lm.name}
+                      {placement != null && <span className="native-landmark-placement"> → Clearing {placement}</span>}
                       <span className="landmark-tag"> (built-in)</span>
                     </div>
                     <div className="native-landmark-desc">{lm.description}</div>

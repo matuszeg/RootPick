@@ -76,6 +76,19 @@ export function randomizeFloodMarkers(map, playerCount) {
   return result;
 }
 
+// Randomly assigns active native landmarks to a map's nativeLandmarkSlots.
+// Returns { [landmarkId]: clearingId } for maps with slots (e.g., Marsh's 13/14/15),
+// or null when there are no slots or no active natives.
+export function randomizeNativeLandmarkPlacements(map, playerCount) {
+  if (!map || !Array.isArray(map.nativeLandmarkSlots) || map.nativeLandmarkSlots.length === 0) return null;
+  const natives = getNativeLandmarks(map, playerCount);
+  if (!natives.length) return null;
+  const slots = shuffle(map.nativeLandmarkSlots).slice(0, natives.length);
+  const result = {};
+  natives.forEach((lm, i) => { result[lm.id] = slots[i]; });
+  return result;
+}
+
 // Convenience: build a full mapSetup object given the inputs.
 export function buildMapSetup({
   mapId,
@@ -89,5 +102,6 @@ export function buildMapSetup({
     clearingSuits: randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn }),
     floodMarkers: randomizeFloodMarkers(map, playerCount),
     nativeLandmarkIds: getNativeLandmarks(map, playerCount).map(l => l.id),
+    nativeLandmarkPlacements: randomizeNativeLandmarkPlacements(map, playerCount),
   };
 }
