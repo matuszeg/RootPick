@@ -2576,28 +2576,54 @@ a { color: inherit; }
 @media (min-width: 900px) {
   .map-results-row {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
   }
   .map-results-col--map       { flex: 1 1 auto; }
   .map-results-col--landmarks { flex: 0 0 clamp(260px, 26%, 340px); }
+  .map-results-col--map > .map-card,
+  .map-results-col--landmarks > .landmarks-pane {
+    height: 100%;
+  }
 }
 @media (min-width: 1400px) {
   .map-results-col--landmarks { flex: 0 0 320px; }
 }
 
-/* Map card footer (hosts MapSetupCard) */
+/* Map card footer (hosts MapSetupCard) — visually distinct from the map content above */
 .map-card-footer {
-  border-top: 1px solid var(--border, #c4b58a);
-  padding: 14px 16px 16px;
-  background: var(--bg-alt, rgba(0,0,0,0.02));
+  position: relative;
+  margin-top: 4px;
+  padding: 18px 18px 16px;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0) 14px),
+    var(--bg-alt, rgba(0,0,0,0.04));
+  border-top: 2px solid var(--map-color, var(--border, #c4b58a));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
 }
-/* Strip the outer chrome from MapSetupCard when nested in MapCard */
+.map-card-footer::before {
+  content: 'Setup';
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  padding: 2px 10px;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--map-color, #6B5A4A);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+/* Strip the outer chrome from MapSetupCard when nested in MapCard, and hide its
+   redundant "Map Setup" header (the footer's "Setup" pill replaces it). */
 .map-card-footer .map-setup-card {
   border: none;
   background: transparent;
   padding: 0;
   border-radius: 0;
 }
+.map-card-footer .map-setup-header { display: none; }
 
 /* Random landmarks side pane */
 .landmarks-pane {
@@ -2626,12 +2652,32 @@ a { color: inherit; }
   opacity: 0.6;
   font-style: italic;
 }
+.landmarks-pane { flex: 1 1 auto; }
 .landmarks-grid--stacked {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1 1 auto;
 }
-.landmarks-grid--stacked > .landmark-card { width: 100%; }
+.landmarks-grid--stacked > .landmark-card {
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.landmarks-grid--stacked > .landmark-card .landmark-img-wrapper {
+  flex: 1 1 auto;
+  min-height: 120px;
+  height: auto;
+  overflow: hidden;
+}
+.landmarks-grid--stacked > .landmark-card .landmark-card-img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
 
 /* Compact native-landmark rows inside MapSetupCard */
 .native-landmark-list {
