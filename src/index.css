@@ -2593,46 +2593,13 @@ a { color: inherit; }
 @media (min-width: 900px) {
   .visual-row {
     flex-direction: row;
-    align-items: stretch;
+    align-items: flex-start;
   }
   .visual-row-map       { flex: 1 1 auto; min-width: 0; }
-  .visual-row-landmarks { flex: 0 0 auto; display: flex; flex-direction: column; }
+  .visual-row-landmarks { flex: 0 0 auto; }
   .visual-row-landmarks .landmarks-grid {
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: stretch;
-    flex: 1 1 auto;
-  }
-  /* MapCard natural height drives the row when both are present. */
-  .visual-row-map .map-card-img-wrap {
-    max-height: 360px;
-    height: 360px;
-  }
-  /* LandmarkCard fills the row's height (set by MapCard); image-wrapper grows
-     while the action bar pins to the bottom. Image stays uncropped via contain. */
-  .visual-row-landmarks .landmark-card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  .visual-row-landmarks .landmark-card .landmark-img-wrapper {
-    flex: 1 1 auto;
-    height: auto;
-    min-height: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.04);
-  }
-  .visual-row-landmarks .landmark-card .landmark-card-img {
-    width: auto;
-    max-width: 100%;
-    height: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-  .visual-row-landmarks .landmark-card .landmark-action-bar {
-    flex: 0 0 auto;
   }
 }
 
