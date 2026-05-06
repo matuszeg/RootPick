@@ -207,10 +207,9 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
             <>
               <div className="map-results-row">
                 <div className="map-results-col map-results-col--map">
-                  <MapCard mapId={selectedMap} onReroll={actions.rerollMap} canReroll={canRerollMap} onBoardClick={onBoardClick} />
-                </div>
-                <div className="map-results-col map-results-col--setup">
-                  <MapSetupCard state={state} actions={actions} onImageClick={onImageClick} />
+                  <MapCard mapId={selectedMap} onReroll={actions.rerollMap} canReroll={canRerollMap} onBoardClick={onBoardClick}>
+                    <MapSetupCard state={state} actions={actions} onImageClick={onImageClick} />
+                  </MapCard>
                 </div>
                 {canUseLandmarks && useLandmarks && (
                   <div className="map-results-col map-results-col--landmarks">

@@ -16,7 +16,7 @@ function Stars({ count }) {
   );
 }
 
-export default function MapCard({ mapId, onReroll, canReroll, onBoardClick }) {
+export default function MapCard({ mapId, onReroll, canReroll, onBoardClick, children }) {
   const map = MAP_MAP[mapId];
   if (!map) return null;
 
@@ -64,6 +64,8 @@ export default function MapCard({ mapId, onReroll, canReroll, onBoardClick }) {
           </p>
         )}
       </div>
+
+      {children && <div className="map-card-footer">{children}</div>}
     </div>
   );
 }

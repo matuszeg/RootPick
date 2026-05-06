@@ -2578,13 +2578,25 @@ a { color: inherit; }
     flex-direction: row;
     align-items: flex-start;
   }
-  .map-results-col--map       { flex: 0 0 clamp(280px, 28%, 380px); }
-  .map-results-col--setup     { flex: 1 1 auto; }
-  .map-results-col--landmarks { flex: 0 0 clamp(240px, 24%, 320px); }
+  .map-results-col--map       { flex: 1 1 auto; }
+  .map-results-col--landmarks { flex: 0 0 clamp(260px, 26%, 340px); }
 }
 @media (min-width: 1400px) {
-  .map-results-col--map       { flex: 0 0 380px; }
-  .map-results-col--landmarks { flex: 0 0 300px; }
+  .map-results-col--landmarks { flex: 0 0 320px; }
+}
+
+/* Map card footer (hosts MapSetupCard) */
+.map-card-footer {
+  border-top: 1px solid var(--border, #c4b58a);
+  padding: 14px 16px 16px;
+  background: var(--bg-alt, rgba(0,0,0,0.02));
+}
+/* Strip the outer chrome from MapSetupCard when nested in MapCard */
+.map-card-footer .map-setup-card {
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
 }
 
 /* Random landmarks side pane */
