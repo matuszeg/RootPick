@@ -6,7 +6,7 @@ import { MAPS, MAP_MAP } from '../data/maps.js';
 import {
   DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS, getHirelingConflicts,
 } from '../data/accessories.js';
-import { buildMapSetup, getEligibleLandmarks, getNativeLandmarks, randomizeClearingSuits, randomizeFloodMarkers, randomizeNativeLandmarkPlacements } from '../utils/mapRandomizer.js';
+import { buildMapSetup, getEligibleLandmarks, getNativeLandmarks, getUnsuitedClearings, randomizeClearingSuits, randomizeFloodMarkers, randomizeNativeLandmarkPlacements } from '../utils/mapRandomizer.js';
 
 // Recompute the player-count-dependent parts of mapSetup (native landmarks,
 // Marsh flood markers, native landmark slot placements) without re-randomizing
@@ -15,11 +15,12 @@ function recomputeMapSetupForPlayers(s, totalPlayers) {
   if (!s.selectedMap || !s.mapSetup) return s.mapSetup;
   const map = MAP_MAP[s.selectedMap];
   if (!map) return s.mapSetup;
+  const unsuitedSlots = s.mapSetup.unsuitedSlots ?? getUnsuitedClearings(map, s.mapSetup.clearingSuits);
   const newNatives = getNativeLandmarks(map, totalPlayers).map(l => l.id);
   let newFloods = s.mapSetup.floodMarkers;
   const floodsApplicable = map.hasFloodMarkers && totalPlayers <= 4;
   if (floodsApplicable && !newFloods) {
-    newFloods = randomizeFloodMarkers(map, totalPlayers);
+    newFloods = randomizeFloodMarkers(map, totalPlayers, unsuitedSlots);
   } else if (!floodsApplicable) {
     newFloods = null;
   }
@@ -32,10 +33,11 @@ function recomputeMapSetupForPlayers(s, totalPlayers) {
   if (!newNatives.length) {
     newPlacements = null;
   } else if (newNativeKeys !== prevNativeKeys) {
-    newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers);
+    newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers, unsuitedSlots);
   }
   return {
     ...s.mapSetup,
+    unsuitedSlots,
     nativeLandmarkIds: newNatives,
     floodMarkers: newFloods,
     nativeLandmarkPlacements: newPlacements,
@@ -643,13 +645,25 @@ export function useAppState() {
       const map = MAP_MAP[s.selectedMap];
       if (!map) return s;
       if (map.hasPrintedSuits && !s.forceSuitRandomizationOnAutumn) return s;
+      const totalPlayers = s.playerCount + s.botCount;
+      const newSuits = randomizeClearingSuits(map, {
+        forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+      });
+      const newUnsuited = getUnsuitedClearings(map, newSuits);
+      // Re-randomizing suits changes which clearings are unsuited, so floods
+      // and native placements must move with them.
+      const newFloods = (map.hasFloodMarkers && totalPlayers <= 4)
+        ? randomizeFloodMarkers(map, totalPlayers, newUnsuited)
+        : null;
+      const newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers, newUnsuited);
       return {
         ...s,
         mapSetup: {
           ...s.mapSetup,
-          clearingSuits: randomizeClearingSuits(map, {
-            forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
-          }),
+          clearingSuits: newSuits,
+          unsuitedSlots: newUnsuited,
+          floodMarkers: newFloods,
+          nativeLandmarkPlacements: newPlacements,
         },
       };
     });
@@ -661,7 +675,8 @@ export function useAppState() {
       const map = MAP_MAP[s.selectedMap];
       if (!map || !map.hasFloodMarkers) return s;
       const totalPlayers = s.playerCount + s.botCount;
-      const next = randomizeFloodMarkers(map, totalPlayers);
+      const slots = s.mapSetup.unsuitedSlots ?? getUnsuitedClearings(map, s.mapSetup.clearingSuits);
+      const next = randomizeFloodMarkers(map, totalPlayers, slots);
       if (!next) return s;
       return {
         ...s,
@@ -676,7 +691,8 @@ export function useAppState() {
       const map = MAP_MAP[s.selectedMap];
       if (!map) return s;
       const totalPlayers = s.playerCount + s.botCount;
-      const next = randomizeNativeLandmarkPlacements(map, totalPlayers);
+      const slots = s.mapSetup.unsuitedSlots ?? getUnsuitedClearings(map, s.mapSetup.clearingSuits);
+      const next = randomizeNativeLandmarkPlacements(map, totalPlayers, slots);
       if (!next) return s;
       return {
         ...s,

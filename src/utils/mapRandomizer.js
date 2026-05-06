@@ -10,19 +10,29 @@ function shuffle(arr) {
   return out;
 }
 
-// Returns { 1: 'fox', 2: 'mouse', ..., 12: suit } for a randomized map,
-// or the printed suits unchanged for Autumn (when toggle is off).
+// Returns { clearingId: suit } for the (up to 12) clearings that receive a
+// suit token. For maps with more clearings than tokens (e.g., Marsh's 15),
+// the 12 tokens are placed on a random subset; the remainder become unsuited.
+// Autumn returns its printed suits when the override is off.
 export function randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn = false } = {}) {
   if (!map) return null;
   if (map.hasPrintedSuits && !forceSuitRandomizationOnAutumn) {
     return map.printedSuits ? { ...map.printedSuits } : null;
   }
-  const suits = shuffle(CLEARING_SUIT_POOL);
+  const allIds = map.clearings.map(c => c.id);
+  const tokens = shuffle(CLEARING_SUIT_POOL);
+  const suitedIds = shuffle(allIds).slice(0, tokens.length);
   const result = {};
-  for (let i = 0; i < map.clearings.length; i++) {
-    result[map.clearings[i].id] = suits[i];
-  }
+  suitedIds.forEach((id, i) => { result[id] = tokens[i]; });
   return result;
+}
+
+// Returns the array of clearing IDs that did NOT receive a suit token
+// (i.e., the leftover unsuited clearings on Marsh).
+export function getUnsuitedClearings(map, clearingSuits) {
+  if (!map || !clearingSuits) return [];
+  const suited = new Set(Object.keys(clearingSuits).map(Number));
+  return map.clearings.map(c => c.id).filter(id => !suited.has(id));
 }
 
 // Returns the array of native Landmark objects active for the given map+playerCount.
@@ -61,29 +71,28 @@ export function getEligibleLandmarks({
   });
 }
 
-// Randomly assigns Marsh's 3 flood markers to 3 distinct flood-eligible clearings.
-// Returns null unless map is Marsh and playerCount <= 4.
-// Returns { [markerId]: clearingId } on success.
-export function randomizeFloodMarkers(map, playerCount) {
+// Randomly assigns Marsh's flood markers to the unsuited (leftover) clearings.
+// Returns null unless map has flood markers, player count is <= 4, and there
+// are enough unsuited slots to receive all the markers.
+export function randomizeFloodMarkers(map, playerCount, unsuitedSlots) {
   if (!map || !map.hasFloodMarkers) return null;
   if (playerCount > 4) return null;
-  if (!map.floodMarkers.length || map.floodEligibleClearings.length < map.floodMarkers.length) return null;
-  const clearings = shuffle(map.floodEligibleClearings).slice(0, map.floodMarkers.length);
+  if (!map.floodMarkers.length) return null;
+  if (!Array.isArray(unsuitedSlots) || unsuitedSlots.length < map.floodMarkers.length) return null;
+  const slots = shuffle(unsuitedSlots).slice(0, map.floodMarkers.length);
   const result = {};
-  for (let i = 0; i < map.floodMarkers.length; i++) {
-    result[map.floodMarkers[i].id] = clearings[i];
-  }
+  map.floodMarkers.forEach((fm, i) => { result[fm.id] = slots[i]; });
   return result;
 }
 
-// Randomly assigns active native landmarks to a map's nativeLandmarkSlots.
-// Returns { [landmarkId]: clearingId } for maps with slots (e.g., Marsh's 13/14/15),
-// or null when there are no slots or no active natives.
-export function randomizeNativeLandmarkPlacements(map, playerCount) {
-  if (!map || !Array.isArray(map.nativeLandmarkSlots) || map.nativeLandmarkSlots.length === 0) return null;
+// Randomly assigns active native landmarks to the unsuited (leftover) clearings.
+// Returns null when there are no unsuited slots or no active natives.
+export function randomizeNativeLandmarkPlacements(map, playerCount, unsuitedSlots) {
+  if (!Array.isArray(unsuitedSlots) || unsuitedSlots.length === 0) return null;
   const natives = getNativeLandmarks(map, playerCount);
   if (!natives.length) return null;
-  const slots = shuffle(map.nativeLandmarkSlots).slice(0, natives.length);
+  if (unsuitedSlots.length < natives.length) return null;
+  const slots = shuffle(unsuitedSlots).slice(0, natives.length);
   const result = {};
   natives.forEach((lm, i) => { result[lm.id] = slots[i]; });
   return result;
@@ -98,10 +107,13 @@ export function buildMapSetup({
 }) {
   const map = MAP_MAP[mapId];
   if (!map) return null;
+  const clearingSuits = randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn });
+  const unsuitedSlots = getUnsuitedClearings(map, clearingSuits);
   return {
-    clearingSuits: randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn }),
-    floodMarkers: randomizeFloodMarkers(map, playerCount),
+    clearingSuits,
+    unsuitedSlots,
+    floodMarkers: randomizeFloodMarkers(map, playerCount, unsuitedSlots),
     nativeLandmarkIds: getNativeLandmarks(map, playerCount).map(l => l.id),
-    nativeLandmarkPlacements: randomizeNativeLandmarkPlacements(map, playerCount),
+    nativeLandmarkPlacements: randomizeNativeLandmarkPlacements(map, playerCount, unsuitedSlots),
   };
 }

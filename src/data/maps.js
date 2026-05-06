@@ -119,12 +119,11 @@ export const MAPS = [
       { id: 'flood_dark_green', name: 'Dark Green', color: '#3D5A3D' },
       { id: 'flood_brown', name: 'Brown', color: '#6B4E3D' },
     ],
-    clearingCount: 12,
-    clearings: Array.from({ length: 12 }, (_, i) => ({ id: i + 1 })),
-    floodEligibleClearings: [13, 14, 15],
-    // Marsh has 15 clearings total: 12 suited (1-12) + 3 unsuited (13-15) that
-    // host floods (1-4p) or the three native landmarks (5+p).
-    nativeLandmarkSlots: [13, 14, 15],
+    // Marsh has 15 clearings. The 12 base-game suit tokens are placed on any
+    // 12 of them; the 3 left over become the "unsuited" clearings that host
+    // floods (1-4p) or the native landmarks (5+p).
+    clearingCount: 15,
+    clearings: Array.from({ length: 15 }, (_, i) => ({ id: i + 1 })),
   },
   {
     id: "gorge",
