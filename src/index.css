@@ -2617,7 +2617,7 @@ a { color: inherit; }
   }
   /* Larger map preview when MapCard is in the visual row alongside landmarks. */
   .visual-row-map .map-card-img-wrap {
-    max-height: 300px;
+    max-height: 460px;
   }
 }
 
