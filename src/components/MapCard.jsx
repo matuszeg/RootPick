@@ -48,7 +48,10 @@ export default function MapCard({ mapId, onReroll, canReroll, onBoardClick, mapS
       </div>
 
       {map.img && (
-        <div className="map-card-img-wrap" onClick={() => onBoardClick?.({ front: map.img, back: null }, map.name)}>
+        <div
+          className="map-card-img-wrap"
+          onClick={() => onBoardClick?.({ front: map.img, back: null }, map.name, undefined, { map, mapSetup })}
+        >
           <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
           <ClearingOverlay map={map} mapSetup={mapSetup} />
           <div className="map-card-img-overlay">

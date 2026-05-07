@@ -1632,10 +1632,8 @@ a { color: inherit; }
 .map-card-img-wrap {
   position: relative;
   width: 100%;
-  overflow: hidden;
   line-height: 0;
   cursor: pointer;
-  max-height: 220px;
 }
 
 .map-card-img {
@@ -2222,11 +2220,17 @@ a { color: inherit; }
   flex-direction: column;
   align-items: center;
 }
+.board-modal-img-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
 .board-modal-img {
   max-width: 100%;
   max-height: 82vh;
   border-radius: var(--radius);
   box-shadow: 0 12px 60px rgba(0,0,0,0.5);
+  display: block;
 }
 .board-modal-controls {
   margin-top: 0.75rem;
@@ -2601,13 +2605,8 @@ a { color: inherit; }
     flex-direction: row;
     flex-wrap: nowrap;
   }
-  /* Size the map image so MapCard total height (image + header + body)
-     matches LandmarkCard total height (360px image + action bar).
-     Tweak this value if the cards drift apart. */
-  .visual-row-map .map-card-img-wrap {
-    max-height: 300px;
-    height: 300px;
-  }
+  /* Map image is shown in full (no cropping) so the clearing overlay aligns
+     correctly. Card heights may differ from LandmarkCard — that's intentional. */
 }
 
 /* Random landmarks side pane */

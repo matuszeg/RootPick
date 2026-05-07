@@ -38,8 +38,8 @@ export default function App() {
   const disabledTabs = new Set();
   if (!canUseHirelings) disabledTabs.add('hirelings');
 
-  function handleBoardClick(images, name, sideLabels) {
-    setBoardModal({ images, title: name, sideLabels });
+  function handleBoardClick(images, name, sideLabels, extras) {
+    setBoardModal({ images, title: name, sideLabels, ...(extras ?? {}) });
   }
 
   return (
@@ -116,7 +116,7 @@ export default function App() {
             actions={actions}
             subTab={subTabs.maps_landmarks}
             onSubTabChange={tab => setSubTab('maps_landmarks', tab)}
-            onBoardClick={(images, name) => handleBoardClick(images, name)}
+            onBoardClick={(images, name, sideLabels, extras) => handleBoardClick(images, name, sideLabels, extras)}
             onImageClick={(images, name) => handleBoardClick(images, name)}
           />
         )}
@@ -154,6 +154,8 @@ export default function App() {
           images={boardModal.images}
           title={boardModal.title}
           sideLabels={boardModal.sideLabels}
+          map={boardModal.map}
+          mapSetup={boardModal.mapSetup}
           onClose={() => setBoardModal(null)}
         />
       )}
