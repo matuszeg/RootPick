@@ -2887,6 +2887,90 @@ a { color: inherit; }
 .flood-name { font-weight: 500; }
 .flood-clearing { color: var(--ink-muted, #888); margin-left: auto; }
 
+/* ─── Clearing overlay (suit/flood/native badges over the map image) ─── */
+.clearing-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.clearing-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  animation: cardIn 0.25s ease both;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(0, 0, 0, 0.7),
+    0 0 14px var(--badge-glow, rgba(0, 0, 0, 0.5));
+}
+.clearing-badge--suit {
+  background: var(--badge-bg, #888);
+}
+.clearing-badge-icon {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+  user-select: none;
+}
+.clearing-badge-id {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid #fff;
+}
+.clearing-badge--flood {
+  background: var(--badge-bg, #888);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(0, 0, 0, 0.7),
+    0 0 14px var(--badge-bg, rgba(0, 0, 0, 0.5));
+}
+.clearing-badge--native {
+  background: #fff;
+  overflow: visible;
+  border: 2px dashed rgba(0, 0, 0, 0.7);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 16px rgba(245, 200, 80, 0.85);
+}
+.clearing-badge-thumb {
+  width: 88%;
+  height: 88%;
+  object-fit: cover;
+  border-radius: 50%;
+  pointer-events: none;
+  user-select: none;
+}
+.clearing-badge--empty {
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px dashed rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+@media (max-width: 600px) {
+  .clearing-badge { width: 32px; height: 32px; }
+  .clearing-badge-id { font-size: 9px; min-width: 14px; height: 14px; }
+}
+
 .reroll-btn {
   display: inline-flex;
   align-items: center;

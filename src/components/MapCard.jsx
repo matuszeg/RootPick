@@ -1,6 +1,7 @@
 import { MAP_MAP, MAP_COLORS } from '../data/maps.js';
 import DieIcon from './DieIcon.jsx';
 import { StarIcon } from './Icons.jsx';
+import ClearingOverlay from './ClearingOverlay.jsx';
 
 const DIFFICULTY_LABELS = { 1: 'Beginner-friendly', 2: 'Intermediate', 3: 'Advanced' };
 
@@ -16,7 +17,7 @@ function Stars({ count }) {
   );
 }
 
-export default function MapCard({ mapId, onReroll, canReroll, onBoardClick }) {
+export default function MapCard({ mapId, onReroll, canReroll, onBoardClick, mapSetup }) {
   const map = MAP_MAP[mapId];
   if (!map) return null;
 
@@ -49,6 +50,7 @@ export default function MapCard({ mapId, onReroll, canReroll, onBoardClick }) {
       {map.img && (
         <div className="map-card-img-wrap" onClick={() => onBoardClick?.({ front: map.img, back: null }, map.name)}>
           <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
+          <ClearingOverlay map={map} mapSetup={mapSetup} />
           <div className="map-card-img-overlay">
             <span className="map-card-zoom-hint">Click to enlarge</span>
           </div>
