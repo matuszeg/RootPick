@@ -2607,17 +2607,25 @@ a { color: inherit; }
 @media (min-width: 900px) {
   .visual-row {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
   }
-  .visual-row-map       { flex: 1 1 auto; min-width: 0; }
+  .visual-row-map       { flex: 1 1 auto; min-width: 0; display: flex; }
   .visual-row-landmarks { flex: 0 0 auto; }
   .visual-row-landmarks .landmarks-grid {
     flex-direction: row;
     flex-wrap: nowrap;
   }
-  /* Larger map preview when MapCard is in the visual row alongside landmarks. */
+  /* Make the map card fill the row's height (driven by the landmarks column). */
+  .visual-row-map > .map-card {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
   .visual-row-map .map-card-img-wrap {
-    max-height: 460px;
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
   }
 }
 
