@@ -31,9 +31,9 @@ export const MAPS = [
     ],
     floodEligibleClearings: [],
     printedSuits: {
-      1: 'fox', 2: 'rabbit', 3: 'mouse', 4: 'rabbit',
-      5: 'fox', 6: 'mouse', 7: 'rabbit', 8: 'fox',
-      9: 'mouse', 10: 'rabbit', 11: 'fox', 12: 'mouse',
+      1: 'fox',    2: 'mouse',  3: 'rabbit', 4: 'rabbit',
+      5: 'rabbit', 6: 'fox',    7: 'mouse',  8: 'fox',
+      9: 'mouse', 10: 'rabbit', 11: 'mouse', 12: 'fox',
     },
   },
   {
