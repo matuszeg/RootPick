@@ -52,8 +52,10 @@ export default function MapCard({ mapId, onReroll, canReroll, onBoardClick, mapS
           className="map-card-img-wrap"
           onClick={() => onBoardClick?.({ front: map.img, back: null }, map.name, undefined, { map, mapSetup })}
         >
-          <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
-          <ClearingOverlay map={map} mapSetup={mapSetup} />
+          <div className="map-card-img-inner">
+            <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
+            <ClearingOverlay map={map} mapSetup={mapSetup} />
+          </div>
           <div className="map-card-img-overlay">
             <span className="map-card-zoom-hint">Click to enlarge</span>
           </div>

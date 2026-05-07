@@ -1632,8 +1632,18 @@ a { color: inherit; }
 .map-card-img-wrap {
   position: relative;
   width: 100%;
+  overflow: hidden;
   line-height: 0;
   cursor: pointer;
+  max-height: 220px;
+}
+/* Inner container is sized to the image's natural rendered size so the
+   ClearingOverlay's percentage positions are relative to the FULL image,
+   even when the wrapper crops it. */
+.map-card-img-inner {
+  position: relative;
+  width: 100%;
+  line-height: 0;
 }
 
 .map-card-img {
@@ -2902,11 +2912,15 @@ a { color: inherit; }
   align-items: center;
   justify-content: center;
   pointer-events: auto;
-  animation: cardIn 0.25s ease both;
+  animation: badgeIn 0.25s ease both;
   box-shadow:
     0 0 0 2px #fff,
     0 0 0 3px rgba(0, 0, 0, 0.7),
     0 0 14px var(--badge-glow, rgba(0, 0, 0, 0.5));
+}
+@keyframes badgeIn {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
 }
 .clearing-badge--suit {
   background: var(--badge-bg, #888);
