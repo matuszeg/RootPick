@@ -2615,8 +2615,10 @@ a { color: inherit; }
     flex-direction: row;
     flex-wrap: nowrap;
   }
-  /* Map image is shown in full (no cropping) so the clearing overlay aligns
-     correctly. Card heights may differ from LandmarkCard — that's intentional. */
+  /* Larger map preview when MapCard is in the visual row alongside landmarks. */
+  .visual-row-map .map-card-img-wrap {
+    max-height: 300px;
+  }
 }
 
 /* Random landmarks side pane */
