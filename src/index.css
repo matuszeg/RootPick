@@ -2615,17 +2615,26 @@ a { color: inherit; }
     flex-direction: row;
     flex-wrap: nowrap;
   }
-  /* Make the map card fill the row's height (driven by the landmarks column). */
+  /* Make the map card fill the row's height (driven by the landmarks column).
+     The image-wrap flex-grows to fill the leftover space after header + body,
+     and overflow:hidden crops the natural-size image to fit. */
   .visual-row-map > .map-card {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
   .visual-row-map .map-card-img-wrap {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     max-height: none;
     min-height: 0;
+    overflow: hidden;
+  }
+  .visual-row-map .map-card-img-inner {
+    /* Inner stays at the image's natural size; wrapper above clips the
+       overflow so badges/coordinates remain accurate. */
+    height: auto;
   }
 }
 
