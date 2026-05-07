@@ -2692,14 +2692,16 @@ a { color: inherit; }
   width: 32px;
   height: 32px;
   padding: 0;
-  background: transparent;
-  border: 1px solid var(--border, #c4b58a);
-  border-radius: 4px;
+  background: var(--gold-fill, #e0b04a);
+  color: var(--gold-fill-on, #4a3613);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
+  border-radius: var(--radius-sm, 4px);
   cursor: pointer;
-  color: inherit;
+  transition: all 0.15s;
 }
 .landmark-mini-reroll:hover {
-  background: var(--bg-alt, rgba(0,0,0,0.04));
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
 }
 
 /* Compact native-landmark rows inside MapSetupCard */
@@ -2888,15 +2890,25 @@ a { color: inherit; }
 .reroll-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.85em;
-  padding: 4px 8px;
-  background: transparent;
-  border: 1px solid var(--border, #c4b58a);
-  border-radius: 4px;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold-fill-on, #4a3613);
+  background: var(--gold-fill, #e0b04a);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
+  border-radius: var(--radius-sm, 4px);
+  padding: 0.35rem 0.7rem;
   cursor: pointer;
-  color: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
 .reroll-btn:hover {
-  background: var(--bg-alt, rgba(0,0,0,0.04));
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(200, 144, 42, 0.3);
 }
+.reroll-btn:active { transform: translateY(0); }
