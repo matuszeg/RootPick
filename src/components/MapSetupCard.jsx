@@ -91,6 +91,11 @@ export default function MapSetupCard({ state, actions, onImageClick }) {
               </button>
             )}
           </div>
+          {suitsRerollable && (
+            <p className="map-setup-hint">
+              Click a clearing on the map to lock its suit. Locked clearings keep their suit when you re-roll.
+            </p>
+          )}
           <div className="clearing-suit-grouped">
             {['fox', 'rabbit', 'mouse'].map(suit => {
               const ids = Object.entries(mapSetup.clearingSuits)

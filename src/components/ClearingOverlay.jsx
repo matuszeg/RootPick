@@ -20,7 +20,9 @@ const SUIT_ICON = {
 
 // Renders suit/flood/native badges absolutely positioned over a map image.
 // `map` must have a `clearings` array with `{id, x, y}` (percentages of image).
-export default function ClearingOverlay({ map, mapSetup, floodColors }) {
+// `onToggleLock` (optional) — when provided, clicking a suited badge toggles
+// its lock state; locked badges are rendered with a lock indicator.
+export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
   if (!map || !mapSetup) return null;
   const clearings = (map.clearings ?? []).filter(c => typeof c.x === 'number' && typeof c.y === 'number');
   if (!clearings.length) return null;
@@ -28,9 +30,9 @@ export default function ClearingOverlay({ map, mapSetup, floodColors }) {
   const suits = mapSetup.clearingSuits ?? {};
   const floods = mapSetup.floodMarkers ?? {};
   const placements = mapSetup.nativeLandmarkPlacements ?? {};
-  // Reverse the flood/native placement maps so we can look up by clearing id.
-  const floodByClearing = invertMap(floods);            // { clearingId: floodMarkerId }
-  const nativeByClearing = invertMap(placements);       // { clearingId: landmarkId }
+  const locked = mapSetup.lockedClearingSuits ?? {};
+  const floodByClearing = invertMap(floods);
+  const nativeByClearing = invertMap(placements);
 
   return (
     <div className="clearing-overlay" aria-hidden="true">
@@ -40,6 +42,7 @@ export default function ClearingOverlay({ map, mapSetup, floodColors }) {
         const nativeId = nativeByClearing[c.id];
         const flood = floodId ? (map.floodMarkers ?? []).find(f => f.id === floodId) : null;
         const native = nativeId ? LANDMARK_MAP[nativeId] : null;
+        const isLocked = c.id in locked;
 
         return (
           <ClearingBadge
@@ -48,7 +51,8 @@ export default function ClearingOverlay({ map, mapSetup, floodColors }) {
             suit={suit}
             flood={flood}
             native={native}
-            floodColors={floodColors}
+            locked={isLocked}
+            onToggleLock={onToggleLock}
           />
         );
       })}
@@ -56,12 +60,7 @@ export default function ClearingOverlay({ map, mapSetup, floodColors }) {
   );
 }
 
-function ClearingBadge({ clearing, suit, flood, native }) {
-  // Priority: flood > native > suit > unsuited (no data).
-  // Native landmarks get their own colored badge with an inset thumbnail.
-  // Floods get a colored swatch.
-  // Suits get a colored circle with the suit token icon.
-  // Unsuited clearings (Marsh leftover with no flood/native) get a hollow dashed circle.
+function ClearingBadge({ clearing, suit, flood, native, locked, onToggleLock }) {
   const style = { left: `${clearing.x}%`, top: `${clearing.y}%` };
 
   if (flood) {
@@ -74,7 +73,7 @@ function ClearingBadge({ clearing, suit, flood, native }) {
 
   if (native) {
     return (
-      <div className="clearing-badge clearing-badge--native" style={style} title={`${native.name} — ${clearing.id}`}>
+      <div className="clearing-badge clearing-badge--native" style={style} title={`${native.name} — Clearing ${clearing.id}`}>
         <img className="clearing-badge-thumb" src={native.frontImg} alt="" draggable={false} />
         <span className="clearing-badge-id">{clearing.id}</span>
       </div>
@@ -82,21 +81,40 @@ function ClearingBadge({ clearing, suit, flood, native }) {
   }
 
   if (suit) {
+    const interactive = !!onToggleLock;
+    const handleClick = e => {
+      if (!interactive) return;
+      e.stopPropagation();
+      onToggleLock(clearing.id);
+    };
+    const title = interactive
+      ? `Clearing ${clearing.id} — ${suit}${locked ? ' (locked — click to unlock)' : ' (click to lock)'}`
+      : `Clearing ${clearing.id} — ${suit}`;
     return (
       <div
-        className={`clearing-badge clearing-badge--suit clearing-badge--${suit}`}
+        className={`clearing-badge clearing-badge--suit clearing-badge--${suit}${locked ? ' is-locked' : ''}${interactive ? ' is-clickable' : ''}`}
         style={{ ...style, '--badge-bg': SUIT_BG[suit], '--badge-glow': SUIT_GLOW[suit] }}
-        title={`Clearing ${clearing.id} — ${suit}`}
+        title={title}
+        onClick={handleClick}
+        role={interactive ? 'button' : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        onKeyDown={interactive ? e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleLock(clearing.id);
+          }
+        } : undefined}
       >
         <img className="clearing-badge-icon" src={SUIT_ICON[suit]} alt="" draggable={false} />
         <span className="clearing-badge-id">{clearing.id}</span>
+        {locked && <span className="clearing-badge-lock" aria-label="locked">🔒</span>}
       </div>
     );
   }
 
-  // Unsuited / pending
   return (
-    <div className="clearing-badge clearing-badge--empty" style={style} title={`Clearing ${clearing.id}`}>
+    <div className="clearing-badge clearing-badge--empty" style={style} title={`Clearing ${clearing.id} (unsuited)`}>
       <span className="clearing-badge-id">{clearing.id}</span>
     </div>
   );

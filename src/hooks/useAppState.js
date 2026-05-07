@@ -646,8 +646,10 @@ export function useAppState() {
       if (!map) return s;
       if (map.hasPrintedSuits && !s.forceSuitRandomizationOnAutumn) return s;
       const totalPlayers = s.playerCount + s.botCount;
+      const lockedSuits = s.mapSetup.lockedClearingSuits ?? {};
       const newSuits = randomizeClearingSuits(map, {
         forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+        lockedSuits,
       });
       const newUnsuited = getUnsuitedClearings(map, newSuits);
       // Re-randomizing suits changes which clearings are unsuited, so floods
@@ -666,6 +668,22 @@ export function useAppState() {
           nativeLandmarkPlacements: newPlacements,
         },
       };
+    });
+  }, []);
+
+  const toggleClearingLock = useCallback(clearingId => {
+    setState(s => {
+      if (!s.mapSetup) return s;
+      const id = Number(clearingId);
+      const locked = { ...(s.mapSetup.lockedClearingSuits ?? {}) };
+      if (id in locked) {
+        delete locked[id];
+      } else {
+        const suit = s.mapSetup.clearingSuits?.[id];
+        if (!suit) return s; // can't lock an unsuited clearing
+        locked[id] = suit;
+      }
+      return { ...s, mapSetup: { ...s.mapSetup, lockedClearingSuits: locked } };
     });
   }, []);
 
@@ -917,7 +935,7 @@ export function useAppState() {
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       toggleExcludedMap, toggleExcludedHireling, toggleExcludedCharacter, toggleExcludedLandmark,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
-      rerollClearingSuits, rerollFloodMarkers, rerollNativeLandmarkPlacements,
+      rerollClearingSuits, rerollFloodMarkers, rerollNativeLandmarkPlacements, toggleClearingLock,
       rerollSingleHireling, rerollLandmarks, rerollSingleLandmark, rerollVagabondCharacter,
       undo, toggleLock, banFaction, unbanFaction,
       toggleLockHireling, banHireling, unbanHireling,

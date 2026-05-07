@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { XIcon } from './Icons.jsx';
 import ClearingOverlay from './ClearingOverlay.jsx';
 
-export default function BoardModal({ images, title, onClose, sideLabels = ['Front', 'Back'], map = null, mapSetup = null }) {
+export default function BoardModal({ images, title, onClose, sideLabels = ['Front', 'Back'], map = null, mapSetup = null, onToggleLock = null }) {
   const [showingFront, setShowingFront] = useState(true);
   const hasBack = images?.back != null;
   const activeSrc = showingFront ? images?.front : images?.back;
@@ -36,7 +36,7 @@ export default function BoardModal({ images, title, onClose, sideLabels = ['Fron
             className="board-modal-img"
             draggable={false}
           />
-          {showOverlay && <ClearingOverlay map={map} mapSetup={mapSetup} />}
+          {showOverlay && <ClearingOverlay map={map} mapSetup={mapSetup} onToggleLock={onToggleLock} />}
         </div>
         <div className="board-modal-controls">
           {hasBack && (

@@ -17,7 +17,7 @@ function Stars({ count }) {
   );
 }
 
-export default function MapCard({ mapId, onReroll, canReroll, onBoardClick, mapSetup }) {
+export default function MapCard({ mapId, onReroll, canReroll, onBoardClick, mapSetup, onToggleLock }) {
   const map = MAP_MAP[mapId];
   if (!map) return null;
 
@@ -54,7 +54,7 @@ export default function MapCard({ mapId, onReroll, canReroll, onBoardClick, mapS
         >
           <div className="map-card-img-inner">
             <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
-            <ClearingOverlay map={map} mapSetup={mapSetup} />
+            <ClearingOverlay map={map} mapSetup={mapSetup} onToggleLock={onToggleLock} />
           </div>
           <div className="map-card-img-overlay">
             <span className="map-card-zoom-hint">Click to enlarge</span>

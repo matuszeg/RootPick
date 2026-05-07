@@ -156,6 +156,7 @@ export default function App() {
           sideLabels={boardModal.sideLabels}
           map={boardModal.map}
           mapSetup={boardModal.mapSetup}
+          onToggleLock={boardModal.map ? actions.toggleClearingLock : undefined}
           onClose={() => setBoardModal(null)}
         />
       )}

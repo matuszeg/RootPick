@@ -2770,6 +2770,12 @@ a { color: inherit; }
   object-fit: cover;
 }
 .native-landmark-body { min-width: 0; flex: 1 1 auto; }
+.map-setup-hint {
+  font-size: 0.78em;
+  color: var(--ink-muted, #888);
+  margin: -2px 0 8px;
+  font-style: italic;
+}
 .native-landmark-name {
   font-weight: 600;
   font-size: 0.95em;
@@ -2997,6 +3003,38 @@ a { color: inherit; }
   background: rgba(255, 255, 255, 0.85);
   border: 2px dashed rgba(0, 0, 0, 0.7);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+.clearing-badge.is-clickable { cursor: pointer; }
+.clearing-badge.is-clickable:hover {
+  filter: brightness(1.1);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(0, 0, 0, 0.85),
+    0 0 18px var(--badge-glow, rgba(0, 0, 0, 0.6));
+}
+.clearing-badge.is-locked {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--gold-bright, #f0c468),
+    0 0 16px var(--badge-glow, rgba(0, 0, 0, 0.5));
+}
+.clearing-badge-lock {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--gold-fill, #e0b04a);
+  color: var(--gold-fill-on, #4a3613);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  user-select: none;
 }
 @media (max-width: 600px) {
   .clearing-badge { width: 32px; height: 32px; }

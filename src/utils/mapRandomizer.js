@@ -14,16 +14,32 @@ function shuffle(arr) {
 // suit token. For maps with more clearings than tokens (e.g., Marsh's 15),
 // the 12 tokens are placed on a random subset; the remainder become unsuited.
 // Autumn returns its printed suits when the override is off.
-export function randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn = false } = {}) {
+//
+// `lockedSuits` (optional) is a `{ clearingId: suit }` map of clearings whose
+// suits should be preserved across re-rolls. Locked entries are kept as-is;
+// the remaining suit tokens (pool minus locked suits) are shuffled and placed
+// on the remaining unlocked clearings.
+export function randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn = false, lockedSuits = {} } = {}) {
   if (!map) return null;
   if (map.hasPrintedSuits && !forceSuitRandomizationOnAutumn) {
     return map.printedSuits ? { ...map.printedSuits } : null;
   }
   const allIds = map.clearings.map(c => c.id);
-  const tokens = shuffle(CLEARING_SUIT_POOL);
-  const suitedIds = shuffle(allIds).slice(0, tokens.length);
-  const result = {};
-  suitedIds.forEach((id, i) => { result[id] = tokens[i]; });
+  const lockedIds = new Set(Object.keys(lockedSuits).map(Number));
+
+  const remainingPool = [...CLEARING_SUIT_POOL];
+  for (const suit of Object.values(lockedSuits)) {
+    const idx = remainingPool.indexOf(suit);
+    if (idx !== -1) remainingPool.splice(idx, 1);
+  }
+
+  const unlockedIds = allIds.filter(id => !lockedIds.has(id));
+  const shuffledTokens = shuffle(remainingPool);
+  const shuffledUnlocked = shuffle(unlockedIds);
+  const suitedUnlocked = shuffledUnlocked.slice(0, shuffledTokens.length);
+
+  const result = { ...lockedSuits };
+  suitedUnlocked.forEach((id, i) => { result[id] = shuffledTokens[i]; });
   return result;
 }
 
@@ -104,14 +120,16 @@ export function buildMapSetup({
   playerCount,
   ownedAccessories,
   forceSuitRandomizationOnAutumn,
+  lockedSuits = {},
 }) {
   const map = MAP_MAP[mapId];
   if (!map) return null;
-  const clearingSuits = randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn });
+  const clearingSuits = randomizeClearingSuits(map, { forceSuitRandomizationOnAutumn, lockedSuits });
   const unsuitedSlots = getUnsuitedClearings(map, clearingSuits);
   return {
     clearingSuits,
     unsuitedSlots,
+    lockedClearingSuits: { ...lockedSuits },
     floodMarkers: randomizeFloodMarkers(map, playerCount, unsuitedSlots),
     nativeLandmarkIds: getNativeLandmarks(map, playerCount).map(l => l.id),
     nativeLandmarkPlacements: randomizeNativeLandmarkPlacements(map, playerCount, unsuitedSlots),
