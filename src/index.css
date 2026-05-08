@@ -1720,35 +1720,42 @@ a { color: inherit; }
 }
 
 .map-reroll-btn {
-  display: flex;
+  /* Matches the main Randomize button's gold styling. All re-roll / randomize
+     buttons share this visual language. */
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   font-family: var(--font-display);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: var(--radius-sm);
-  padding: 0.25rem 0.5rem;
+  color: var(--gold-fill-on, #4a3613);
+  background: var(--gold-fill, #e0b04a);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
+  border-radius: var(--radius-sm, 4px);
+  padding: 0.35rem 0.7rem;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
 }
 .map-reroll-btn:hover {
-  background: rgba(0,0,0,0.35);
-  border-color: rgba(255,255,255,0.4);
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(200, 144, 42, 0.3);
 }
+.map-reroll-btn:active { transform: translateY(0); }
 .map-reroll-btn--alt {
-  /* Used for Clear locks — visually distinct from re-roll buttons. */
-  background: rgba(255, 80, 60, 0.25);
-  border-color: rgba(255, 140, 130, 0.4);
+  /* Destructive variant (e.g., Clear locks) — red accent stands apart from
+     gold re-roll buttons. */
+  background: #b03a3a;
+  color: #fff;
+  border-color: #b03a3a;
 }
 .map-reroll-btn--alt:hover {
-  background: rgba(255, 80, 60, 0.4);
-  border-color: rgba(255, 180, 170, 0.6);
+  background: #c04848;
+  border-color: #c04848;
 }
 .map-card-hint {
   font-size: 0.78em;
