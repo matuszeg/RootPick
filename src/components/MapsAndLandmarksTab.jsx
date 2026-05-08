@@ -2,7 +2,6 @@ import { MAPS } from '../data/maps.js';
 import { ACCESSORIES, LANDMARKS } from '../data/accessories.js';
 import { CheckIcon, StarIcon, XIcon } from './Icons.jsx';
 import MapCard from './MapCard.jsx';
-import MapSetupCard from './MapSetupCard.jsx';
 import LandmarkCard from './LandmarkCard.jsx';
 import DieIcon from './DieIcon.jsx';
 
@@ -209,7 +208,19 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
             <>
               <div className="visual-row">
                 <div className="visual-row-map">
-                  <MapCard mapId={selectedMap} onReroll={actions.rerollMap} canReroll={canRerollMap} onBoardClick={onBoardClick} mapSetup={state.mapSetup} />
+                  <MapCard
+                    mapId={selectedMap}
+                    mapSetup={state.mapSetup}
+                    totalPlayers={state.playerCount + state.botCount}
+                    forceSuitRandomizationOnAutumn={state.forceSuitRandomizationOnAutumn}
+                    canReroll={canRerollMap}
+                    onRerollMap={actions.rerollMap}
+                    onRerollSuits={actions.rerollClearingSuits}
+                    onRerollFloods={actions.rerollFloodMarkers}
+                    onRerollPlacements={actions.rerollNativeLandmarkPlacements}
+                    onClearLocks={actions.clearAllClearingLocks}
+                    onToggleLock={actions.toggleClearingLock}
+                  />
                 </div>
                 {canUseLandmarks && useLandmarks && selectedLandmarks.length > 0 && (
                   <div className="visual-row-landmarks">
@@ -233,7 +244,6 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
                   </div>
                 )}
               </div>
-              <MapSetupCard state={state} actions={actions} onImageClick={onImageClick} />
               {canUseLandmarks && useLandmarks && selectedLandmarks.length === 0 && (
                 <div className="tab-empty-state">
                   <p>No random landmarks picked yet.</p>

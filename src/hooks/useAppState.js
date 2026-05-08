@@ -669,6 +669,14 @@ export function useAppState() {
     });
   }, []);
 
+  const clearAllClearingLocks = useCallback(() => {
+    setState(s => {
+      if (!s.mapSetup) return s;
+      if (!s.mapSetup.lockedClearingSuits || !Object.keys(s.mapSetup.lockedClearingSuits).length) return s;
+      return { ...s, mapSetup: { ...s.mapSetup, lockedClearingSuits: {} } };
+    });
+  }, []);
+
   const toggleClearingLock = useCallback(clearingId => {
     setState(s => {
       if (!s.mapSetup) return s;
@@ -955,7 +963,7 @@ export function useAppState() {
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       toggleExcludedMap, toggleExcludedHireling, toggleExcludedCharacter, toggleExcludedLandmark,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
-      rerollClearingSuits, rerollFloodMarkers, rerollNativeLandmarkPlacements, toggleClearingLock,
+      rerollClearingSuits, rerollFloodMarkers, rerollNativeLandmarkPlacements, toggleClearingLock, clearAllClearingLocks,
       rerollSingleHireling, rerollLandmarks, rerollSingleLandmark, rerollVagabondCharacter,
       undo, toggleLock, banFaction, unbanFaction,
       toggleLockHireling, banHireling, unbanHireling,

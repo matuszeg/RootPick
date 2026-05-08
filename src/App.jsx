@@ -154,11 +154,6 @@ export default function App() {
           images={boardModal.images}
           title={boardModal.title}
           sideLabels={boardModal.sideLabels}
-          map={boardModal.map}
-          /* Read live mapSetup so per-clearing locks update in real time
-             instead of using the snapshot captured at click time. */
-          mapSetup={boardModal.map ? state.mapSetup : null}
-          onToggleLock={boardModal.map ? actions.toggleClearingLock : undefined}
           onClose={() => setBoardModal(null)}
         />
       )}
