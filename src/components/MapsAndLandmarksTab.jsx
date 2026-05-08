@@ -59,8 +59,10 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
   const activeMaps = MAPS.filter(m => activeMapExpansions.has(m.expansion) && !excludedMaps.has(m.id));
   const canRerollMap = activeMaps.filter(m => mapDifficulties.has(m.difficulty)).length > 1;
 
-  const canUseLandmarks = ownedAccessories.has('landmarks_pack') || ownedAccessories.has('underworld_landmarks') || ownedAccessories.has('homeland_landmarks');
-  const landmarkAccessories = ACCESSORIES.filter(a => a.category === 'landmark');
+  const canUseLandmarks = ownedAccessories.has('landmarks_pack') || ownedAccessories.has('underworld_landmarks');
+  // Hide homeland_landmarks: its 3 entries are Marsh-only natives that never
+  // appear in the random draw, so toggling it does nothing visible.
+  const landmarkAccessories = ACCESSORIES.filter(a => a.category === 'landmark' && a.id !== 'homeland_landmarks');
   const availableLandmarks = LANDMARKS.filter(l => ownedAccessories.has(l.source) && !HOMELAND_NATIVE_IDS.has(l.id));
 
   return (
