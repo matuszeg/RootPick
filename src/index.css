@@ -2937,6 +2937,15 @@ a { color: inherit; }
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
   animation: badgeIn 0.3s ease both;
 }
+/* Native landmark token artwork (Marsh 5+p): same treatment as flood markers. */
+.clearing-native-img {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  animation: badgeIn 0.3s ease both;
+}
 .clearing-badge {
   position: absolute;
   transform: translate(-50%, -50%);

@@ -110,6 +110,7 @@ export const LANDMARKS = [
     description: 'This mouse clearing has one extra building slot.',
     frontImg: '/icons/landmarks/cards/mousehold-front.webp',
     backImg:  '/icons/landmarks/cards/mousehold-back.webp',
+    tokenImg: '/icons/landmarks/tokens/mousehold.png',
   },
   {
     id: 'foxburrow',
@@ -118,6 +119,7 @@ export const LANDMARKS = [
     description: 'This fox clearing has one extra building slot.',
     frontImg: '/icons/landmarks/cards/foxburrow-front.webp',
     backImg:  '/icons/landmarks/cards/foxburrow-back.webp',
+    tokenImg: '/icons/landmarks/tokens/foxburrow.png',
   },
   {
     id: 'rabbittown',
@@ -126,6 +128,7 @@ export const LANDMARKS = [
     description: 'This rabbit clearing has one extra building slot.',
     frontImg: '/icons/landmarks/cards/rabbittown-front.webp',
     backImg:  '/icons/landmarks/cards/rabbittown-back.webp',
+    tokenImg: '/icons/landmarks/tokens/rabbittown.png',
   },
 ];
 

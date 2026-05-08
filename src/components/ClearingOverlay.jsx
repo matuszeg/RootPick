@@ -61,6 +61,34 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
         );
       })}
 
+      {/* Native landmark token images (Marsh 5+p): rendered like flood images
+         using the same per-clearing placement positions. Falls back to clearing
+         center if no placement data exists. */}
+      {Object.entries(placements).map(([landmarkId, clearingId]) => {
+        const lm = LANDMARK_MAP[landmarkId];
+        if (!lm || !lm.tokenImg) return null;
+        const placement = placementByClearing[clearingId];
+        const clearing = map.clearings.find(c => c.id === clearingId);
+        const x = placement?.x ?? clearing?.x;
+        const y = placement?.y ?? clearing?.y;
+        if (x == null || y == null) return null;
+        return (
+          <img
+            key={`native-img-${landmarkId}`}
+            className="clearing-native-img"
+            src={lm.tokenImg}
+            alt=""
+            draggable={false}
+            title={`${lm.name} — Clearing ${clearingId}`}
+            style={{
+              left: `${x}%`,
+              top: `${y}%`,
+              width: `${floodScale}%`,
+            }}
+          />
+        );
+      })}
+
       {clearings.map(c => {
         const suit = suits[c.id];
         const floodId = floodByClearing[c.id];
@@ -93,6 +121,9 @@ function ClearingBadge({ clearing, suit, flood, native, locked, onToggleLock }) 
   if (flood) return null;
 
   if (native) {
+    // When the native landmark has a token image, ClearingOverlay draws the
+    // full image separately — no badge needed here.
+    if (native.tokenImg) return null;
     return (
       <div className="clearing-badge clearing-badge--native" style={style} title={`${native.name} — Clearing ${clearing.id}`}>
         <img className="clearing-badge-thumb" src={native.frontImg} alt="" draggable={false} />
