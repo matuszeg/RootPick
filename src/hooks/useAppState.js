@@ -8,40 +8,34 @@ import {
 } from '../data/accessories.js';
 import { buildMapSetup, getEligibleLandmarks, getNativeLandmarks, getUnsuitedClearings, randomizeClearingSuits, randomizeFloodMarkers, randomizeNativeLandmarkPlacements } from '../utils/mapRandomizer.js';
 
-// Recompute the player-count-dependent parts of mapSetup (native landmarks,
-// Marsh flood markers, native landmark slot placements) without re-randomizing
-// clearing suits.
+// Recompute the player-count-dependent parts of mapSetup. When the player
+// count crosses the 4/5 boundary on Marsh, the floods/natives swap, which
+// changes which clearings are suited; we rebuild the whole mapSetup in that
+// case (preserving the user's clearing-suit locks).
 function recomputeMapSetupForPlayers(s, totalPlayers) {
   if (!s.selectedMap || !s.mapSetup) return s.mapSetup;
   const map = MAP_MAP[s.selectedMap];
   if (!map) return s.mapSetup;
-  const unsuitedSlots = s.mapSetup.unsuitedSlots ?? getUnsuitedClearings(map, s.mapSetup.clearingSuits);
   const newNatives = getNativeLandmarks(map, totalPlayers).map(l => l.id);
-  let newFloods = s.mapSetup.floodMarkers;
-  const floodsApplicable = map.hasFloodMarkers && totalPlayers <= 4;
-  if (floodsApplicable && !newFloods) {
-    newFloods = randomizeFloodMarkers(map, totalPlayers, unsuitedSlots);
-  } else if (!floodsApplicable) {
-    newFloods = null;
-  }
-  // Native placements: regenerate when the active native set changes; null
-  // out when no natives apply.
   const prevPlacements = s.mapSetup.nativeLandmarkPlacements ?? null;
   const prevNativeKeys = prevPlacements ? Object.keys(prevPlacements).sort().join(',') : '';
   const newNativeKeys = [...newNatives].sort().join(',');
-  let newPlacements = prevPlacements;
-  if (!newNatives.length) {
-    newPlacements = null;
-  } else if (newNativeKeys !== prevNativeKeys) {
-    newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers, unsuitedSlots);
+  const floodsApplicable = map.hasFloodMarkers && totalPlayers <= 4;
+  const hasFloods = !!s.mapSetup.floodMarkers;
+  const nativesChanged = newNativeKeys !== prevNativeKeys;
+  const floodsChanged = floodsApplicable !== hasFloods;
+  if (!nativesChanged && !floodsChanged) {
+    return { ...s.mapSetup, nativeLandmarkIds: newNatives };
   }
-  return {
-    ...s.mapSetup,
-    unsuitedSlots,
-    nativeLandmarkIds: newNatives,
-    floodMarkers: newFloods,
-    nativeLandmarkPlacements: newPlacements,
-  };
+  // Cross the 4/5 boundary: regenerate full setup, preserving locks.
+  const fresh = buildMapSetup({
+    mapId: s.selectedMap,
+    playerCount: totalPlayers,
+    ownedAccessories: s.ownedAccessories,
+    forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+    lockedSuits: s.mapSetup.lockedClearingSuits ?? {},
+  });
+  return fresh ?? s.mapSetup;
 }
 
 function pickRandomMap(activeMapExpansions, excludedMaps, mapDifficulties) {
@@ -645,27 +639,23 @@ export function useAppState() {
       const map = MAP_MAP[s.selectedMap];
       if (!map) return s;
       if (map.hasPrintedSuits && !s.forceSuitRandomizationOnAutumn) return s;
-      const totalPlayers = s.playerCount + s.botCount;
       const lockedSuits = s.mapSetup.lockedClearingSuits ?? {};
+      // Floods/natives stay put; suits re-shuffle on the remaining clearings.
+      const floodedIds = new Set(Object.values(s.mapSetup.floodMarkers ?? {}));
+      const nativeIds = new Set(Object.values(s.mapSetup.nativeLandmarkPlacements ?? {}));
+      const excludedClearings = new Set([...floodedIds, ...nativeIds]);
       const newSuits = randomizeClearingSuits(map, {
         forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
         lockedSuits,
+        excludedClearings,
       });
       const newUnsuited = getUnsuitedClearings(map, newSuits);
-      // Re-randomizing suits changes which clearings are unsuited, so floods
-      // and native placements must move with them.
-      const newFloods = (map.hasFloodMarkers && totalPlayers <= 4)
-        ? randomizeFloodMarkers(map, totalPlayers, newUnsuited)
-        : null;
-      const newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers, newUnsuited);
       return {
         ...s,
         mapSetup: {
           ...s.mapSetup,
           clearingSuits: newSuits,
           unsuitedSlots: newUnsuited,
-          floodMarkers: newFloods,
-          nativeLandmarkPlacements: newPlacements,
         },
       };
     });
@@ -693,12 +683,28 @@ export function useAppState() {
       const map = MAP_MAP[s.selectedMap];
       if (!map || !map.hasFloodMarkers) return s;
       const totalPlayers = s.playerCount + s.botCount;
-      const slots = s.mapSetup.unsuitedSlots ?? getUnsuitedClearings(map, s.mapSetup.clearingSuits);
-      const next = randomizeFloodMarkers(map, totalPlayers, slots);
-      if (!next) return s;
+      const lockedSuits = s.mapSetup.lockedClearingSuits ?? {};
+      const lockedIds = new Set(Object.keys(lockedSuits).map(Number));
+      const newFloods = randomizeFloodMarkers(map, totalPlayers, { excludedClearings: lockedIds });
+      if (!newFloods) return s;
+      // Re-shuffle suits because flood positions changed (newly-flooded
+      // clearings lose their suits; newly-freed clearings gain them).
+      const floodedIds = new Set(Object.values(newFloods));
+      const nativeIds = new Set(Object.values(s.mapSetup.nativeLandmarkPlacements ?? {}));
+      const excluded = new Set([...floodedIds, ...nativeIds]);
+      const newSuits = randomizeClearingSuits(map, {
+        forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+        lockedSuits,
+        excludedClearings: excluded,
+      });
       return {
         ...s,
-        mapSetup: { ...s.mapSetup, floodMarkers: next },
+        mapSetup: {
+          ...s.mapSetup,
+          floodMarkers: newFloods,
+          clearingSuits: newSuits,
+          unsuitedSlots: getUnsuitedClearings(map, newSuits),
+        },
       };
     });
   }, []);
@@ -709,12 +715,26 @@ export function useAppState() {
       const map = MAP_MAP[s.selectedMap];
       if (!map) return s;
       const totalPlayers = s.playerCount + s.botCount;
-      const slots = s.mapSetup.unsuitedSlots ?? getUnsuitedClearings(map, s.mapSetup.clearingSuits);
-      const next = randomizeNativeLandmarkPlacements(map, totalPlayers, slots);
-      if (!next) return s;
+      const lockedSuits = s.mapSetup.lockedClearingSuits ?? {};
+      const lockedIds = new Set(Object.keys(lockedSuits).map(Number));
+      const newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers, { excludedClearings: lockedIds });
+      if (!newPlacements) return s;
+      const floodedIds = new Set(Object.values(s.mapSetup.floodMarkers ?? {}));
+      const nativeIds = new Set(Object.values(newPlacements));
+      const excluded = new Set([...floodedIds, ...nativeIds]);
+      const newSuits = randomizeClearingSuits(map, {
+        forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+        lockedSuits,
+        excludedClearings: excluded,
+      });
       return {
         ...s,
-        mapSetup: { ...s.mapSetup, nativeLandmarkPlacements: next },
+        mapSetup: {
+          ...s.mapSetup,
+          nativeLandmarkPlacements: newPlacements,
+          clearingSuits: newSuits,
+          unsuitedSlots: getUnsuitedClearings(map, newSuits),
+        },
       };
     });
   }, []);

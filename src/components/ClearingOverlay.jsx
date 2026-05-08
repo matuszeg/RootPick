@@ -34,8 +34,33 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
   const floodByClearing = invertMap(floods);
   const nativeByClearing = invertMap(placements);
 
+  // Marsh-only: per-clearing flood marker images and their custom positions.
+  const floodPlacements = map.floodMarkerPlacements ?? [];
+  const floodScale = map.floodMarkerScale ?? 15;
+  const placementByClearing = Object.fromEntries(floodPlacements.map(p => [p.clearingId, p]));
+
   return (
     <div className="clearing-overlay" aria-hidden="true">
+      {/* Flood marker images (Marsh): drawn first so suit/native badges sit on top. */}
+      {Object.entries(floods).map(([markerId, clearingId]) => {
+        const placement = placementByClearing[clearingId];
+        if (!placement) return null;
+        return (
+          <img
+            key={`flood-img-${markerId}`}
+            className="clearing-flood-img"
+            src={placement.img}
+            alt=""
+            draggable={false}
+            style={{
+              left: `${placement.x}%`,
+              top: `${placement.y}%`,
+              width: `${floodScale}%`,
+            }}
+          />
+        );
+      })}
+
       {clearings.map(c => {
         const suit = suits[c.id];
         const floodId = floodByClearing[c.id];
@@ -63,13 +88,9 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
 function ClearingBadge({ clearing, suit, flood, native, locked, onToggleLock }) {
   const style = { left: `${clearing.x}%`, top: `${clearing.y}%` };
 
-  if (flood) {
-    return (
-      <div className="clearing-badge clearing-badge--flood" style={{ ...style, '--badge-bg': flood.color }}>
-        <span className="clearing-badge-id">{clearing.id}</span>
-      </div>
-    );
-  }
+  // Flooded clearings are shown via a per-clearing image overlay (drawn
+  // separately by ClearingOverlay), so we don't draw the badge here.
+  if (flood) return null;
 
   if (native) {
     return (

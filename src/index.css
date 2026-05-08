@@ -2927,6 +2927,16 @@ a { color: inherit; }
   inset: 0;
   pointer-events: none;
 }
+/* Flood marker artwork: each marker is a circular image positioned over its
+   clearing+path on the printed board. Uses the marker's natural aspect ratio. */
+.clearing-flood-img {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  animation: badgeIn 0.3s ease both;
+}
 .clearing-badge {
   position: absolute;
   transform: translate(-50%, -50%);

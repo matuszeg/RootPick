@@ -166,14 +166,28 @@ export const MAPS = [
       { id: 'rabbittown', minPlayers: 5 },
     ],
     hasFloodMarkers: true,
+    // Each flood color can land on one of two specific printed clearings.
+    // At 1-4p, exactly one marker per color is placed.
     floodMarkers: [
-      { id: 'flood_light_green', name: 'Light Green', color: '#7FB069' },
-      { id: 'flood_dark_green', name: 'Dark Green', color: '#3D5A3D' },
-      { id: 'flood_brown', name: 'Brown', color: '#6B4E3D' },
+      { id: 'flood_light_green', name: 'Light Green', color: '#7FB069', clearingPair: [13, 14] },
+      { id: 'flood_dark_green',  name: 'Dark Green',  color: '#3D5A3D', clearingPair: [6, 8]   },
+      { id: 'flood_brown',       name: 'Brown',       color: '#6B4E3D', clearingPair: [10, 11] },
     ],
-    // Marsh has 15 clearings. The 12 base-game suit tokens are placed on any
-    // 12 of them; the 3 left over become the "unsuited" clearings that host
-    // floods (1-4p) or the native landmarks (5+p).
+    // Per-clearing flood marker images and their custom positions on the map
+    // (different from the clearing centers because each marker covers paths).
+    floodMarkerPlacements: [
+      { clearingId: 6,  img: '/icons/floods/marsh_06.png', x: 64.3, y: 14.2 },
+      { clearingId: 8,  img: '/icons/floods/marsh_08.png', x: 51.3, y: 85.6 },
+      { clearingId: 10, img: '/icons/floods/marsh_10.png', x: 9.5,  y: 55.8 },
+      { clearingId: 11, img: '/icons/floods/marsh_11.png', x: 28,   y: 34.5 },
+      { clearingId: 13, img: '/icons/floods/marsh_13.png', x: 80.5, y: 42.1 },
+      { clearingId: 14, img: '/icons/floods/marsh_14.png', x: 63.7, y: 65.3 },
+    ],
+    floodMarkerScale: 15,
+    // Marsh has 15 clearings. At 1-4p, 3 of the 6 flood-eligible clearings are
+    // covered by flood markers (one per color). At 5+p, 3 of those same 6 host
+    // the Mousehold/Foxburrow/Rabbittown native landmarks. The remaining 12
+    // clearings receive the 12 base-game suit tokens.
     clearingCount: 15,
     clearings: [
       { id: 1, x: 8.1, y: 8.6 },
@@ -192,6 +206,8 @@ export const MAPS = [
       { id: 14, x: 62.5, y: 57.7 },
       { id: 15, x: 33.4, y: 56.2 },
     ],
+    // Native landmarks at 5+p go to 3 of the 6 flood-eligible clearings.
+    nativeLandmarkSlotCandidates: [6, 8, 10, 11, 13, 14],
   },
   {
     id: "gorge",
