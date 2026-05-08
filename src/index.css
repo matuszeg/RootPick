@@ -3016,23 +3016,22 @@ a { color: inherit; }
   box-shadow:
     0 0 0 2px #fff,
     0 0 0 4px var(--gold-bright, #f0c468),
-    0 0 16px var(--badge-glow, rgba(0, 0, 0, 0.5));
+    0 0 18px rgba(240, 196, 104, 0.85);
 }
+/* Full-badge overlay: dark scrim + large centered lock icon. Reads clearly
+   at a glance, while the suit token underneath stays partially visible. */
 .clearing-badge-lock {
   position: absolute;
-  top: -6px;
-  left: -6px;
-  width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  background: var(--gold-fill, #e0b04a);
-  color: var(--gold-fill-on, #4a3613);
-  font-size: 10px;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--gold-bright, #f0c468);
+  font-size: 22px;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   pointer-events: none;
   user-select: none;
 }
