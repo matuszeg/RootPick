@@ -61,17 +61,13 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
         );
       })}
 
-      {/* Native landmark token images (Marsh 5+p): rendered like flood images
-         using the same per-clearing placement positions. Falls back to clearing
-         center if no placement data exists. */}
+      {/* Native landmark token images (Marsh 5+p): natives can land on any of
+         the 15 clearings (per Law M.5.1), so render at the clearing's center. */}
       {Object.entries(placements).map(([landmarkId, clearingId]) => {
         const lm = LANDMARK_MAP[landmarkId];
         if (!lm || !lm.tokenImg) return null;
-        const placement = placementByClearing[clearingId];
         const clearing = map.clearings.find(c => c.id === clearingId);
-        const x = placement?.x ?? clearing?.x;
-        const y = placement?.y ?? clearing?.y;
-        if (x == null || y == null) return null;
+        if (!clearing || clearing.x == null || clearing.y == null) return null;
         return (
           <img
             key={`native-img-${landmarkId}`}
@@ -81,8 +77,8 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
             draggable={false}
             title={`${lm.name} — Clearing ${clearingId}`}
             style={{
-              left: `${x}%`,
-              top: `${y}%`,
+              left: `${clearing.x}%`,
+              top: `${clearing.y}%`,
               width: `${floodScale}%`,
             }}
           />

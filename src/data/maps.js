@@ -206,8 +206,9 @@ export const MAPS = [
       { id: 14, x: 62.5, y: 57.7 },
       { id: 15, x: 33.4, y: 56.2 },
     ],
-    // Native landmarks at 5+p go to 3 of the 6 flood-eligible clearings.
-    nativeLandmarkSlotCandidates: [6, 8, 10, 11, 13, 14],
+    // Native landmarks at 5+p: per Law M.5.1, randomly pick 12 of 15 clearings
+    // to be suited; the 3 leftover host Mousehold/Foxburrow/Rabbittown.
+    // No `nativeLandmarkSlotCandidates` here — natives can land on any of the 15.
   },
   {
     id: "gorge",

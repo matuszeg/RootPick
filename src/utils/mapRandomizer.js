@@ -110,24 +110,35 @@ export function randomizeFloodMarkers(map, playerCount, { excludedClearings = ne
   return Object.keys(result).length ? result : null;
 }
 
-// Randomly assigns active native landmarks to clearings. Candidates come from
-// `map.nativeLandmarkSlotCandidates` (e.g., Marsh's 6 flood-eligible clearings)
-// minus any that are excluded (locked, already used).
-export function randomizeNativeLandmarkPlacements(map, playerCount, { excludedClearings = new Set() } = {}) {
+// Randomly assigns active native landmarks to clearings. Candidates default
+// to the supplied `candidates` array (e.g., the unsuited clearings after suit
+// placement); if none provided, falls back to map.nativeLandmarkSlotCandidates,
+// then to all clearings on the map. `excludedClearings` removes any (locked,
+// flooded, etc.) before picking.
+export function randomizeNativeLandmarkPlacements(map, playerCount, {
+  excludedClearings = new Set(),
+  candidates = null,
+} = {}) {
   const natives = getNativeLandmarks(map, playerCount);
   if (!natives.length) return null;
-  const candidates = (map.nativeLandmarkSlotCandidates ?? []).filter(id => !excludedClearings.has(id));
-  if (candidates.length < natives.length) return null;
-  const slots = shuffle(candidates).slice(0, natives.length);
+  const pool = candidates
+    ?? map.nativeLandmarkSlotCandidates
+    ?? map.clearings.map(c => c.id);
+  const eligible = pool.filter(id => !excludedClearings.has(id));
+  if (eligible.length < natives.length) return null;
+  const slots = shuffle(eligible).slice(0, natives.length);
   const result = {};
   natives.forEach((lm, i) => { result[lm.id] = slots[i]; });
   return result;
 }
 
-// Convenience: build a full mapSetup object. Order:
-// 1) Pick flood placements (if 1-4p Marsh) — deterministic clearings excluded from suits.
-// 2) Pick native placements (if 5+p Marsh) — chosen clearings excluded from suits.
-// 3) Place suits on the remaining clearings (respecting locks).
+// Build a full mapSetup. Order depends on player count:
+//
+// - 1-4p with floods (Marsh): pick floods first (constrained color/clearing
+//   pairs), then suits on the remaining 12.
+// - 5+p with natives (Marsh): pick suits first on any 12 of 15; the 3 leftover
+//   unsuited clearings host the 3 natives randomly. Per Law M.5.1.
+// - All other maps: suits only.
 export function buildMapSetup({
   mapId,
   playerCount,
@@ -140,20 +151,26 @@ export function buildMapSetup({
 
   const lockedIds = new Set(Object.keys(lockedSuits).map(Number));
 
+  // Step 1: floods (1-4p Marsh only). Their clearings are excluded from suits.
   const floodMarkers = randomizeFloodMarkers(map, playerCount, { excludedClearings: lockedIds });
   const floodedIds = new Set(Object.values(floodMarkers ?? {}));
 
-  const nativeExclusions = new Set([...lockedIds, ...floodedIds]);
-  const nativeLandmarkPlacements = randomizeNativeLandmarkPlacements(map, playerCount, { excludedClearings: nativeExclusions });
-  const nativeIds = new Set(Object.values(nativeLandmarkPlacements ?? {}));
-
-  const excludedFromSuits = new Set([...floodedIds, ...nativeIds]);
+  // Step 2: place suits on whatever clearings aren't locked or flooded.
   const clearingSuits = randomizeClearingSuits(map, {
     forceSuitRandomizationOnAutumn,
     lockedSuits,
-    excludedClearings: excludedFromSuits,
+    excludedClearings: floodedIds,
   });
   const unsuitedSlots = getUnsuitedClearings(map, clearingSuits);
+
+  // Step 3: at 5+p Marsh, the unsuited leftovers (after suit placement) host
+  // the 3 native landmarks. Floods and natives never coexist (different player
+  // counts), so this is mutually exclusive with floods.
+  const unsuitedNonFlooded = unsuitedSlots.filter(id => !floodedIds.has(id));
+  const nativeLandmarkPlacements = randomizeNativeLandmarkPlacements(map, playerCount, {
+    excludedClearings: lockedIds,
+    candidates: unsuitedNonFlooded,
+  });
 
   return {
     clearingSuits,
