@@ -2,10 +2,7 @@ import { MAPS } from '../data/maps.js';
 import { ACCESSORIES, LANDMARKS } from '../data/accessories.js';
 import { CheckIcon, StarIcon, XIcon } from './Icons.jsx';
 import MapCard from './MapCard.jsx';
-import LandmarkCard from './LandmarkCard.jsx';
-import DieIcon from './DieIcon.jsx';
 
-const HOMELAND_NATIVE_IDS = new Set(['mousehold', 'foxburrow', 'rabbittown']);
 const LANDMARK_COLOR = '#5A7A3A';
 
 const SOURCE_LABEL = {
@@ -49,7 +46,7 @@ function PoolItem({ name, icon, iconWide, meta, description, excluded, onToggle,
   );
 }
 
-export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabChange, onBoardClick, onImageClick }) {
+export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabChange, onBoardClick, onImageClick, onLandmarkClick }) {
   const {
     activeMapExpansions, mapDifficulties, selectedMap, ownedAccessories, excludedMaps,
     useLandmarks, landmarkCount, selectedLandmarks, excludedLandmarks,
@@ -58,11 +55,11 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
   const activeMaps = MAPS.filter(m => activeMapExpansions.has(m.expansion) && !excludedMaps.has(m.id));
   const canRerollMap = activeMaps.filter(m => mapDifficulties.has(m.difficulty)).length > 1;
 
-  const canUseLandmarks = ownedAccessories.has('landmarks_pack') || ownedAccessories.has('underworld_landmarks');
-  // Hide homeland_landmarks: its 3 entries are Marsh-only natives that never
-  // appear in the random draw, so toggling it does nothing visible.
-  const landmarkAccessories = ACCESSORIES.filter(a => a.category === 'landmark' && a.id !== 'homeland_landmarks');
-  const availableLandmarks = LANDMARKS.filter(l => ownedAccessories.has(l.source) && !HOMELAND_NATIVE_IDS.has(l.id));
+  const canUseLandmarks = ownedAccessories.has('landmarks_pack')
+    || ownedAccessories.has('underworld_landmarks')
+    || ownedAccessories.has('homeland_landmarks');
+  const landmarkAccessories = ACCESSORIES.filter(a => a.category === 'landmark');
+  const availableLandmarks = LANDMARKS.filter(l => ownedAccessories.has(l.source));
 
   return (
     <div className="tab-panel">
@@ -182,16 +179,16 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
               <span className="exclusion-desc"> — Autumn has printed suits; turn this on to randomize them too.</span>
             </span>
           </label>
-          <label className={`expansion-check ${state.allowNativeLandmarkOverride ? 'checked' : ''}`}>
+          <label className={`expansion-check ${state.allowOffSuitNatives ? 'checked' : ''}`}>
             <input
               type="checkbox"
-              checked={state.allowNativeLandmarkOverride}
-              onChange={e => actions.setAllowNativeLandmarkOverride(e.target.checked)}
+              checked={state.allowOffSuitNatives}
+              onChange={e => actions.setAllowOffSuitNatives(e.target.checked)}
             />
             <span className="checkbox-box" />
             <span className="expansion-name">
-              Allow native landmarks in random pool
-              <span className="exclusion-desc"> — Lets Tower roll on Mountain and Ferry roll on Lake.</span>
+              Allow off-suit native landmarks
+              <span className="exclusion-desc"> — Foxburrow / Mousehold / Rabbittown can land on any suited clearing instead of their named suit (Marsh 5+p still uses no-suit).</span>
             </span>
           </label>
         </div>
@@ -206,50 +203,20 @@ export default function MapsAndLandmarksTab({ state, actions, subTab, onSubTabCh
         <div className="sub-tab-content">
           {selectedMap ? (
             <>
-              <div className="visual-row">
-                <div className="visual-row-map">
-                  <MapCard
-                    mapId={selectedMap}
-                    mapSetup={state.mapSetup}
-                    totalPlayers={state.playerCount + state.botCount}
-                    forceSuitRandomizationOnAutumn={state.forceSuitRandomizationOnAutumn}
-                    canReroll={canRerollMap}
-                    onRerollMap={actions.rerollMap}
-                    onRerollSuits={actions.rerollClearingSuits}
-                    onRerollFloods={actions.rerollFloodMarkers}
-                    onRerollPlacements={actions.rerollNativeLandmarkPlacements}
-                    onClearLocks={actions.clearAllClearingLocks}
-                    onToggleLock={actions.toggleClearingLock}
-                  />
-                </div>
-                {canUseLandmarks && useLandmarks && selectedLandmarks.length > 0 && (
-                  <div className="visual-row-landmarks">
-                    <div className="visual-row-landmarks-head">
-                      <h3 className="visual-row-landmarks-title">Random Landmarks</h3>
-                      <button className="reroll-btn" onClick={actions.rerollLandmarks} title="Re-roll all random landmarks">
-                        <DieIcon /> Re-roll
-                      </button>
-                    </div>
-                    <div className="landmarks-grid">
-                      {selectedLandmarks.map((lid, i) => (
-                        <LandmarkCard
-                          key={lid}
-                          landmarkId={lid}
-                          index={i}
-                          onReroll={() => actions.rerollSingleLandmark(lid)}
-                          onImageClick={onImageClick}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              {canUseLandmarks && useLandmarks && selectedLandmarks.length === 0 && (
-                <div className="tab-empty-state">
-                  <p>No random landmarks picked yet.</p>
-                  <p className="tab-empty-sub">Hit Re-roll above or Randomize to get started.</p>
-                </div>
-              )}
+              <MapCard
+                mapId={selectedMap}
+                mapSetup={state.mapSetup}
+                totalPlayers={state.playerCount + state.botCount}
+                forceSuitRandomizationOnAutumn={state.forceSuitRandomizationOnAutumn}
+                canReroll={canRerollMap}
+                onRerollMap={actions.rerollMap}
+                onRerollSuits={actions.rerollClearingSuits}
+                onRerollFloods={actions.rerollFloodMarkers}
+                onRerollLandmarks={actions.rerollLandmarks}
+                onClearLocks={actions.clearAllClearingLocks}
+                onToggleLock={actions.toggleClearingLock}
+                onLandmarkClick={onLandmarkClick}
+              />
             </>
           ) : (
             <div className="tab-empty-state">

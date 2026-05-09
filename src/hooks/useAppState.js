@@ -4,9 +4,9 @@ import { decodeFromUrl } from '../utils/urlState.js';
 import { FACTION_MAP } from '../data/factions.js';
 import { MAPS, MAP_MAP } from '../data/maps.js';
 import {
-  DECKS, HIRELING_SETS, LANDMARKS, VAGABOND_CHARACTERS, getHirelingConflicts,
+  DECKS, HIRELING_SETS, LANDMARKS, LANDMARK_MAP, VAGABOND_CHARACTERS, getHirelingConflicts,
 } from '../data/accessories.js';
-import { buildMapSetup, getEligibleLandmarks, getNativeLandmarks, getUnsuitedClearings, randomizeClearingSuits, randomizeFloodMarkers, randomizeNativeLandmarkPlacements } from '../utils/mapRandomizer.js';
+import { buildMapSetup, getEligibleLandmarks, getNativeLandmarks, getUnsuitedClearings, pickAndPlaceLandmarks, placeLandmarks, randomizeClearingSuits, randomizeFloodMarkers } from '../utils/mapRandomizer.js';
 
 // Recompute the player-count-dependent parts of mapSetup. When the player
 // count crosses the 4/5 boundary on Marsh, the floods/natives swap, which
@@ -17,8 +17,7 @@ function recomputeMapSetupForPlayers(s, totalPlayers) {
   const map = MAP_MAP[s.selectedMap];
   if (!map) return s.mapSetup;
   const newNatives = getNativeLandmarks(map, totalPlayers).map(l => l.id);
-  const prevPlacements = s.mapSetup.nativeLandmarkPlacements ?? null;
-  const prevNativeKeys = prevPlacements ? Object.keys(prevPlacements).sort().join(',') : '';
+  const prevNativeKeys = (s.mapSetup.nativeLandmarkIds ?? []).slice().sort().join(',');
   const newNativeKeys = [...newNatives].sort().join(',');
   const floodsApplicable = map.hasFloodMarkers && totalPlayers <= 4;
   const hasFloods = !!s.mapSetup.floodMarkers;
@@ -28,12 +27,23 @@ function recomputeMapSetupForPlayers(s, totalPlayers) {
     return { ...s.mapSetup, nativeLandmarkIds: newNatives };
   }
   // Cross the 4/5 boundary: regenerate full setup, preserving locks.
+  // Drawn landmarks are kept in place where possible; ones that can't fit
+  // the new (5+p natives or 1-4p floods) layout get swapped via the
+  // try-and-replace logic in buildMapSetup's pickConfig path.
+  const useLandmarks = (s.selectedLandmarks?.length ?? 0) > 0;
   const fresh = buildMapSetup({
     mapId: s.selectedMap,
     playerCount: totalPlayers,
     ownedAccessories: s.ownedAccessories,
     forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
     lockedSuits: s.mapSetup.lockedClearingSuits ?? {},
+    allowOffSuitNatives: s.allowOffSuitNatives,
+    pickConfig: useLandmarks ? {
+      count: s.selectedLandmarks.length,
+      excludedLandmarks: s.excludedLandmarks,
+      fixedSelections: s.selectedLandmarks,
+    } : null,
+    selectedLandmarkIds: useLandmarks ? null : [],
   });
   return fresh ?? s.mapSetup;
 }
@@ -114,15 +124,14 @@ function computeHirelingStatuses(count, playerCount, lockedStatuses = []) {
 
 function pickRandomLandmarks({
   mapId, playerCount, ownedAccessories, count = 2, excludedLandmarks = new Set(),
-  allowNativeOverride = false,
 }) {
   const map = mapId ? MAP_MAP[mapId] : null;
   const eligible = map
     ? getEligibleLandmarks({
         map, playerCount, ownedAccessories, excludedLandmarks,
-        allowNativeOverride, allLandmarks: LANDMARKS,
+        allLandmarks: LANDMARKS,
       })
-    : LANDMARKS.filter(l => !excludedLandmarks.has(l.id) && ownedAccessories.has(l.source) && l.source !== 'homeland_landmarks');
+    : LANDMARKS.filter(l => !excludedLandmarks.has(l.id) && ownedAccessories.has(l.source));
   if (!eligible.length) return [];
   const shuffled = [...eligible].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, eligible.length)).map(l => l.id);
@@ -187,7 +196,7 @@ function loadSettings() {
       useLandmarks:        parsed.useLandmarks              ?? false,
       landmarkCount:       parsed.landmarkCount             ?? 2,
       forceSuitRandomizationOnAutumn: parsed.forceSuitRandomizationOnAutumn ?? false,
-      allowNativeLandmarkOverride:    parsed.allowNativeLandmarkOverride    ?? false,
+      allowOffSuitNatives:          parsed.allowOffSuitNatives          ?? false,
       excludedMaps:        new Set(parsed.excludedMaps       ?? []),
       excludedHirelings:   new Set(parsed.excludedHirelings  ?? []),
       lockedHirelings:     new Set(parsed.lockedHirelings    ?? []),
@@ -221,7 +230,7 @@ function saveSettings(state) {
       useLandmarks:        state.useLandmarks,
       landmarkCount:       state.landmarkCount,
       forceSuitRandomizationOnAutumn: state.forceSuitRandomizationOnAutumn,
-      allowNativeLandmarkOverride:    state.allowNativeLandmarkOverride,
+      allowOffSuitNatives:          state.allowOffSuitNatives,
       excludedMaps:        [...state.excludedMaps],
       excludedHirelings:   [...state.excludedHirelings],
       lockedHirelings:     [...state.lockedHirelings],
@@ -255,7 +264,7 @@ function getInitialState() {
     useLandmarks:        false,
     landmarkCount:       2,
     forceSuitRandomizationOnAutumn: false,
-    allowNativeLandmarkOverride:    false,
+    allowOffSuitNatives:          false,
     excludedMaps:        new Set(),
     excludedHirelings:   new Set(),
     lockedHirelings:     new Set(),
@@ -294,7 +303,7 @@ export function useAppState() {
     state.advancedMode, state.customMinReach, state.customMaxReach,
     state.allowedExclusions, state.ownedAccessories, state.avoidUnderdogs, state.useHirelings,
     state.useLandmarks, state.landmarkCount,
-    state.forceSuitRandomizationOnAutumn, state.allowNativeLandmarkOverride,
+    state.forceSuitRandomizationOnAutumn, state.allowOffSuitNatives,
     state.botCount, state.excludedMaps, state.excludedHirelings,
     state.lockedHirelings, state.bannedHirelings,
     state.excludedCharacters, state.excludedLandmarks,
@@ -322,6 +331,7 @@ export function useAppState() {
         error: null,
       };
       next.mapSetup = recomputeMapSetupForPlayers(next, n + newBotCount);
+      if (next.mapSetup?.selectedLandmarks) next.selectedLandmarks = next.mapSetup.selectedLandmarks;
       return next;
     });
   }, []);
@@ -331,6 +341,7 @@ export function useAppState() {
       const newBotCount = Math.max(0, Math.min(n, 6 - s.playerCount));
       const next = { ...s, botCount: newBotCount, selectedFactions: [], lockedFactions: new Set(), error: null };
       next.mapSetup = recomputeMapSetupForPlayers(next, s.playerCount + newBotCount);
+      if (next.mapSetup?.selectedLandmarks) next.selectedLandmarks = next.mapSetup.selectedLandmarks;
       return next;
     });
   }, []);
@@ -406,8 +417,8 @@ export function useAppState() {
     setState(s => ({ ...s, forceSuitRandomizationOnAutumn: val }));
   }, []);
 
-  const setAllowNativeLandmarkOverride = useCallback(val => {
-    setState(s => ({ ...s, allowNativeLandmarkOverride: val }));
+  const setAllowOffSuitNatives = useCallback(val => {
+    setState(s => ({ ...s, allowOffSuitNatives: val }));
   }, []);
 
   // ── Pool exclusions ───────────────────────────────────────────────────────
@@ -517,24 +528,21 @@ export function useAppState() {
         ...(() => {
           const newMapId = pickRandomMap(s.activeMapExpansions, s.excludedMaps, s.mapDifficulties);
           const totalPlayers = s.playerCount + s.botCount;
+          const setup = newMapId ? buildMapSetup({
+            mapId: newMapId,
+            playerCount: totalPlayers,
+            ownedAccessories: s.ownedAccessories,
+            forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+            allowOffSuitNatives: s.allowOffSuitNatives,
+            pickConfig: s.useLandmarks ? {
+              count: s.landmarkCount,
+              excludedLandmarks: s.excludedLandmarks,
+            } : null,
+          }) : null;
           return {
             selectedMap: newMapId,
-            mapSetup: newMapId ? buildMapSetup({
-              mapId: newMapId,
-              playerCount: totalPlayers,
-              ownedAccessories: s.ownedAccessories,
-              forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
-            }) : null,
-            selectedLandmarks: s.useLandmarks
-              ? pickRandomLandmarks({
-                  mapId: newMapId,
-                  playerCount: totalPlayers,
-                  ownedAccessories: s.ownedAccessories,
-                  count: s.landmarkCount,
-                  excludedLandmarks: s.excludedLandmarks,
-                  allowNativeOverride: s.allowNativeLandmarkOverride,
-                })
-              : [],
+            mapSetup: setup,
+            selectedLandmarks: setup?.selectedLandmarks ?? [],
           };
         })(),
         selectedDeck:       pickRandomDeck(s.ownedAccessories),
@@ -610,25 +618,22 @@ export function useAppState() {
       if (!eligible.length) return s;
       const newMapId = eligible[Math.floor(Math.random() * eligible.length)].id;
       const totalPlayers = s.playerCount + s.botCount;
+      const setup = buildMapSetup({
+        mapId: newMapId,
+        playerCount: totalPlayers,
+        ownedAccessories: s.ownedAccessories,
+        forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
+        allowOffSuitNatives: s.allowOffSuitNatives,
+        pickConfig: s.useLandmarks ? {
+          count: s.landmarkCount,
+          excludedLandmarks: s.excludedLandmarks,
+        } : null,
+      });
       return {
         ...s,
         selectedMap: newMapId,
-        mapSetup: buildMapSetup({
-          mapId: newMapId,
-          playerCount: totalPlayers,
-          ownedAccessories: s.ownedAccessories,
-          forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
-        }),
-        selectedLandmarks: s.useLandmarks
-          ? pickRandomLandmarks({
-              mapId: newMapId,
-              playerCount: totalPlayers,
-              ownedAccessories: s.ownedAccessories,
-              count: s.landmarkCount,
-              excludedLandmarks: s.excludedLandmarks,
-              allowNativeOverride: s.allowNativeLandmarkOverride,
-            })
-          : [],
+        mapSetup: setup,
+        selectedLandmarks: setup?.selectedLandmarks ?? [],
       };
     });
   }, []);
@@ -650,20 +655,29 @@ export function useAppState() {
         excludedClearings: floodedIds,
       });
       const newUnsuited = getUnsuitedClearings(map, newSuits);
-      // Natives at 5+p re-pin to the new unsuited leftover clearings (since
-      // those positions changed when suits re-shuffled).
-      const unsuitedNonFlooded = newUnsuited.filter(id => !floodedIds.has(id));
-      const newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers, {
-        excludedClearings: lockedIds,
-        candidates: unsuitedNonFlooded,
+      // Suit re-shuffle changes the suit-of-each-clearing context. Re-place
+      // landmarks under the new suit map; if any drawn landmark can no
+      // longer satisfy its rule, swap it out for a fresh draw rather than
+      // leaving the user with an orphaned card.
+      const result = pickAndPlaceLandmarks(map, {
+        playerCount: totalPlayers,
+        ownedAccessories: s.ownedAccessories,
+        excludedLandmarks: s.excludedLandmarks,
+        count: s.selectedLandmarks?.length ?? 0,
+        fixedSelections: s.selectedLandmarks ?? [],
+        suits: newSuits ?? {},
+        lockedClearings: lockedIds,
+        floodedClearings: floodedIds,
+        offSuit: s.allowOffSuitNatives,
       });
       return {
         ...s,
+        selectedLandmarks: result.selectedLandmarks,
         mapSetup: {
           ...s.mapSetup,
           clearingSuits: newSuits,
           unsuitedSlots: newUnsuited,
-          nativeLandmarkPlacements: newPlacements,
+          placedLandmarks: result.placedLandmarks,
         },
       };
     });
@@ -706,46 +720,38 @@ export function useAppState() {
       // Re-shuffle suits because flood positions changed (newly-flooded
       // clearings lose their suits; newly-freed clearings gain them).
       const floodedIds = new Set(Object.values(newFloods));
-      const nativeIds = new Set(Object.values(s.mapSetup.nativeLandmarkPlacements ?? {}));
-      const excluded = new Set([...floodedIds, ...nativeIds]);
       const newSuits = randomizeClearingSuits(map, {
         forceSuitRandomizationOnAutumn: s.forceSuitRandomizationOnAutumn,
         lockedSuits,
-        excludedClearings: excluded,
+        excludedClearings: floodedIds,
+      });
+      // Re-place landmarks under the new suit/flood layout. Drawn landmarks
+      // that no longer fit get swapped for fresh draws.
+      const result = pickAndPlaceLandmarks(map, {
+        playerCount: totalPlayers,
+        ownedAccessories: s.ownedAccessories,
+        excludedLandmarks: s.excludedLandmarks,
+        count: s.selectedLandmarks?.length ?? 0,
+        fixedSelections: s.selectedLandmarks ?? [],
+        suits: newSuits ?? {},
+        lockedClearings: lockedIds,
+        floodedClearings: floodedIds,
+        offSuit: s.allowOffSuitNatives,
       });
       return {
         ...s,
+        selectedLandmarks: result.selectedLandmarks,
         mapSetup: {
           ...s.mapSetup,
           floodMarkers: newFloods,
           clearingSuits: newSuits,
           unsuitedSlots: getUnsuitedClearings(map, newSuits),
+          placedLandmarks: result.placedLandmarks,
         },
       };
     });
   }, []);
 
-  const rerollNativeLandmarkPlacements = useCallback(() => {
-    setState(s => {
-      if (!s.selectedMap || !s.mapSetup) return s;
-      const map = MAP_MAP[s.selectedMap];
-      if (!map) return s;
-      const totalPlayers = s.playerCount + s.botCount;
-      // Just shuffle which native goes on which of the EXISTING unsuited
-      // clearings — don't change which clearings are unsuited.
-      const currentUnsuited = s.mapSetup.unsuitedSlots ?? getUnsuitedClearings(map, s.mapSetup.clearingSuits);
-      const floodedIds = new Set(Object.values(s.mapSetup.floodMarkers ?? {}));
-      const candidates = currentUnsuited.filter(id => !floodedIds.has(id));
-      const newPlacements = randomizeNativeLandmarkPlacements(map, totalPlayers, {
-        candidates,
-      });
-      if (!newPlacements) return s;
-      return {
-        ...s,
-        mapSetup: { ...s.mapSetup, nativeLandmarkPlacements: newPlacements },
-      };
-    });
-  }, []);
 
   const rerollDeck = useCallback(() => {
     setState(s => {
@@ -804,40 +810,58 @@ export function useAppState() {
   }, []);
 
   const rerollLandmarks = useCallback(() => {
-    setState(s => ({
-      ...s,
-      selectedLandmarks: pickRandomLandmarks({
-        mapId: s.selectedMap,
-        playerCount: s.playerCount + s.botCount,
+    setState(s => {
+      const map = s.selectedMap ? MAP_MAP[s.selectedMap] : null;
+      if (!map || !s.mapSetup) return s;
+      const totalPlayers = s.playerCount + s.botCount;
+      const lockedIds = new Set(Object.keys(s.mapSetup.lockedClearingSuits ?? {}).map(Number));
+      const floodedIds = new Set(Object.values(s.mapSetup.floodMarkers ?? {}));
+      const result = pickAndPlaceLandmarks(map, {
+        playerCount: totalPlayers,
         ownedAccessories: s.ownedAccessories,
-        count: s.landmarkCount,
         excludedLandmarks: s.excludedLandmarks,
-        allowNativeOverride: s.allowNativeLandmarkOverride,
-      }),
-    }));
+        count: s.landmarkCount,
+        suits: s.mapSetup.clearingSuits ?? {},
+        lockedClearings: lockedIds,
+        floodedClearings: floodedIds,
+        offSuit: s.allowOffSuitNatives,
+      });
+      return {
+        ...s,
+        selectedLandmarks: result.selectedLandmarks,
+        mapSetup: { ...s.mapSetup, placedLandmarks: result.placedLandmarks },
+      };
+    });
   }, []);
 
   const rerollSingleLandmark = useCallback(landmarkId => {
     setState(s => {
-      const others = s.selectedLandmarks.filter(id => id !== landmarkId);
-      const exclude = new Set([...s.excludedLandmarks, ...others]);
       const map = s.selectedMap ? MAP_MAP[s.selectedMap] : null;
-      const eligible = map
-        ? getEligibleLandmarks({
-            map,
-            playerCount: s.playerCount + s.botCount,
-            ownedAccessories: s.ownedAccessories,
-            excludedLandmarks: exclude,
-            allowNativeOverride: s.allowNativeLandmarkOverride,
-            allLandmarks: LANDMARKS,
-          })
-        : LANDMARKS.filter(l => !exclude.has(l.id) && s.ownedAccessories.has(l.source) && l.source !== 'homeland_landmarks');
-      if (!eligible.length) return s;
-      const pick = eligible[Math.floor(Math.random() * eligible.length)];
-      const idx = s.selectedLandmarks.indexOf(landmarkId);
-      const next = [...s.selectedLandmarks];
-      next[idx] = pick.id;
-      return { ...s, selectedLandmarks: next };
+      if (!map || !s.mapSetup) return s;
+      const totalPlayers = s.playerCount + s.botCount;
+      const lockedIds = new Set(Object.keys(s.mapSetup.lockedClearingSuits ?? {}).map(Number));
+      const floodedIds = new Set(Object.values(s.mapSetup.floodMarkers ?? {}));
+      // Keep the OTHER selected landmarks fixed; pick a fresh replacement
+      // for the one being re-rolled. The replacement is excluded from being
+      // the same id again so the user actually sees a change.
+      const others = s.selectedLandmarks.filter(id => id !== landmarkId);
+      const exclude = new Set([...s.excludedLandmarks, landmarkId]);
+      const result = pickAndPlaceLandmarks(map, {
+        playerCount: totalPlayers,
+        ownedAccessories: s.ownedAccessories,
+        excludedLandmarks: exclude,
+        count: s.landmarkCount,
+        fixedSelections: others,
+        suits: s.mapSetup.clearingSuits ?? {},
+        lockedClearings: lockedIds,
+        floodedClearings: floodedIds,
+        offSuit: s.allowOffSuitNatives,
+      });
+      return {
+        ...s,
+        selectedLandmarks: result.selectedLandmarks,
+        mapSetup: { ...s.mapSetup, placedLandmarks: result.placedLandmarks },
+      };
     });
   }, []);
 
@@ -959,11 +983,11 @@ export function useAppState() {
       toggleExpansion, setPlayerCount, setBotCount, setBalanceMode, setRequireBalance, setAvoidUnderdogs,
       toggleDifficulty, toggleMapDifficulty, toggleMapExpansion, toggleAccessory, setUseHirelings,
       setUseLandmarks, setLandmarkCount,
-      setForceSuitRandomizationOnAutumn, setAllowNativeLandmarkOverride,
+      setForceSuitRandomizationOnAutumn, setAllowOffSuitNatives,
       setAdvancedMode, setCustomMinReach, setCustomMaxReach, toggleAllowedExclusion,
       toggleExcludedMap, toggleExcludedHireling, toggleExcludedCharacter, toggleExcludedLandmark,
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
-      rerollClearingSuits, rerollFloodMarkers, rerollNativeLandmarkPlacements, toggleClearingLock, clearAllClearingLocks,
+      rerollClearingSuits, rerollFloodMarkers, toggleClearingLock, clearAllClearingLocks,
       rerollSingleHireling, rerollLandmarks, rerollSingleLandmark, rerollVagabondCharacter,
       undo, toggleLock, banFaction, unbanFaction,
       toggleLockHireling, banHireling, unbanHireling,

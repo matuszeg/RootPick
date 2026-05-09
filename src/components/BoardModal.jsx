@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { XIcon } from './Icons.jsx';
 import ClearingOverlay from './ClearingOverlay.jsx';
 
-export default function BoardModal({ images, title, onClose, sideLabels = ['Front', 'Back'], map = null, mapSetup = null, onToggleLock = null }) {
+export default function BoardModal({ images, title, onClose, sideLabels = ['Front', 'Back'], map = null, mapSetup = null, onToggleLock = null, actionLabel = null, onAction = null }) {
   const [showingFront, setShowingFront] = useState(true);
   const hasBack = images?.back != null;
   const activeSrc = showingFront ? images?.front : images?.back;
@@ -54,6 +54,14 @@ export default function BoardModal({ images, title, onClose, sideLabels = ['Fron
                 {sideLabels[1]}
               </button>
             </div>
+          )}
+          {actionLabel && onAction && (
+            <button
+              className="board-modal-action"
+              onClick={() => { onAction(); onClose(); }}
+            >
+              {actionLabel}
+            </button>
           )}
           <button className="board-modal-close" onClick={onClose} aria-label="Close">
             <XIcon width={16} height={16} />

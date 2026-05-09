@@ -22,17 +22,24 @@ const SUIT_ICON = {
 // `map` must have a `clearings` array with `{id, x, y}` (percentages of image).
 // `onToggleLock` (optional) — when provided, clicking a suited badge toggles
 // its lock state; locked badges are rendered with a lock indicator.
-export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
+export default function ClearingOverlay({ map, mapSetup, onToggleLock, onLandmarkClick }) {
   if (!map || !mapSetup) return null;
   const clearings = (map.clearings ?? []).filter(c => typeof c.x === 'number' && typeof c.y === 'number');
   if (!clearings.length) return null;
 
   const suits = mapSetup.clearingSuits ?? {};
   const floods = mapSetup.floodMarkers ?? {};
-  const placements = mapSetup.nativeLandmarkPlacements ?? {};
+  const placedLandmarks = mapSetup.placedLandmarks ?? {};
   const locked = mapSetup.lockedClearingSuits ?? {};
   const floodByClearing = invertMap(floods);
-  const nativeByClearing = invertMap(placements);
+
+  // Map clearingId -> landmarkId for any clearing that holds a placed landmark.
+  // Used to suppress empty clearing badges on no-suit clearings that already
+  // host a landmark token (e.g. Marsh natives at 5+p).
+  const landmarkByClearing = {};
+  for (const [lid, info] of Object.entries(placedLandmarks)) {
+    if (info?.clearingId != null) landmarkByClearing[info.clearingId] = lid;
+  }
 
   // Marsh-only: per-clearing flood marker images and their custom positions.
   const floodPlacements = map.floodMarkerPlacements ?? [];
@@ -61,25 +68,30 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
         );
       })}
 
-      {/* Native landmark token images (Marsh 5+p): natives can land on any of
-         the 15 clearings (per Law M.5.1), so render at the clearing's center. */}
-      {Object.entries(placements).map(([landmarkId, clearingId]) => {
+      {/* All placed landmarks (Tower, Ferry, Marsh natives, pack landmarks)
+         render here at their authored (x, y) — clearing center, ruin spot,
+         or landmark slot, depending on the placement rule. The suit badge
+         beneath stays visible on suited clearings; on no-suit clearings the
+         empty badge is suppressed below. */}
+      {Object.entries(placedLandmarks).map(([landmarkId, info]) => {
         const lm = LANDMARK_MAP[landmarkId];
-        if (!lm || !lm.tokenImg) return null;
-        const clearing = map.clearings.find(c => c.id === clearingId);
-        if (!clearing || clearing.x == null || clearing.y == null) return null;
+        if (!lm || !lm.tokenImg || !info) return null;
+        const clickable = !!onLandmarkClick;
         return (
           <img
-            key={`native-img-${landmarkId}`}
-            className="clearing-native-img"
+            key={`placed-img-${landmarkId}`}
+            className={`clearing-native-img${clickable ? ' is-clickable' : ''}`}
             src={lm.tokenImg}
             alt=""
             draggable={false}
-            title={`${lm.name} — Clearing ${clearingId}`}
+            title={clickable ? `${lm.name} — click to view card` : `${lm.name} — Clearing ${info.clearingId}`}
+            onClick={clickable ? (e) => { e.stopPropagation(); onLandmarkClick(landmarkId, lm); } : undefined}
             style={{
-              left: `${clearing.x}%`,
-              top: `${clearing.y}%`,
-              width: `${floodScale}%`,
+              left: `${info.x}%`,
+              top: `${info.y}%`,
+              width: `${lm.scale ?? 13}%`,
+              cursor: clickable ? 'pointer' : undefined,
+              pointerEvents: clickable ? 'auto' : undefined,
             }}
           />
         );
@@ -88,10 +100,11 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
       {clearings.map(c => {
         const suit = suits[c.id];
         const floodId = floodByClearing[c.id];
-        const nativeId = nativeByClearing[c.id];
         const flood = floodId ? (map.floodMarkers ?? []).find(f => f.id === floodId) : null;
-        const native = nativeId ? LANDMARK_MAP[nativeId] : null;
         const isLocked = c.id in locked;
+        // No-suit clearing that hosts a landmark token (e.g. Marsh native at
+        // 5+p): suppress the empty badge so the token reads cleanly.
+        const hasLandmarkOnNoSuit = !suit && landmarkByClearing[c.id] != null;
 
         return (
           <ClearingBadge
@@ -99,7 +112,7 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
             clearing={c}
             suit={suit}
             flood={flood}
-            native={native}
+            suppressEmpty={hasLandmarkOnNoSuit}
             locked={isLocked}
             onToggleLock={onToggleLock}
           />
@@ -109,24 +122,12 @@ export default function ClearingOverlay({ map, mapSetup, onToggleLock }) {
   );
 }
 
-function ClearingBadge({ clearing, suit, flood, native, locked, onToggleLock }) {
+function ClearingBadge({ clearing, suit, flood, suppressEmpty, locked, onToggleLock }) {
   const style = { left: `${clearing.x}%`, top: `${clearing.y}%` };
 
   // Flooded clearings are shown via a per-clearing image overlay (drawn
   // separately by ClearingOverlay), so we don't draw the badge here.
   if (flood) return null;
-
-  if (native) {
-    // When the native landmark has a token image, ClearingOverlay draws the
-    // full image separately — no badge needed here.
-    if (native.tokenImg) return null;
-    return (
-      <div className="clearing-badge clearing-badge--native" style={style} title={`${native.name} — Clearing ${clearing.id}`}>
-        <img className="clearing-badge-thumb" src={native.frontImg} alt="" draggable={false} />
-        <span className="clearing-badge-id">{clearing.id}</span>
-      </div>
-    );
-  }
 
   if (suit) {
     const interactive = !!onToggleLock;
@@ -161,6 +162,7 @@ function ClearingBadge({ clearing, suit, flood, native, locked, onToggleLock }) 
     );
   }
 
+  if (suppressEmpty) return null;
   return (
     <div className="clearing-badge clearing-badge--empty" style={style} title={`Clearing ${clearing.id} (unsuited)`}>
       <span className="clearing-badge-id">{clearing.id}</span>

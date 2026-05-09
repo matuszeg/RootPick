@@ -42,6 +42,16 @@ export default function App() {
     setBoardModal({ images, title: name, sideLabels, ...(extras ?? {}) });
   }
 
+  function handleLandmarkClick(landmarkId, lm) {
+    setBoardModal({
+      images: { front: lm.frontImg, back: lm.backImg },
+      title: lm.name,
+      sideLabels: ['Front', 'Back'],
+      actionLabel: 'Re-roll this landmark',
+      onAction: () => actions.rerollSingleLandmark(landmarkId),
+    });
+  }
+
   return (
     <div className="app">
       <header className="app-header">
@@ -118,6 +128,7 @@ export default function App() {
             onSubTabChange={tab => setSubTab('maps_landmarks', tab)}
             onBoardClick={(images, name, sideLabels, extras) => handleBoardClick(images, name, sideLabels, extras)}
             onImageClick={(images, name) => handleBoardClick(images, name)}
+            onLandmarkClick={handleLandmarkClick}
           />
         )}
 
@@ -154,6 +165,8 @@ export default function App() {
           images={boardModal.images}
           title={boardModal.title}
           sideLabels={boardModal.sideLabels}
+          actionLabel={boardModal.actionLabel}
+          onAction={boardModal.onAction}
           onClose={() => setBoardModal(null)}
         />
       )}

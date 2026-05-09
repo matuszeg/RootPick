@@ -1620,6 +1620,13 @@ a { color: inherit; }
 }
 
 /* ─── Map card ────────────────────────────────────────────────────────── */
+/* Map sizing: every map image shares aspect ratio ~1.092 (width / height),
+   so capping the card's width by a viewport-derived value also caps the
+   image height. The hard `min()` ceiling keeps it from getting absurd on
+   ultrawide / 4K monitors. The aspect-ratio on the image-inner guarantees
+   the overlay's percentage-positioned children align exactly with the
+   image (which uses object-fit: contain to handle the ~0.1% mismatch
+   between Marsh/Gorge and the others). */
 .map-card {
   background: var(--bg-card);
   border-radius: var(--radius);
@@ -1627,6 +1634,9 @@ a { color: inherit; }
   overflow: hidden;
   border-left: 5px solid var(--map-color, var(--gold));
   animation: cardIn 0.3s ease both;
+  max-width: min(calc(70vh * 950 / 870), 760px);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .map-card-img-wrap {
@@ -1637,13 +1647,15 @@ a { color: inherit; }
 .map-card-img-inner {
   position: relative;
   width: 100%;
+  aspect-ratio: 950 / 870;
   line-height: 0;
 }
 
 .map-card-img {
   width: 100%;
+  height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.25s ease;
 }
 
@@ -2280,6 +2292,18 @@ a { color: inherit; }
   transition: background 0.15s;
 }
 .board-modal-close:hover { background: rgba(255,255,255,0.25); }
+.board-modal-action {
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: var(--gold, #e0b04a);
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.board-modal-action:hover { filter: brightness(1.1); }
 
 /* ─── Reset button danger hover ──────────────────────────────────────── */
 .reset-btn:hover:not(:disabled) {
@@ -2915,14 +2939,41 @@ a { color: inherit; }
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
   animation: badgeIn 0.3s ease both;
 }
-/* Native landmark token artwork (Marsh 5+p): same treatment as flood markers. */
+/* Native / placed landmark token artwork. The token PNGs include a name
+   banner along the bottom, so the visual center of the artwork sits ~7%
+   above the image's geometric center. The Y nudge compensates so the
+   art (not the banner) lands on the clearing's authored coordinate. */
 .clearing-native-img {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -57%);
   pointer-events: none;
   user-select: none;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  /* Stacked drop-shadows trace the alpha silhouette to give the token a
+     white-then-black outline (matching the suit-badge feel) plus a soft
+     drop shadow underneath for depth. Cardinal-direction offsets at 1px
+     produce a uniform 1-2px outline. */
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
   animation: badgeIn 0.3s ease both;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.clearing-native-img.is-clickable:hover {
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 0 8px rgba(255, 220, 130, 0.9))
+    drop-shadow(0 3px 8px rgba(0, 0, 0, 0.6));
+  transform: translate(-50%, -57%) scale(1.08);
 }
 .clearing-badge {
   position: absolute;

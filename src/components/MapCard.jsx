@@ -26,9 +26,10 @@ export default function MapCard({
   onRerollMap,
   onRerollSuits,
   onRerollFloods,
-  onRerollPlacements,
+  onRerollLandmarks,
   onClearLocks,
   onToggleLock,
+  onLandmarkClick,
 }) {
   const map = MAP_MAP[mapId];
   if (!map) return null;
@@ -39,8 +40,7 @@ export default function MapCard({
   const suitsRandomized = mapSetup?.clearingSuits != null
     && (!map.hasPrintedSuits || forceSuitRandomizationOnAutumn);
   const showFloodReroll = !!mapSetup?.floodMarkers && map.hasFloodMarkers && totalPlayers <= 4;
-  const showPlacementReroll = !!mapSetup?.nativeLandmarkPlacements
-    && Object.keys(mapSetup.nativeLandmarkPlacements).length > 0;
+  const showLandmarksReroll = !!onRerollLandmarks;
   const lockCount = Object.keys(mapSetup?.lockedClearingSuits ?? {}).length;
   const showClearLocks = lockCount > 0;
 
@@ -60,27 +60,27 @@ export default function MapCard({
           <div className="map-card-actions">
             {canReroll && (
               <button className="map-reroll-btn" onClick={onRerollMap} title="Re-roll map">
-                <DieIcon /> Map
+                <DieIcon /> Re-roll Map
               </button>
             )}
             {suitsRandomized && (
               <button className="map-reroll-btn" onClick={onRerollSuits} title="Re-roll clearing suits">
-                <DieIcon /> Suits
+                <DieIcon /> Re-roll Suits
               </button>
             )}
             {showFloodReroll && (
               <button className="map-reroll-btn" onClick={onRerollFloods} title="Re-roll flood placements">
-                <DieIcon /> Floods
+                <DieIcon /> Re-roll Floods
               </button>
             )}
-            {showPlacementReroll && (
-              <button className="map-reroll-btn" onClick={onRerollPlacements} title="Re-shuffle native landmark placements">
-                <DieIcon /> Placements
+            {showLandmarksReroll && (
+              <button className="map-reroll-btn" onClick={onRerollLandmarks} title="Re-draw and re-place all random landmarks">
+                <DieIcon /> Re-roll Landmarks
               </button>
             )}
             {showClearLocks && (
               <button className="map-reroll-btn map-reroll-btn--alt" onClick={onClearLocks} title="Clear all locked clearings">
-                ✕ Locks ({lockCount})
+                ✕ Clear Locks ({lockCount})
               </button>
             )}
           </div>
@@ -91,7 +91,7 @@ export default function MapCard({
         <div className="map-card-img-wrap">
           <div className="map-card-img-inner">
             <img src={map.img} alt={`${map.name} map board`} className="map-card-img" draggable={false} />
-            <ClearingOverlay map={map} mapSetup={mapSetup} onToggleLock={onToggleLock} />
+            <ClearingOverlay map={map} mapSetup={mapSetup} onToggleLock={onToggleLock} onLandmarkClick={onLandmarkClick} />
           </div>
         </div>
       )}
