@@ -9,6 +9,7 @@ import HirelingsTab from './components/HirelingsTab.jsx';
 import BoardModal from './components/BoardModal.jsx';
 import { useState } from 'react';
 import { HIRELING_SETS } from './data/accessories.js';
+import { version as APP_VERSION } from '../package.json';
 
 export default function App() {
   const { state, actions } = useAppState();
@@ -159,6 +160,7 @@ export default function App() {
           {' '}·{' '}Fan-made tool. Not affiliated with or endorsed by Leder Games.
           {' '}·{' '}<a href="https://github.com/matuszeg/RootPick/" className="footer-link" target="_blank" rel="noopener noreferrer">Open source on GitHub</a>
           {' '}·{' '}<a href="https://github.com/matuszeg/RootPick/issues/new?labels=feedback" className="footer-link" target="_blank" rel="noopener noreferrer">Send feedback</a>
+          {' '}·{' '}<a href={`https://github.com/matuszeg/RootPick/releases/tag/v${APP_VERSION}`} className="footer-link" target="_blank" rel="noopener noreferrer">v{APP_VERSION}</a>
         </p>
       </footer>
 
