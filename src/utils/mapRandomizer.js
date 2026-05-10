@@ -1,19 +1,6 @@
 import { CLEARING_SUIT_POOL, MAP_MAP } from '../data/maps.js';
 import { LANDMARK_MAP, LANDMARKS } from '../data/accessories.js';
-
-function shuffle(arr) {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
-function pickOne(arr) {
-  if (!arr || !arr.length) return null;
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+import { defaultRng, pickOne, shuffle, shuffleInPlace } from './rng.js';
 
 // Returns the ID of the clearing whose center is closest to the given % point.
 // Used to map authored ruin / building-slot positions back to their owning
@@ -65,6 +52,7 @@ export function randomizeClearingSuits(map, {
   forceSuitRandomizationOnAutumn = false,
   lockedSuits = {},
   excludedClearings = new Set(),
+  rng = defaultRng,
 } = {}) {
   if (!map) return null;
   if (map.hasPrintedSuits && !forceSuitRandomizationOnAutumn) {
@@ -80,8 +68,8 @@ export function randomizeClearingSuits(map, {
   }
 
   const eligibleIds = allIds.filter(id => !lockedIds.has(id) && !excludedClearings.has(id));
-  const shuffledTokens = shuffle(remainingPool);
-  const shuffledEligible = shuffle(eligibleIds);
+  const shuffledTokens = shuffle(remainingPool, rng);
+  const shuffledEligible = shuffle(eligibleIds, rng);
   const suitedEligible = shuffledEligible.slice(0, shuffledTokens.length);
 
   const result = { ...lockedSuits };
@@ -135,7 +123,7 @@ export function getEligibleLandmarks({
 // `excludedClearings` (e.g., locked-suit clearings) constrains the choice —
 // if one of a pair is excluded, the other is forced.
 // Returns null when not applicable (no flood markers, 5+ players, etc.).
-export function randomizeFloodMarkers(map, playerCount, { excludedClearings = new Set() } = {}) {
+export function randomizeFloodMarkers(map, playerCount, { excludedClearings = new Set(), rng = defaultRng } = {}) {
   if (!map || !map.hasFloodMarkers) return null;
   if (playerCount > 4) return null;
   if (!map.floodMarkers?.length) return null;
@@ -143,7 +131,7 @@ export function randomizeFloodMarkers(map, playerCount, { excludedClearings = ne
   for (const fm of map.floodMarkers) {
     const pair = fm.clearingPair ?? [];
     const eligible = pair.filter(id => !excludedClearings.has(id));
-    const pick = pickOne(eligible.length ? eligible : pair);
+    const pick = pickOne(eligible.length ? eligible : pair, rng);
     if (pick != null) result[fm.id] = pick;
   }
   return Object.keys(result).length ? result : null;
@@ -311,6 +299,7 @@ export function placeLandmarks(map, landmarkIds, {
   excludedClearings = new Set(),
   floodedClearings = new Set(),
   fixedPlacements = null,
+  rng = defaultRng,
 } = {}) {
   if (!map || !landmarkIds?.length) return null;
   const ctx = {
@@ -345,14 +334,6 @@ export function placeLandmarks(map, landmarkIds, {
   // is overridden by the Marsh setup rule for this case — natives skip
   // the no-adjacency check, but pack landmarks still respect it relative
   // to all placed landmarks (natives included).
-  function shuffleInPlace(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
   let best = {};
   function recurse(idx, occupied, result) {
     if (idx === ordered.length) return result;
@@ -379,10 +360,10 @@ export function placeLandmarks(map, landmarkIds, {
 
     // Shuffle eligible options so re-rolls produce different valid
     // placements when multiple solutions exist.
-    shuffleInPlace(eligible);
+    shuffleInPlace(eligible, rng);
 
     for (const pick of eligible) {
-      const slot = pick.slots[Math.floor(Math.random() * pick.slots.length)];
+      const slot = pick.slots[Math.floor(rng() * pick.slots.length)];
       result[id] = { clearingId: pick.clearingId, x: slot.x, y: slot.y };
       occupied.add(pick.clearingId);
       const sub = recurse(idx + 1, occupied, result);
@@ -432,6 +413,7 @@ export function pickAndPlaceLandmarks(map, {
   lockedClearings = new Set(),
   floodedClearings = new Set(),
   offSuit = false,
+  rng = defaultRng,
 } = {}) {
   if (!map) return { selectedLandmarks: [], placedLandmarks: null };
 
@@ -443,6 +425,7 @@ export function pickAndPlaceLandmarks(map, {
     excludedClearings: new Set([...lockedClearings, ...floodedSet]),
     floodedClearings: floodedSet,
     fixedPlacements,
+    rng,
   };
 
   // Try each fixed selection in order; keep only those that can place
@@ -469,7 +452,7 @@ export function pickAndPlaceLandmarks(map, {
     allLandmarks: LANDMARKS,
   }).filter(l => !acceptedSet.has(l.id));
 
-  for (const cand of shuffle(eligible)) {
+  for (const cand of shuffle(eligible, rng)) {
     if (accepted.length >= count) break;
     const trialIds = [...nativeIds, ...accepted, cand.id];
     const trialPlaced = placeLandmarks(map, trialIds, placeOpts);
@@ -500,6 +483,7 @@ export function buildMapSetup({
   // Or: a request to pick + place via try-and-replace.
   pickConfig = null, // { count, excludedLandmarks }
   allowOffSuitNatives = false,
+  rng = defaultRng,
 }) {
   const map = MAP_MAP[mapId];
   if (!map) return null;
@@ -507,7 +491,7 @@ export function buildMapSetup({
   const lockedIds = new Set(Object.keys(lockedSuits).map(Number));
 
   // Floods (1-4p Marsh only). Their clearings are excluded from suits.
-  const floodMarkers = randomizeFloodMarkers(map, playerCount, { excludedClearings: lockedIds });
+  const floodMarkers = randomizeFloodMarkers(map, playerCount, { excludedClearings: lockedIds, rng });
   const floodedIds = new Set(Object.values(floodMarkers ?? {}));
 
   // Suits on whatever clearings aren't locked or flooded.
@@ -515,6 +499,7 @@ export function buildMapSetup({
     forceSuitRandomizationOnAutumn,
     lockedSuits,
     excludedClearings: floodedIds,
+    rng,
   });
   const unsuitedSlots = getUnsuitedClearings(map, clearingSuits);
 
@@ -533,6 +518,7 @@ export function buildMapSetup({
       lockedClearings: lockedIds,
       floodedClearings: floodedIds,
       offSuit: allowOffSuitNatives,
+      rng,
     });
     finalSelected = result.selectedLandmarks;
     placedLandmarks = result.placedLandmarks;
@@ -544,6 +530,7 @@ export function buildMapSetup({
       offSuit: allowOffSuitNatives,
       excludedClearings: new Set([...lockedIds, ...floodedIds]),
       floodedClearings: floodedIds,
+      rng,
     });
   }
 
