@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { XIcon } from './Icons.jsx';
+import ClearingOverlay from './ClearingOverlay.jsx';
 
-export default function BoardModal({ images, title, onClose, sideLabels = ['Front', 'Back'] }) {
+export default function BoardModal({ images, title, onClose, sideLabels = ['Front', 'Back'], map = null, mapSetup = null, onToggleLock = null, actionLabel = null, onAction = null }) {
   const [showingFront, setShowingFront] = useState(true);
   const hasBack = images?.back != null;
   const activeSrc = showingFront ? images?.front : images?.back;
+  const showOverlay = !!(map && mapSetup && showingFront);
 
   const handleKey = useCallback(e => {
     if (e.key === 'Escape') onClose();
@@ -27,12 +29,15 @@ export default function BoardModal({ images, title, onClose, sideLabels = ['Fron
   return (
     <div className="board-modal-overlay" onClick={onClose}>
       <div className="board-modal" onClick={e => e.stopPropagation()}>
-        <img
-          src={activeSrc}
-          alt={`${title} — ${showingFront ? sideLabels[0] : sideLabels[1]}`}
-          className="board-modal-img"
-          draggable={false}
-        />
+        <div className="board-modal-img-wrap">
+          <img
+            src={activeSrc}
+            alt={`${title} — ${showingFront ? sideLabels[0] : sideLabels[1]}`}
+            className="board-modal-img"
+            draggable={false}
+          />
+          {showOverlay && <ClearingOverlay map={map} mapSetup={mapSetup} onToggleLock={onToggleLock} />}
+        </div>
         <div className="board-modal-controls">
           {hasBack && (
             <div className="board-modal-side-toggle">
@@ -49,6 +54,14 @@ export default function BoardModal({ images, title, onClose, sideLabels = ['Fron
                 {sideLabels[1]}
               </button>
             </div>
+          )}
+          {actionLabel && onAction && (
+            <button
+              className="board-modal-action"
+              onClick={() => { onAction(); onClose(); }}
+            >
+              {actionLabel}
+            </button>
           )}
           <button className="board-modal-close" onClick={onClose} aria-label="Close">
             <XIcon width={16} height={16} />

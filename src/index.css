@@ -1135,14 +1135,15 @@ a { color: inherit; }
 }
 
 .deck-reroll-btn {
+  /* Gold styling shared with .map-reroll-btn / .reroll-all-btn / Randomize. */
   font-family: var(--font-display);
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink-mid);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  color: var(--gold-fill-on, #4a3613);
+  background: var(--gold-fill, #e0b04a);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
   border-radius: var(--radius-sm);
   padding: 0.25rem 0.5rem;
   cursor: pointer;
@@ -1153,7 +1154,13 @@ a { color: inherit; }
   align-items: center;
   gap: 0.3rem;
 }
-.deck-reroll-btn:hover { background: var(--bg-alt); border-color: var(--ink-muted); }
+.deck-reroll-btn:hover {
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(200, 144, 42, 0.3);
+}
+.deck-reroll-btn:active { transform: translateY(0); }
 
 /* ─── Landmark cards ─────────────────────────────────────────────────── */
 .landmarks-grid {
@@ -1407,6 +1414,7 @@ a { color: inherit; }
 }
 
 .reroll-all-btn {
+  /* Gold styling shared with .map-reroll-btn and the main Randomize button. */
   align-self: center;
   display: flex;
   align-items: center;
@@ -1416,15 +1424,21 @@ a { color: inherit; }
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink-muted);
-  background: var(--bg-alt);
-  border: 1.5px solid var(--border);
+  color: var(--gold-fill-on, #4a3613);
+  background: var(--gold-fill, #e0b04a);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.75rem;
   cursor: pointer;
   transition: all 0.15s;
 }
-.reroll-all-btn:hover { border-color: var(--border-strong); color: var(--ink); }
+.reroll-all-btn:hover {
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(200, 144, 42, 0.3);
+}
+.reroll-all-btn:active { transform: translateY(0); }
 
 /* ─── Manage Pool — hireling card grid ───────────────────────────────── */
 .hireling-pool-grid {
@@ -1620,6 +1634,13 @@ a { color: inherit; }
 }
 
 /* ─── Map card ────────────────────────────────────────────────────────── */
+/* Map sizing: every map image shares aspect ratio ~1.092 (width / height),
+   so capping the card's width by a viewport-derived value also caps the
+   image height. The hard `min()` ceiling keeps it from getting absurd on
+   ultrawide / 4K monitors. The aspect-ratio on the image-inner guarantees
+   the overlay's percentage-positioned children align exactly with the
+   image (which uses object-fit: contain to handle the ~0.1% mismatch
+   between Marsh/Gorge and the others). */
 .map-card {
   background: var(--bg-card);
   border-radius: var(--radius);
@@ -1627,57 +1648,32 @@ a { color: inherit; }
   overflow: hidden;
   border-left: 5px solid var(--map-color, var(--gold));
   animation: cardIn 0.3s ease both;
+  max-width: min(calc(70vh * 950 / 870), 760px);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .map-card-img-wrap {
   position: relative;
   width: 100%;
-  overflow: hidden;
   line-height: 0;
-  cursor: pointer;
-  max-height: 220px;
+}
+.map-card-img-inner {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 950 / 870;
+  line-height: 0;
 }
 
 .map-card-img {
   width: 100%;
+  height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.25s ease;
 }
 
-.map-card-img-wrap:hover .map-card-img {
-  transform: scale(1.03);
-}
-
-.map-card-img-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-
-.map-card-img-wrap:hover .map-card-img-overlay {
-  background: rgba(0,0,0,0.25);
-}
-
-.map-card-zoom-hint {
-  font-family: var(--font-display);
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: white;
-  opacity: 0;
-  transition: opacity 0.2s;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-}
-
-.map-card-img-wrap:hover .map-card-zoom-hint {
-  opacity: 1;
-}
+/* (Click-to-enlarge modal removed — map is shown at natural size inline.) */
 
 .map-card-header {
   background: linear-gradient(135deg, var(--map-color-dark, #3A2A1A) 0%, var(--map-color, var(--gold)) 100%);
@@ -1723,8 +1719,20 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.3rem;
+  gap: 0.4rem;
   flex-shrink: 0;
+}
+.map-card-difficulty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+.map-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem;
 }
 
 .map-card-right .star.filled { color: rgba(255,255,255,0.9); }
@@ -1738,26 +1746,48 @@ a { color: inherit; }
 }
 
 .map-reroll-btn {
-  display: flex;
+  /* Matches the main Randomize button's gold styling. All re-roll / randomize
+     buttons share this visual language. */
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   font-family: var(--font-display);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: var(--radius-sm);
-  padding: 0.25rem 0.5rem;
+  color: var(--gold-fill-on, #4a3613);
+  background: var(--gold-fill, #e0b04a);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
+  border-radius: var(--radius-sm, 4px);
+  padding: 0.35rem 0.7rem;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
 }
 .map-reroll-btn:hover {
-  background: rgba(0,0,0,0.35);
-  border-color: rgba(255,255,255,0.4);
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(200, 144, 42, 0.3);
+}
+.map-reroll-btn:active { transform: translateY(0); }
+.map-reroll-btn--alt {
+  /* Destructive variant (e.g., Clear locks) — red accent stands apart from
+     gold re-roll buttons. */
+  background: #b03a3a;
+  color: #fff;
+  border-color: #b03a3a;
+}
+.map-reroll-btn--alt:hover {
+  background: #c04848;
+  border-color: #c04848;
+}
+.map-card-hint {
+  font-size: 0.78em;
+  color: var(--ink-muted, #888);
+  font-style: italic;
+  margin: 8px 0 0;
 }
 
 .map-card-body {
@@ -2222,11 +2252,17 @@ a { color: inherit; }
   flex-direction: column;
   align-items: center;
 }
+.board-modal-img-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
 .board-modal-img {
   max-width: 100%;
   max-height: 82vh;
   border-radius: var(--radius);
   box-shadow: 0 12px 60px rgba(0,0,0,0.5);
+  display: block;
 }
 .board-modal-controls {
   margin-top: 0.75rem;
@@ -2270,6 +2306,18 @@ a { color: inherit; }
   transition: background 0.15s;
 }
 .board-modal-close:hover { background: rgba(255,255,255,0.25); }
+.board-modal-action {
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: var(--gold, #e0b04a);
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.board-modal-action:hover { filter: brightness(1.1); }
 
 /* ─── Reset button danger hover ──────────────────────────────────────── */
 .reset-btn:hover:not(:disabled) {
@@ -2548,3 +2596,534 @@ a { color: inherit; }
     grid-template-columns: 1fr;
   }
 }
+
+.landmark-tag {
+  font-size: 0.75em;
+  color: var(--muted, #888);
+  font-weight: normal;
+  margin-left: 0.3em;
+}
+.landmark-warning {
+  font-size: 0.8em;
+  color: var(--warn, #b58a00);
+  margin: 6px 10px 8px;
+}
+.landmark-card.native {
+  border-style: dashed;
+}
+
+/* ─── Visual row (MapCard + Random Landmarks side-by-side) ─────────────── */
+.visual-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+.visual-row-map { min-width: 0; }
+.visual-row-landmarks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.visual-row-landmarks-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.visual-row-landmarks-title {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+@media (min-width: 900px) {
+  .visual-row {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .visual-row-map       { flex: 1 1 auto; min-width: 0; display: flex; }
+  .visual-row-landmarks { flex: 0 0 auto; }
+  .visual-row-landmarks .landmarks-grid {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+  /* Map card sits at its natural height inline (no cropping). The Random
+     Landmarks column sits beside it at its own natural height. */
+  .visual-row-map > .map-card { width: 100%; }
+}
+
+/* Random landmarks side pane */
+.landmarks-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: var(--bg-card, #f8f3e6);
+}
+.landmarks-pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.landmarks-pane-title {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+.landmarks-pane-empty {
+  margin: 0;
+  font-size: 0.85em;
+  opacity: 0.6;
+  font-style: italic;
+}
+.landmarks-pane { flex: 1 1 auto; }
+
+/* Compact landmark rows (used in the side pane for random landmarks) */
+.landmark-mini-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.landmark-mini-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 6px;
+  background: var(--bg-card, #f8f3e6);
+}
+.landmark-mini-thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.landmark-mini-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.landmark-mini-body { min-width: 0; flex: 1 1 auto; }
+.landmark-mini-name { font-weight: 600; font-size: 0.95em; }
+.landmark-mini-desc {
+  font-size: 0.8em;
+  opacity: 0.85;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.landmark-mini-reroll {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--gold-fill, #e0b04a);
+  color: var(--gold-fill-on, #4a3613);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.landmark-mini-reroll:hover {
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
+}
+
+/* Compact native-landmark rows inside MapSetupCard */
+.native-landmark-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.native-landmark-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px;
+  border: 1px dashed var(--border, #c4b58a);
+  border-radius: 6px;
+  background: var(--bg-alt, rgba(0,0,0,0.02));
+}
+.native-landmark-thumb {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.native-landmark-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.native-landmark-body { min-width: 0; flex: 1 1 auto; }
+.map-setup-hint {
+  font-size: 0.78em;
+  color: var(--ink-muted, #888);
+  margin: -2px 0 8px;
+  font-style: italic;
+}
+.native-landmark-name {
+  font-weight: 600;
+  font-size: 0.95em;
+}
+.native-landmark-placement {
+  font-weight: 500;
+  color: var(--ink-muted, #888);
+  font-variant-numeric: tabular-nums;
+}
+.native-landmark-desc {
+  font-size: 0.82em;
+  opacity: 0.85;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.native-landmark-warning {
+  font-size: 0.78em;
+  color: var(--warn, #b58a00);
+  margin-top: 4px;
+}
+
+.map-setup-card {
+  border: 1px solid var(--border, #c4b58a);
+  border-radius: 8px;
+  padding: 14px 16px 16px;
+  background: var(--bg-card, #f8f3e6);
+}
+.map-setup-header {
+  margin: 0 0 10px;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+.map-setup-strip {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 700px) {
+  .map-setup-strip { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+}
+.map-setup-section {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.map-setup-section h4 {
+  margin: 0 0 8px;
+  font-size: 0.9em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.map-setup-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* Clearing suits — grouped by suit, IDs as compact chips */
+.clearing-suit-grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.clearing-suit-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: var(--bg-alt, rgba(0,0,0,0.02));
+}
+.clearing-suit-group .clearing-suit-group-head {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  min-width: 88px;
+}
+.clearing-suit-group .clearing-suit-chips {
+  flex: 1 1 auto;
+}
+.clearing-suit-group-head {
+  font-weight: 700;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.clearing-suit-count {
+  font-weight: 400;
+  opacity: 0.7;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.clearing-suit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.clearing-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--border, #c4b58a);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.clearing-suit-empty { opacity: 0.4; font-style: italic; }
+@media (max-width: 520px) {
+  .clearing-suit-grouped { grid-template-columns: 1fr; }
+}
+
+/* Flood markers — single-line rows, compact */
+.flood-marker-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 12px;
+}
+.flood-marker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+}
+.flood-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+.flood-name { font-weight: 500; }
+.flood-clearing { color: var(--ink-muted, #888); margin-left: auto; }
+
+/* ─── Clearing overlay (suit/flood/native badges over the map image) ─── */
+.clearing-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* Flood marker artwork: each marker is a circular image positioned over its
+   clearing+path on the printed board. Uses the marker's natural aspect ratio. */
+.clearing-flood-img {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  animation: badgeIn 0.3s ease both;
+}
+/* Native / placed landmark token artwork. The token PNGs include a name
+   banner along the bottom, so the visual center of the artwork sits ~7%
+   above the image's geometric center. The Y nudge compensates so the
+   art (not the banner) lands on the clearing's authored coordinate. */
+.clearing-native-img {
+  position: absolute;
+  transform: translate(-50%, -57%);
+  pointer-events: none;
+  user-select: none;
+  /* Stacked drop-shadows trace the alpha silhouette to give the token a
+     white-then-black outline (matching the suit-badge feel) plus a soft
+     drop shadow underneath for depth. Cardinal-direction offsets at 1px
+     produce a uniform 1-2px outline. */
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+  animation: badgeIn 0.3s ease both;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+.clearing-native-img.is-clickable:hover {
+  filter:
+    drop-shadow(1px 0 0 #fff)
+    drop-shadow(-1px 0 0 #fff)
+    drop-shadow(0 1px 0 #fff)
+    drop-shadow(0 -1px 0 #fff)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 0 1.5px #000)
+    drop-shadow(0 0 8px rgba(255, 220, 130, 0.9))
+    drop-shadow(0 3px 8px rgba(0, 0, 0, 0.6));
+  transform: translate(-50%, -57%) scale(1.08);
+}
+.clearing-badge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  animation: badgeIn 0.25s ease both;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(0, 0, 0, 0.7),
+    0 0 14px var(--badge-glow, rgba(0, 0, 0, 0.5));
+}
+@keyframes badgeIn {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+.clearing-badge--suit {
+  background: var(--badge-bg, #888);
+}
+.clearing-badge-icon {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+  user-select: none;
+}
+.clearing-badge-id {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px solid #fff;
+}
+.clearing-badge--flood {
+  background: var(--badge-bg, #888);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(0, 0, 0, 0.7),
+    0 0 14px var(--badge-bg, rgba(0, 0, 0, 0.5));
+}
+.clearing-badge--native {
+  background: #fff;
+  overflow: visible;
+  border: 2px dashed rgba(0, 0, 0, 0.7);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 16px rgba(245, 200, 80, 0.85);
+}
+.clearing-badge-thumb {
+  width: 88%;
+  height: 88%;
+  object-fit: cover;
+  border-radius: 50%;
+  pointer-events: none;
+  user-select: none;
+}
+.clearing-badge--empty {
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px dashed rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+.clearing-badge.is-clickable { cursor: pointer; }
+.clearing-badge.is-clickable:hover {
+  filter: brightness(1.1);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(0, 0, 0, 0.85),
+    0 0 18px var(--badge-glow, rgba(0, 0, 0, 0.6));
+}
+.clearing-badge.is-locked {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--gold-bright, #f0c468),
+    0 0 18px rgba(240, 196, 104, 0.85);
+}
+/* Full-badge overlay: dark scrim + large centered lock icon. Reads clearly
+   at a glance, while the suit token underneath stays partially visible. */
+.clearing-badge-lock {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--gold-bright, #f0c468);
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  user-select: none;
+}
+@media (max-width: 600px) {
+  .clearing-badge { width: 32px; height: 32px; }
+  .clearing-badge-id { font-size: 9px; min-width: 14px; height: 14px; }
+}
+
+.reroll-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold-fill-on, #4a3613);
+  background: var(--gold-fill, #e0b04a);
+  border: 1.5px solid var(--gold-fill, #e0b04a);
+  border-radius: var(--radius-sm, 4px);
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.reroll-btn:hover {
+  background: var(--gold-bright, #f0c468);
+  border-color: var(--gold-bright, #f0c468);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(200, 144, 42, 0.3);
+}
+.reroll-btn:active { transform: translateY(0); }

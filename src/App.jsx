@@ -3,9 +3,9 @@ import { useTheme } from './hooks/useTheme.js';
 import PersistentBar from './components/PersistentBar.jsx';
 import CategoryTabs from './components/CategoryTabs.jsx';
 import FactionsTab from './components/FactionsTab.jsx';
-import MapCardsTab from './components/MapCardsTab.jsx';
+import MapsAndLandmarksTab from './components/MapsAndLandmarksTab.jsx';
+import CardsTab from './components/CardsTab.jsx';
 import HirelingsTab from './components/HirelingsTab.jsx';
-import LandmarksTab from './components/LandmarksTab.jsx';
 import BoardModal from './components/BoardModal.jsx';
 import { useState } from 'react';
 import { HIRELING_SETS } from './data/accessories.js';
@@ -16,8 +16,8 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState('factions');
   const [subTabs, setSubTabs] = useState({
     factions: 'results',
+    maps_landmarks: 'results',
     hirelings: 'results',
-    landmarks: 'results',
   });
   const [boardModal, setBoardModal] = useState(null);
 
@@ -26,7 +26,8 @@ export default function App() {
     ownedAccessories,
     error,
     copied,
-    history,
+    undoStack,
+    redoStack,
   } = state;
 
   function setSubTab(category, tab) {
@@ -35,13 +36,21 @@ export default function App() {
 
   // Determine which tabs are disabled (greyed out)
   const canUseHirelings = HIRELING_SETS.some(h => ownedAccessories.has(h.source));
-  const canUseLandmarks = (ownedAccessories.has('landmarks_pack') || ownedAccessories.has('underworld_landmarks') || ownedAccessories.has('homeland_landmarks')) && state.useLandmarks;
   const disabledTabs = new Set();
   if (!canUseHirelings) disabledTabs.add('hirelings');
-  if (!canUseLandmarks) disabledTabs.add('landmarks');
 
-  function handleBoardClick(images, name, sideLabels) {
-    setBoardModal({ images, title: name, sideLabels });
+  function handleBoardClick(images, name, sideLabels, extras) {
+    setBoardModal({ images, title: name, sideLabels, ...(extras ?? {}) });
+  }
+
+  function handleLandmarkClick(landmarkId, lm) {
+    setBoardModal({
+      images: { front: lm.frontImg, back: lm.backImg },
+      title: lm.name,
+      sideLabels: ['Front', 'Back'],
+      actionLabel: 'Re-roll this landmark',
+      onAction: () => actions.rerollSingleLandmark(landmarkId),
+    });
   }
 
   return (
@@ -86,7 +95,8 @@ export default function App() {
           actions={actions}
           copied={copied}
           hasSelection={selectedFactions.length > 0}
-          hasHistory={history.length > 0}
+          hasUndo={undoStack.length > 0}
+          hasRedo={redoStack.length > 0}
         />
 
         {error && (
@@ -112,8 +122,20 @@ export default function App() {
           />
         )}
 
-        {activeCategory === 'map' && (
-          <MapCardsTab
+        {activeCategory === 'maps_landmarks' && (
+          <MapsAndLandmarksTab
+            state={state}
+            actions={actions}
+            subTab={subTabs.maps_landmarks}
+            onSubTabChange={tab => setSubTab('maps_landmarks', tab)}
+            onBoardClick={(images, name, sideLabels, extras) => handleBoardClick(images, name, sideLabels, extras)}
+            onImageClick={(images, name) => handleBoardClick(images, name)}
+            onLandmarkClick={handleLandmarkClick}
+          />
+        )}
+
+        {activeCategory === 'cards' && (
+          <CardsTab
             state={state}
             actions={actions}
             onBoardClick={(images, name) => handleBoardClick(images, name)}
@@ -127,16 +149,6 @@ export default function App() {
             subTab={subTabs.hirelings}
             onSubTabChange={tab => setSubTab('hirelings', tab)}
             onImageClick={(images, name) => handleBoardClick(images, name, ['Promoted', 'Demoted'])}
-          />
-        )}
-
-        {activeCategory === 'landmarks' && (
-          <LandmarksTab
-            state={state}
-            actions={actions}
-            subTab={subTabs.landmarks}
-            onSubTabChange={tab => setSubTab('landmarks', tab)}
-            onImageClick={(images, name) => handleBoardClick(images, name)}
           />
         )}
       </main>
@@ -155,6 +167,8 @@ export default function App() {
           images={boardModal.images}
           title={boardModal.title}
           sideLabels={boardModal.sideLabels}
+          actionLabel={boardModal.actionLabel}
+          onAction={boardModal.onAction}
           onClose={() => setBoardModal(null)}
         />
       )}

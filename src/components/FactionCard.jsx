@@ -36,9 +36,10 @@ function isDark(hex) {
   return (r * 299 + g * 587 + b * 114) / 1000 < 155;
 }
 
-export default function FactionCard({ factionId, locked, onLock, onReroll, canReroll = true, onBan, animIndex, browseMode, mapNote, vagabondCharacter, onRerollCharacter, playerCount, onBoardClick }) {
+export default function FactionCard({ factionId, locked, onLock, onReroll, canReroll = true, onBan, animIndex, browseMode, mapNote, vagabondCharacter, onRerollCharacter, playerCount, onBoardClick, displayName }) {
   const faction = FACTION_MAP[factionId];
   if (!faction) return null;
+  const shownName = displayName ?? faction.name;
 
   const [flipPhase, setFlipPhase] = useState(null);
   const flipTimer = useRef(null);
@@ -92,10 +93,10 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
     >
       {/* Board image hero */}
       {activeBoardSrc && (
-        <div className="fc-board-wrap" onClick={() => onBoardClick?.(boardImages, faction.name)}>
+        <div className="fc-board-wrap" onClick={() => onBoardClick?.(boardImages, shownName)}>
           <img
             src={activeBoardSrc}
-            alt={`${faction.name} board`}
+            alt={`${shownName} board`}
             className="fc-board-img"
             draggable={false}
           />
@@ -130,7 +131,7 @@ export default function FactionCard({ factionId, locked, onLock, onReroll, canRe
           <img src={headImg} alt="" className="fc-head" draggable={false} />
         )}
         <div className="fc-info-text">
-          <span className="fc-name">{faction.name}</span>
+          <span className="fc-name">{shownName}</span>
           <div className="fc-badges">
             <span className="fc-type-badge" style={{ color: headerMuted, borderColor: headerMuted }}>
               {faction.type === 'militant' ? 'Militant' : 'Insurgent'}

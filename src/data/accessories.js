@@ -51,6 +51,22 @@ export const VAGABOND_CHARACTERS = [
 
 // ─── Landmarks ────────────────────────────────────────────────────────────────
 // source: expansion or accessory ID that provides this landmark.
+// scale: rendered token width as % of the map image width. All map images
+//   share an aspect ratio (~1.09), so a single value renders consistently.
+// placementRule: per-card setup constraint enforced during random placement.
+//   All landmarks additionally require "no clearing already has a landmark
+//   and no neighbor does" — this is implicit and handled by the engine.
+//   - 'ruin'              → on a ruin clearing (Tower).
+//   - 'coastal'           → on a coastal clearing (Ferry).
+//   - 'fox'/'mouse'/'rabbit' → on a clearing of that suit; on Marsh 5+p,
+//                           on a no-suit clearing instead (Marsh natives).
+//   - 'corner'            → on a corner clearing (Elder Treetop).
+//   - 'singleSlotNoRuin'  → clearing with exactly 1 building slot AND no ruin
+//                           (Black Market).
+//   - 'any'               → any clearing satisfying the no-adjacency rule
+//                           (Legendary Forge).
+//   - 'riverOrCoastal'    → river clearing on most maps; coastal on Lake
+//                           (Lost City).
 export const LANDMARKS = [
   // ── Underworld Expansion ────────────────────────────────────────────────────
   {
@@ -60,6 +76,9 @@ export const LANDMARKS = [
     description: 'Whoever rules this clearing scores 1 VP at the start of their Birdsong.',
     frontImg: '/icons/landmarks/cards/tower-front.webp',
     backImg:  '/icons/landmarks/cards/tower-back.webp',
+    tokenImg: '/icons/landmarks/tokens/tower.png',
+    scale: 7,
+    placementRule: 'ruin',
   },
   {
     id: 'ferry',
@@ -68,6 +87,11 @@ export const LANDMARKS = [
     description: 'A piece in this clearing may move to any clearing on the map during its move.',
     frontImg: '/icons/landmarks/cards/ferry-front.webp',
     backImg:  '/icons/landmarks/cards/ferry-back.webp',
+    tokenImg: '/icons/landmarks/tokens/ferry.png',
+    scale: 7,
+    // Per the card: river clearing on most maps, coastal clearing on Lake.
+    // The `riverOrCoastal` predicate handles both cases.
+    placementRule: 'riverOrCoastal',
   },
   // ── Landmarks Pack ──────────────────────────────────────────────────────────
   {
@@ -77,6 +101,9 @@ export const LANDMARKS = [
     description: 'Players in this clearing may swap a card from their hand with a card from the discard.',
     frontImg: '/icons/landmarks/cards/market-front.webp',
     backImg:  '/icons/landmarks/cards/market-back.webp',
+    tokenImg: '/icons/landmarks/tokens/market.png',
+    scale: 7,
+    placementRule: 'singleSlotNoRuin',
   },
   {
     id: 'treetop',
@@ -85,6 +112,9 @@ export const LANDMARKS = [
     description: 'This clearing has one extra building slot.',
     frontImg: '/icons/landmarks/cards/treetop-front.webp',
     backImg:  '/icons/landmarks/cards/treetop-back.webp',
+    tokenImg: '/icons/landmarks/tokens/treetop.png',
+    scale: 7,
+    placementRule: 'corner',
   },
   {
     id: 'forge',
@@ -93,6 +123,9 @@ export const LANDMARKS = [
     description: 'Players crafting in this clearing score 1 bonus VP.',
     frontImg: '/icons/landmarks/cards/forge-front.webp',
     backImg:  '/icons/landmarks/cards/forge-back.webp',
+    tokenImg: '/icons/landmarks/tokens/forge.png',
+    scale: 7,
+    placementRule: 'any',
   },
   {
     id: 'city',
@@ -101,6 +134,9 @@ export const LANDMARKS = [
     description: 'This clearing is a wild suit — it counts as any suit for all purposes.',
     frontImg: '/icons/landmarks/cards/city-front.webp',
     backImg:  '/icons/landmarks/cards/city-back.webp',
+    tokenImg: '/icons/landmarks/tokens/city.png',
+    scale: 7,
+    placementRule: 'riverOrCoastal',
   },
   // ── Homeland Expansion ──────────────────────────────────────────────────────
   {
@@ -110,6 +146,9 @@ export const LANDMARKS = [
     description: 'This mouse clearing has one extra building slot.',
     frontImg: '/icons/landmarks/cards/mousehold-front.webp',
     backImg:  '/icons/landmarks/cards/mousehold-back.webp',
+    tokenImg: '/icons/landmarks/tokens/mousehold.png',
+    scale: 7,
+    placementRule: 'mouse',
   },
   {
     id: 'foxburrow',
@@ -118,6 +157,9 @@ export const LANDMARKS = [
     description: 'This fox clearing has one extra building slot.',
     frontImg: '/icons/landmarks/cards/foxburrow-front.webp',
     backImg:  '/icons/landmarks/cards/foxburrow-back.webp',
+    tokenImg: '/icons/landmarks/tokens/foxburrow.png',
+    scale: 7,
+    placementRule: 'fox',
   },
   {
     id: 'rabbittown',
@@ -126,6 +168,9 @@ export const LANDMARKS = [
     description: 'This rabbit clearing has one extra building slot.',
     frontImg: '/icons/landmarks/cards/rabbittown-front.webp',
     backImg:  '/icons/landmarks/cards/rabbittown-back.webp',
+    tokenImg: '/icons/landmarks/tokens/rabbittown.png',
+    scale: 7,
+    placementRule: 'rabbit',
   },
 ];
 
@@ -169,7 +214,7 @@ export const HIRELING_SETS = [
     promoted: 'The Exile',
     demoted:  'The Brigand',
     source:   'marauder_hirelings_base',
-    associatedFactions: ['vagabond1', 'vagabond2'], // excluded whenever any Vagabond variant is played
+    associatedFactions: ['vagabond1', 'vagabond2', 'knaves'], // excluded whenever a Vagabond variant or Knaves of the Deepwood is played (Knaves is a vagabond-adjacent faction)
     promotedImg: '/icons/hirelings/cards/the-exile-promoted.webp',
     demotedImg:  '/icons/hirelings/cards/the-brigand-demoted.webp',
   },

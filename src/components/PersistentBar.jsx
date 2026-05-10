@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getReachThreshold } from '../utils/randomizer.js';
 import DieIcon from './DieIcon.jsx';
-import { UndoIcon, ShareIcon, CheckIcon, TrashIcon, BotIcon } from './Icons.jsx';
+import { UndoIcon, RedoIcon, ShareIcon, CheckIcon, TrashIcon, BotIcon } from './Icons.jsx';
 
 function InfoIcon({ tip }) {
   return (
@@ -9,7 +9,7 @@ function InfoIcon({ tip }) {
   );
 }
 
-export default function PersistentBar({ state, actions, copied, hasSelection, hasHistory }) {
+export default function PersistentBar({ state, actions, copied, hasSelection, hasUndo, hasRedo }) {
   const {
     playerCount, botCount, balanceMode, ownedExpansions,
   } = state;
@@ -93,11 +93,20 @@ export default function PersistentBar({ state, actions, copied, hasSelection, ha
           <button
             className="action-btn secondary"
             onClick={actions.undo}
-            disabled={!hasHistory}
+            disabled={!hasUndo}
             title="Undo last randomize"
           >
             <span className="btn-icon"><UndoIcon /></span>
             <span>Undo</span>
+          </button>
+          <button
+            className="action-btn secondary"
+            onClick={actions.redo}
+            disabled={!hasRedo}
+            title="Redo"
+          >
+            <span className="btn-icon"><RedoIcon /></span>
+            <span>Redo</span>
           </button>
           <button
             className={`action-btn secondary share-btn ${copied ? 'copied' : ''}`}

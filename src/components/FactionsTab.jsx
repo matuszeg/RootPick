@@ -360,14 +360,21 @@ export default function FactionsTab({ state, actions, subTab, onSubTabChange, on
 
       {subTab === 'results' && (
         <div className="sub-tab-content">
+          {selectedFactions.length > 0 && (
+            <ReachSummary selectedFactions={selectedFactions} playerCount={playerCount} balanceMode={balanceMode} />
+          )}
+          <button className="reroll-all-btn" onClick={() => actions.randomize(true)}>
+            <DieIcon /> {selectedFactions.length === 0
+              ? 'Randomize factions'
+              : lockedFactions.size > 0 ? 'Re-roll unlocked factions' : 'Re-roll all factions'}
+          </button>
           {selectedFactions.length > 0 ? (
-            <>
-              <ReachSummary selectedFactions={selectedFactions} playerCount={playerCount} balanceMode={balanceMode} />
-              <button className="reroll-all-btn" onClick={() => actions.randomize(true)}>
-                <DieIcon /> {lockedFactions.size > 0 ? 'Re-roll unlocked factions' : 'Re-roll all factions'}
-              </button>
-              <div className="cards-grid">
-                {selectedFactions.map((id, i) => (
+            <div className="cards-grid">
+              {(() => {
+                const hasV1 = selectedFactions.includes('vagabond1');
+                const hasV2 = selectedFactions.includes('vagabond2');
+                const loneVagabond = (hasV1 && !hasV2) || (hasV2 && !hasV1);
+                return selectedFactions.map((id, i) => (
                   <FactionCard
                     key={`${id}-${i}`}
                     factionId={id}
@@ -382,14 +389,15 @@ export default function FactionsTab({ state, actions, subTab, onSubTabChange, on
                     onRerollCharacter={() => actions.rerollVagabondCharacter(id)}
                     playerCount={playerCount + botCount}
                     onBoardClick={onBoardClick}
+                    displayName={loneVagabond && (id === 'vagabond1' || id === 'vagabond2') ? 'Vagabond' : undefined}
                   />
-                ))}
-              </div>
-            </>
+                ));
+              })()}
+            </div>
           ) : (
             <div className="tab-empty-state">
               <p>No factions picked yet.</p>
-              <p className="tab-empty-sub">Hit Randomize above to get started.</p>
+              <p className="tab-empty-sub">Hit the button above to get started.</p>
             </div>
           )}
         </div>
