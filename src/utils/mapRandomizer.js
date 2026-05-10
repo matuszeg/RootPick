@@ -310,6 +310,7 @@ export function placeLandmarks(map, landmarkIds, {
   offSuit = false,
   excludedClearings = new Set(),
   floodedClearings = new Set(),
+  fixedPlacements = null,
 } = {}) {
   if (!map || !landmarkIds?.length) return null;
   const ctx = {
@@ -319,12 +320,17 @@ export function placeLandmarks(map, landmarkIds, {
   };
   const adj = adjacencyMap(map, floodedClearings);
 
-  // De-duplicate landmark IDs and order most-constrained first.
+  // De-duplicate landmark IDs. Fixed placements (kept in their existing
+  // positions for single-landmark re-rolls) skip the search; the rest are
+  // ordered most-constrained first.
+  const fixed = fixedPlacements ?? {};
   const ordered = [...new Set(landmarkIds)]
+    .filter(id => !(id in fixed))
     .map(id => ({ id, rule: LANDMARK_MAP[id]?.placementRule }))
     .filter(x => x.rule)
     .sort((a, b) => (PLACEMENT_RANK[a.rule] ?? 99) - (PLACEMENT_RANK[b.rule] ?? 99));
-  const target = ordered.length;
+  const fixedCount = Object.keys(fixed).length;
+  const target = ordered.length + fixedCount;
 
   // Backtracking placer. For each landmark in priority order, try every
   // eligible candidate (in random order); if the recursive placement of
@@ -390,9 +396,15 @@ export function placeLandmarks(map, landmarkIds, {
   }
 
   const occupied = new Set(excludedClearings);
-  const found = recurse(0, occupied, {});
+  const initial = {};
+  for (const [id, p] of Object.entries(fixed)) {
+    if (!p) continue;
+    initial[id] = p;
+    occupied.add(p.clearingId);
+  }
+  const found = recurse(0, occupied, initial);
   if (found && Object.keys(found).length === target) return found;
-  return Object.keys(best).length ? best : null;
+  return Object.keys(best).length ? best : (Object.keys(initial).length ? initial : null);
 }
 
 // Picks `count` random pack landmarks AND places them, swapping out any
@@ -415,6 +427,7 @@ export function pickAndPlaceLandmarks(map, {
   excludedLandmarks = new Set(),
   count,
   fixedSelections = [],
+  fixedPlacements = null,
   suits = {},
   lockedClearings = new Set(),
   floodedClearings = new Set(),
@@ -429,6 +442,7 @@ export function pickAndPlaceLandmarks(map, {
     suits, playerCount, offSuit,
     excludedClearings: new Set([...lockedClearings, ...floodedSet]),
     floodedClearings: floodedSet,
+    fixedPlacements,
   };
 
   // Try each fixed selection in order; keep only those that can place

@@ -26,7 +26,8 @@ export default function App() {
     ownedAccessories,
     error,
     copied,
-    history,
+    undoStack,
+    redoStack,
   } = state;
 
   function setSubTab(category, tab) {
@@ -94,7 +95,8 @@ export default function App() {
           actions={actions}
           copied={copied}
           hasSelection={selectedFactions.length > 0}
-          hasHistory={history.length > 0}
+          hasUndo={undoStack.length > 0}
+          hasRedo={redoStack.length > 0}
         />
 
         {error && (

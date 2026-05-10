@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { generateCombination } from '../utils/randomizer.js';
 import { decodeFromUrl } from '../utils/urlState.js';
-import { FACTION_MAP } from '../data/factions.js';
+import { FACTION_MAP, EXPANSIONS } from '../data/factions.js';
 import { MAPS, MAP_MAP } from '../data/maps.js';
 import {
-  DECKS, HIRELING_SETS, LANDMARKS, LANDMARK_MAP, VAGABOND_CHARACTERS, getHirelingConflicts,
+  ACCESSORIES, DECKS, HIRELING_SETS, LANDMARKS, LANDMARK_MAP, VAGABOND_CHARACTERS, getHirelingConflicts,
 } from '../data/accessories.js';
 import { buildMapSetup, getEligibleLandmarks, getNativeLandmarks, getUnsuitedClearings, pickAndPlaceLandmarks, placeLandmarks, randomizeClearingSuits, randomizeFloodMarkers } from '../utils/mapRandomizer.js';
 
@@ -161,7 +161,42 @@ function pickVagabondCharacters(factionIds, ownedAccessories, excludedCharacters
 }
 
 const LS_KEY = 'rootpick_settings';
-const MAX_HISTORY = 5;
+const MAX_HISTORY = 25;
+
+// Fields captured by undo/redo snapshots: every settings field plus every
+// randomize/reroll output field. Settings are included so undo can restore
+// state even if the user has since toggled an expansion or accessory that
+// the snapshotted result depends on.
+const SNAPSHOT_FIELDS = [
+  // settings
+  'ownedExpansions', 'activeMapExpansions', 'playerCount', 'botCount',
+  'balanceMode', 'requireBalance', 'difficulties', 'mapDifficulties',
+  'advancedMode', 'customMinReach', 'customMaxReach', 'allowedExclusions',
+  'ownedAccessories', 'avoidUnderdogs', 'useHirelings', 'useLandmarks',
+  'landmarkCount', 'forceSuitRandomizationOnAutumn', 'allowOffSuitNatives',
+  'excludedMaps', 'excludedHirelings', 'lockedHirelings', 'bannedHirelings',
+  'excludedCharacters', 'excludedLandmarks',
+  // randomize/reroll outputs
+  'selectedFactions', 'lockedFactions', 'bannedFactions',
+  'selectedMap', 'mapSetup', 'selectedLandmarks',
+  'selectedDeck', 'selectedHirelings', 'hirelingStatuses',
+  'vagabondCharacters',
+];
+
+function snapshot(s) {
+  const snap = {};
+  for (const f of SNAPSHOT_FIELDS) snap[f] = structuredClone(s[f]);
+  return snap;
+}
+
+function pushHistory(s, next) {
+  if (next === s) return next;
+  return {
+    ...next,
+    undoStack: [snapshot(s), ...s.undoStack].slice(0, MAX_HISTORY),
+    redoStack: [],
+  };
+}
 
 function loadSettings() {
   try {
@@ -245,9 +280,11 @@ function getInitialState() {
   const urlState      = decodeFromUrl();
   const savedSettings = loadSettings();
 
+  const allExpansionIds = EXPANSIONS.map(e => e.id);
+  const allAccessoryIds = ACCESSORIES.map(a => a.id);
   const base = {
-    ownedExpansions:     new Set(['base']),
-    activeMapExpansions: new Set(['base']),
+    ownedExpansions:     new Set(allExpansionIds),
+    activeMapExpansions: new Set(allExpansionIds),
     playerCount:         4,
     balanceMode:         'standard',
     requireBalance:      false,
@@ -258,10 +295,10 @@ function getInitialState() {
     customMinReach:      null,
     customMaxReach:      null,
     allowedExclusions:   new Set(),
-    ownedAccessories:    new Set(['standard_deck']),
+    ownedAccessories:    new Set(allAccessoryIds),
     avoidUnderdogs:      false,
     useHirelings:        true,
-    useLandmarks:        false,
+    useLandmarks:        true,
     landmarkCount:       2,
     forceSuitRandomizationOnAutumn: false,
     allowOffSuitNatives:          false,
@@ -281,7 +318,8 @@ function getInitialState() {
     selectedLandmarks:   [],
     mapSetup:            null,
     vagabondCharacters:  {},
-    history:             [],
+    undoStack:           [],
+    redoStack:           [],
     error:               null,
     copied:              false,
   };
@@ -414,7 +452,44 @@ export function useAppState() {
   }, []);
 
   const setForceSuitRandomizationOnAutumn = useCallback(val => {
-    setState(s => ({ ...s, forceSuitRandomizationOnAutumn: val }));
+    setState(s => {
+      const next = { ...s, forceSuitRandomizationOnAutumn: val };
+      // If we're currently displaying a printed-suit map, re-derive the
+      // clearing suits so the toggle takes effect immediately rather than
+      // waiting for the next randomize.
+      const map = s.selectedMap ? MAP_MAP[s.selectedMap] : null;
+      if (!map?.hasPrintedSuits || !s.mapSetup) return next;
+      const totalPlayers = s.playerCount + s.botCount;
+      const lockedSuits = s.mapSetup.lockedClearingSuits ?? {};
+      const lockedIds = new Set(Object.keys(lockedSuits).map(Number));
+      const floodedIds = new Set(Object.values(s.mapSetup.floodMarkers ?? {}));
+      const newSuits = randomizeClearingSuits(map, {
+        forceSuitRandomizationOnAutumn: val,
+        lockedSuits,
+        excludedClearings: floodedIds,
+      });
+      const result = pickAndPlaceLandmarks(map, {
+        playerCount: totalPlayers,
+        ownedAccessories: s.ownedAccessories,
+        excludedLandmarks: s.excludedLandmarks,
+        count: s.selectedLandmarks?.length ?? 0,
+        fixedSelections: s.selectedLandmarks ?? [],
+        suits: newSuits ?? {},
+        lockedClearings: lockedIds,
+        floodedClearings: floodedIds,
+        offSuit: s.allowOffSuitNatives,
+      });
+      return {
+        ...next,
+        selectedLandmarks: result.selectedLandmarks,
+        mapSetup: {
+          ...s.mapSetup,
+          clearingSuits: newSuits,
+          unsuitedSlots: getUnsuitedClearings(map, newSuits),
+          placedLandmarks: result.placedLandmarks,
+        },
+      };
+    });
   }, []);
 
   const setAllowOffSuitNatives = useCallback(val => {
@@ -504,14 +579,6 @@ export function useAppState() {
 
       if (result.error) return { ...s, error: result.error };
 
-      const historyEntry = s.selectedFactions.length > 0
-        ? { selectedFactions: s.selectedFactions, lockedFactions: new Set(s.lockedFactions), bannedFactions: new Set(s.bannedFactions) }
-        : null;
-
-      const newHistory = historyEntry
-        ? [historyEntry, ...s.history].slice(0, MAX_HISTORY)
-        : s.history;
-
       const newFactions = result.factions;
       const hirelingsEnabled = canUseHirelings(s.ownedAccessories);
       const lockedHirelingIds = hirelingsEnabled ? [...s.lockedHirelings].filter(id =>
@@ -521,7 +588,7 @@ export function useAppState() {
         ? pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, s.excludedHirelings, s.bannedHirelings, lockedHirelingIds, new Set(newFactions))
         : [];
 
-      return {
+      return pushHistory(s, {
         ...s,
         selectedFactions:   newFactions,
         lockedFactions:     keepLocked ? s.lockedFactions : new Set(),
@@ -553,9 +620,8 @@ export function useAppState() {
             return prevIdx !== -1 && s.lockedHirelings.has(id) ? s.hirelingStatuses[prevIdx] : null;
           })),
         vagabondCharacters: pickVagabondCharacters(newFactions, s.ownedAccessories, s.excludedCharacters),
-        history:            newHistory,
         error:              null,
-      };
+      });
     });
   }, []);
 
@@ -591,19 +657,12 @@ export function useAppState() {
         if (pick && !used.has(pick)) newChars[newFactionId] = pick;
       }
 
-      const historyEntry = {
-        selectedFactions: s.selectedFactions,
-        lockedFactions: new Set(s.lockedFactions),
-        bannedFactions: new Set(s.bannedFactions),
-      };
-
-      return {
+      return pushHistory(s, {
         ...s,
         selectedFactions:   newSelected,
         vagabondCharacters: newChars,
-        history: [historyEntry, ...s.history].slice(0, MAX_HISTORY),
         error: null,
-      };
+      });
     });
   }, []);
 
@@ -629,12 +688,12 @@ export function useAppState() {
           excludedLandmarks: s.excludedLandmarks,
         } : null,
       });
-      return {
+      return pushHistory(s, {
         ...s,
         selectedMap: newMapId,
         mapSetup: setup,
         selectedLandmarks: setup?.selectedLandmarks ?? [],
-      };
+      });
     });
   }, []);
 
@@ -670,7 +729,7 @@ export function useAppState() {
         floodedClearings: floodedIds,
         offSuit: s.allowOffSuitNatives,
       });
-      return {
+      return pushHistory(s, {
         ...s,
         selectedLandmarks: result.selectedLandmarks,
         mapSetup: {
@@ -679,7 +738,7 @@ export function useAppState() {
           unsuitedSlots: newUnsuited,
           placedLandmarks: result.placedLandmarks,
         },
-      };
+      });
     });
   }, []);
 
@@ -738,7 +797,7 @@ export function useAppState() {
         floodedClearings: floodedIds,
         offSuit: s.allowOffSuitNatives,
       });
-      return {
+      return pushHistory(s, {
         ...s,
         selectedLandmarks: result.selectedLandmarks,
         mapSetup: {
@@ -748,7 +807,7 @@ export function useAppState() {
           unsuitedSlots: getUnsuitedClearings(map, newSuits),
           placedLandmarks: result.placedLandmarks,
         },
-      };
+      });
     });
   }, []);
 
@@ -759,7 +818,7 @@ export function useAppState() {
         (d.accessory === null || s.ownedAccessories.has(d.accessory)) && d.id !== s.selectedDeck
       );
       if (!eligible.length) return s;
-      return { ...s, selectedDeck: eligible[Math.floor(Math.random() * eligible.length)].id };
+      return pushHistory(s, { ...s, selectedDeck: eligible[Math.floor(Math.random() * eligible.length)].id });
     });
   }, []);
 
@@ -767,7 +826,7 @@ export function useAppState() {
     setState(s => {
       const lockedIds = [...s.lockedHirelings].filter(id => s.selectedHirelings.includes(id));
       const newHirelings = pickRandomHirelings(s.ownedExpansions, s.ownedAccessories, s.excludedHirelings, s.bannedHirelings, lockedIds, new Set(s.selectedFactions));
-      return {
+      return pushHistory(s, {
         ...s,
         selectedHirelings: newHirelings,
         hirelingStatuses:  computeHirelingStatuses(newHirelings.length, s.playerCount + s.botCount,
@@ -775,7 +834,7 @@ export function useAppState() {
             const prevIdx = s.selectedHirelings.indexOf(id);
             return prevIdx !== -1 && s.lockedHirelings.has(id) ? s.hirelingStatuses[prevIdx] : null;
           })),
-      };
+      });
     });
   }, []);
 
@@ -800,12 +859,12 @@ export function useAppState() {
       const pick = eligible[Math.floor(Math.random() * eligible.length)];
       const newSelected = s.selectedHirelings.map(id => id === hirelingId ? pick.id : id);
       const newStatuses = [...s.hirelingStatuses]; // statuses stay in same slots
-      return {
+      return pushHistory(s, {
         ...s,
         selectedHirelings: newSelected,
         hirelingStatuses:  newStatuses,
         lockedHirelings:   (() => { const n = new Set(s.lockedHirelings); n.delete(hirelingId); return n; })(),
-      };
+      });
     });
   }, []);
 
@@ -826,11 +885,11 @@ export function useAppState() {
         floodedClearings: floodedIds,
         offSuit: s.allowOffSuitNatives,
       });
-      return {
+      return pushHistory(s, {
         ...s,
         selectedLandmarks: result.selectedLandmarks,
         mapSetup: { ...s.mapSetup, placedLandmarks: result.placedLandmarks },
-      };
+      });
     });
   }, []);
 
@@ -841,27 +900,35 @@ export function useAppState() {
       const totalPlayers = s.playerCount + s.botCount;
       const lockedIds = new Set(Object.keys(s.mapSetup.lockedClearingSuits ?? {}).map(Number));
       const floodedIds = new Set(Object.values(s.mapSetup.floodMarkers ?? {}));
-      // Keep the OTHER selected landmarks fixed; pick a fresh replacement
-      // for the one being re-rolled. The replacement is excluded from being
-      // the same id again so the user actually sees a change.
+      // Keep the OTHER selected landmarks fixed in their existing positions;
+      // pick a fresh replacement for the one being re-rolled. The replacement
+      // is excluded from being the same id again so the user actually sees a
+      // change. Native landmarks (auto-placed by setup) also stay put.
       const others = s.selectedLandmarks.filter(id => id !== landmarkId);
       const exclude = new Set([...s.excludedLandmarks, landmarkId]);
+      const placed = s.mapSetup.placedLandmarks ?? {};
+      const fixedPlacements = {};
+      for (const [id, p] of Object.entries(placed)) {
+        if (id === landmarkId) continue;
+        fixedPlacements[id] = p;
+      }
       const result = pickAndPlaceLandmarks(map, {
         playerCount: totalPlayers,
         ownedAccessories: s.ownedAccessories,
         excludedLandmarks: exclude,
         count: s.landmarkCount,
         fixedSelections: others,
+        fixedPlacements,
         suits: s.mapSetup.clearingSuits ?? {},
         lockedClearings: lockedIds,
         floodedClearings: floodedIds,
         offSuit: s.allowOffSuitNatives,
       });
-      return {
+      return pushHistory(s, {
         ...s,
         selectedLandmarks: result.selectedLandmarks,
         mapSetup: { ...s.mapSetup, placedLandmarks: result.placedLandmarks },
-      };
+      });
     });
   }, []);
 
@@ -878,15 +945,35 @@ export function useAppState() {
       });
       if (!available.length) return s;
       const pick = available[Math.floor(Math.random() * available.length)];
-      return { ...s, vagabondCharacters: { ...s.vagabondCharacters, [factionId]: pick.id } };
+      return pushHistory(s, { ...s, vagabondCharacters: { ...s.vagabondCharacters, [factionId]: pick.id } });
     });
   }, []);
 
   const undo = useCallback(() => {
     setState(s => {
-      if (s.history.length === 0) return s;
-      const [prev, ...rest] = s.history;
-      return { ...s, selectedFactions: prev.selectedFactions, lockedFactions: prev.lockedFactions, bannedFactions: prev.bannedFactions, history: rest, error: null };
+      if (s.undoStack.length === 0) return s;
+      const [prev, ...rest] = s.undoStack;
+      return {
+        ...s,
+        ...prev,
+        undoStack: rest,
+        redoStack: [snapshot(s), ...s.redoStack].slice(0, MAX_HISTORY),
+        error: null,
+      };
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setState(s => {
+      if (s.redoStack.length === 0) return s;
+      const [next, ...rest] = s.redoStack;
+      return {
+        ...s,
+        ...next,
+        redoStack: rest,
+        undoStack: [snapshot(s), ...s.undoStack].slice(0, MAX_HISTORY),
+        error: null,
+      };
     });
   }, []);
 
@@ -989,10 +1076,13 @@ export function useAppState() {
       randomize, rerollSingle, rerollMap, rerollDeck, rerollHirelings,
       rerollClearingSuits, rerollFloodMarkers, toggleClearingLock, clearAllClearingLocks,
       rerollSingleHireling, rerollLandmarks, rerollSingleLandmark, rerollVagabondCharacter,
-      undo, toggleLock, banFaction, unbanFaction,
+      undo, redo, toggleLock, banFaction, unbanFaction,
       toggleLockHireling, banHireling, unbanHireling,
       share, clearError,
-      resetAll: () => { localStorage.removeItem(LS_KEY); window.location.reload(); },
+      resetAll: () => {
+        localStorage.removeItem(LS_KEY);
+        window.location.href = window.location.pathname;
+      },
     },
   };
 }

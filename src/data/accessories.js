@@ -214,7 +214,7 @@ export const HIRELING_SETS = [
     promoted: 'The Exile',
     demoted:  'The Brigand',
     source:   'marauder_hirelings_base',
-    associatedFactions: ['vagabond1', 'vagabond2'], // excluded whenever any Vagabond variant is played
+    associatedFactions: ['vagabond1', 'vagabond2', 'knaves'], // excluded whenever a Vagabond variant or Knaves of the Deepwood is played (Knaves is a vagabond-adjacent faction)
     promotedImg: '/icons/hirelings/cards/the-exile-promoted.webp',
     demotedImg:  '/icons/hirelings/cards/the-brigand-demoted.webp',
   },

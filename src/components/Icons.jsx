@@ -9,6 +9,15 @@ export function UndoIcon({ width = 14, height = 14 }) {
   );
 }
 
+export function RedoIcon({ width = 14, height = 14 }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 7v6h-6" />
+      <path d="M21 13A9 9 0 0 0 5.64 6.64L3 9" />
+    </svg>
+  );
+}
+
 export function ShareIcon({ width = 14, height = 14 }) {
   return (
     <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
